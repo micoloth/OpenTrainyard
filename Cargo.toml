@@ -1,0 +1,35 @@
+[package]
+name = "bevy_game" # ToDo
+version = "0.1.0"
+publish = false
+authors = ["Niklas Eicker <git@nikl.me>"] # ToDo: you are the author ;)
+edition = "2021"
+exclude = ["dist", "build", "assets", "credits"]
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+[features]
+dev = [
+    "bevy/dynamic",
+]
+
+[dependencies]
+bevy = { version = "0.8", default-features = false, features = ["bevy_asset", "bevy_winit", "render", "png", "x11"] }
+bevy_kira_audio = { version = "0.12" }
+bevy_asset_loader = { version = "0.12" }
+rand = { version = "0.8.3" }
+
+# keep the following in sync with Bevy's dependencies
+winit = { version = "0.26.0", default-features = false }
+image = { version = "0.24", default-features = false }
+
+[build-dependencies]
+embed-resource = "1.4"
