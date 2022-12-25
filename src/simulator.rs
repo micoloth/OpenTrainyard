@@ -1,7 +1,5 @@
 
 
-use std::ops::Index;
-
 use bevy::prelude::Component;
 
 
@@ -26,19 +24,19 @@ pub fn mix_colors(c1: Colorz, c2: Colorz) -> Colorz {
 impl VectorOfColorz {
     // Constructor that takes a Vec<Colorz> and returns a VectorOfColorz with the first 12 elements
     // If the vector has <12 elements, the remaining elements are set to None
-    pub fn new(v: Vec<Colorz>) -> VectorOfColorz {
-        let mut v2 = [None; 12];
-        for i in 0..12 {
-            if i < v.len() {
-                v2[i] = Some(v[i]);
-            }
-        }
-        VectorOfColorz {v: v2}
-    }
-    // Default constructor (all nones)
-    pub fn default() -> VectorOfColorz {
-        VectorOfColorz {v: [None; 12]}
-    }
+    // pub fn new(v: Vec<Colorz>) -> VectorOfColorz {
+    //     let mut v2 = [None; 12];
+    //     for i in 0..12 {
+    //         if i < v.len() {
+    //             v2[i] = Some(v[i]);
+    //         }
+    //     }
+    //     VectorOfColorz {v: v2}
+    // }
+    // // Default constructor (all nones)
+    // pub fn default() -> VectorOfColorz {
+    //     VectorOfColorz {v: [None; 12]}
+    // }
     // ITERATOR: iter() on a VectorOfColorz yields each elem in v and STOPS at the first None element
     pub fn iter(&self) -> VectorOfColorzIter {
         VectorOfColorzIter {v: self, i: 0}
@@ -81,26 +79,26 @@ impl<'a> Iterator for VectorOfColorzIter<'a> {
 }
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)] pub struct Track {  pub T_: bool, pub  B_: bool,  pub L_: bool,  pub R_: bool,}
-pub fn track_has(t: Track, s: Side) -> bool {match s { Side::T_ => t.T_, Side::B_ => t.B_, Side::L_ => t.L_, Side::R_ => t.R_,}}
-pub fn get_Track(t: TrackOptions) -> Track {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)] pub struct Track {  pub t_: bool, pub  b_: bool,  pub l_: bool,  pub r_: bool,}
+pub fn track_has(t: Track, s: Side) -> bool {match s { Side::T_ => t.t_, Side::B_ => t.b_, Side::L_ => t.l_, Side::R_ => t.r_,}}
+pub fn get_track(t: TrackOptions) -> Track {
     match t {
-        TrackOptions::TL => Track{T_: true, B_: false, L_: true, R_: false},
-        TrackOptions::TB => Track{T_: true, B_: true, L_: false, R_: false},
-        TrackOptions::TR => Track{T_: true, B_: false, L_: false, R_: true},
-        TrackOptions::LB => Track{T_: false, B_: true, L_: true, R_: false},
-        TrackOptions::LR => Track{T_: false, B_: false, L_: true, R_: true},
-        TrackOptions::BR => Track{T_: false, B_: true, L_: false, R_: true},
-        _ => Track{T_: false, B_: false, L_: false, R_: false},
+        TrackOptions::TL => Track{t_: true, b_: false, l_: true, r_: false},
+        TrackOptions::TB => Track{t_: true, b_: true, l_: false, r_: false},
+        TrackOptions::TR => Track{t_: true, b_: false, l_: false, r_: true},
+        TrackOptions::LB => Track{t_: false, b_: true, l_: true, r_: false},
+        TrackOptions::LR => Track{t_: false, b_: false, l_: true, r_: true},
+        TrackOptions::BR => Track{t_: false, b_: true, l_: false, r_: true},
+        // _ => Track{t_: false, b_: false, l_: false, r_: false},  // HOW DOES IT KNOW i dont need this
     }
 }
-pub fn getTrackOption(t: Track) -> TrackOptions {
-    if (t == Track{T_: true, B_: false, L_: true, R_: false}) {TrackOptions::TL}
-    else if (t == Track{T_: true, B_: true, L_: false, R_: false}) {TrackOptions::TB}
-    else if (t == Track{T_: true, B_: false, L_: false, R_: true}) {TrackOptions::TR}
-    else if (t == Track{T_: false, B_: true, L_: true, R_: false}) {TrackOptions::LB}
-    else if (t == Track{T_: false, B_: false, L_: true, R_: true}) {TrackOptions::LR}
-    else if (t == Track{T_: false, B_: true, L_: false, R_: true}) {TrackOptions::BR}
+pub fn get_track_option(t: Track) -> TrackOptions {
+    if (t == Track{t_: true, b_: false, l_: true, r_: false}) {TrackOptions::TL}
+    else if (t == Track{t_: true, b_: true, l_: false, r_: false}) {TrackOptions::TB}
+    else if (t == Track{t_: true, b_: false, l_: false, r_: true}) {TrackOptions::TR}
+    else if (t == Track{t_: false, b_: true, l_: true, r_: false}) {TrackOptions::LB}
+    else if (t == Track{t_: false, b_: false, l_: true, r_: true}) {TrackOptions::LR}
+    else if (t == Track{t_: false, b_: true, l_: false, r_: true}) {TrackOptions::BR}
     else {panic!("Whaat {:?}", t)}
 }
 #[derive(Debug, Clone, PartialEq, Eq, Copy)] pub enum Tile {
@@ -109,7 +107,7 @@ pub fn getTrackOption(t: Track) -> TrackOptions {
     EmptyTile,
     RockTile,
     StartTile{dir: Side, elems: VectorOfColorz},
-    EndTile{T_: bool, B_: bool, L_: bool, R_: bool, elems: VectorOfColorz},
+    EndTile{t_: bool, b_: bool, l_: bool, r_: bool, elems: VectorOfColorz},
     PaintTile{track: Track, c: Colorz},
     SplitTile{side_in: Side},
 }
@@ -119,19 +117,19 @@ pub fn split_out_sides(s: Side) -> (Side, Side, Side) {
         Side::L_ => (Side::L_, Side::B_, Side::T_), Side::R_ => (Side::R_, Side::T_, Side::B_),
     }
 }
-pub fn EndTile(s: Side, elems: VectorOfColorz) -> Tile {
-    match s {
-        Side::T_ => Tile::EndTile{T_: true, B_: false, L_: false, R_: false, elems: elems},
-        Side::B_ => Tile::EndTile{T_: false, B_: true, L_: false, R_: false, elems: elems},
-        Side::L_ => Tile::EndTile{T_: false, B_: false, L_: true, R_: false, elems: elems},
-        Side::R_ => Tile::EndTile{T_: false, B_: false, L_: false, R_: true, elems: elems},
-    }
-}
+// pub fn end_tile(s: Side, elems: VectorOfColorz) -> Tile {
+//     match s {
+//         Side::T_ => Tile::EndTile{t_: true, b_: false, l_: false, r_: false, elems: elems},
+//         Side::B_ => Tile::EndTile{t_: false, b_: true, l_: false, r_: false, elems: elems},
+//         Side::L_ => Tile::EndTile{t_: false, b_: false, l_: true, r_: false, elems: elems},
+//         Side::R_ => Tile::EndTile{t_: false, b_: false, l_: false, r_: true, elems: elems},
+//     }
+// }
 pub fn has(t: Tile, s: Side) -> bool {
     return match t {
         Tile::SingleTrackTile{track} => track_has(track, s),
         Tile::TrackTile{toptrack, bottrack} => track_has(toptrack, s) || track_has(bottrack, s),
-        Tile::EndTile{ T_:_t_, B_:_b_, L_:_l_, R_:_r_, elems: _} => match s {Side::T_ => _t_, Side::B_ => _b_, Side::L_ => _l_, Side::R_ => _r_,},
+        Tile::EndTile{ t_:_t_, b_:_b_, l_:_l_, r_:_r_, elems: _} => match s {Side::T_ => _t_, Side::B_ => _b_, Side::L_ => _l_, Side::R_ => _r_,},
         Tile::StartTile{dir, elems: _} => s == dir,
         Tile::PaintTile{track, c: _} => track_has(track, s),
         Tile::EmptyTile => {panic!("Undefined Side for Emptytile {:?}", t)},
@@ -173,7 +171,7 @@ pub fn out_side_from_in(in_: Side, t: &Tile) -> Option<Side> {
             }
         },
         Tile::SingleTrackTile{track} => Some(track_out_side_from_in(in_, *track)),
-        Tile::PaintTile{track, c} => Some(track_out_side_from_in(in_, *track)),
+        Tile::PaintTile{track, c: _} => Some(track_out_side_from_in(in_, *track)),
         _ => None,
     }
 }
@@ -211,7 +209,7 @@ pub fn switch_tile(pos: Pos) -> Pos {
         Side::R_ => Pos::new(pos.px+1, pos.py, Side::L_, true),
     }
 }
-pub fn flipExchange(t:  &Tile) -> Tile{
+pub fn flip_exchange(t:  &Tile) -> Tile{
     let mut t2 = t.clone();
     t2 = match t2 {
         Tile::TrackTile{toptrack, bottrack} => {Tile::TrackTile{toptrack: bottrack, bottrack: toptrack}},
@@ -297,7 +295,7 @@ pub fn helper_check_completed(field:&Vec<Vec<Tile>>) -> bool{
     let mut completed = true;
     for row in field{
         for f in row{
-            if let Tile::EndTile{T_: _, B_: _, L_: _, R_: _, elems} = f{
+            if let Tile::EndTile{t_: _, b_: _, l_: _, r_: _, elems} = f{
                 if elems.len() > 0{
                     completed = false;
                 }
@@ -309,7 +307,7 @@ pub fn helper_check_completed(field:&Vec<Vec<Tile>>) -> bool{
 pub fn can_pass_through(t:&Tile, p:Side)-> bool{
     return match t{
         Tile::TrackTile{toptrack:_, bottrack:_} | Tile::SingleTrackTile{track:_} => {has(*t, p)},
-        Tile::PaintTile{c:_, track:_} | Tile::EndTile{T_:_, B_:_, L_:_, R_:_, elems:_} => {has(*t, p)},
+        Tile::PaintTile{c:_, track:_} | Tile::EndTile{t_:_, b_:_, l_:_, r_:_, elems:_} => {has(*t, p)},
         Tile::SplitTile{side_in} => {p == *side_in},
         Tile::StartTile{dir:_, elems:_} | Tile::EmptyTile | Tile::RockTile=> {false},
     } 
@@ -338,7 +336,7 @@ pub fn flip_exchanges(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Til
     let mut new_trains : Vec<Train> = Vec::new();
     let mut new_field: Vec<Vec<Tile>> = field;
     for train in trains{
-        new_field[train.pos.py][train.pos.px] = flipExchange( &new_field[train.pos.py][train.pos.px]);
+        new_field[train.pos.py][train.pos.px] = flip_exchange( &new_field[train.pos.py][train.pos.px]);
         let new_train = Train{c: train.c, pos: switch_tile(train.pos)};
         new_trains.push(new_train);
     };
@@ -405,15 +403,15 @@ pub fn check_arrived_or_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (b
     let mut crashed = false;
     let mut new_trains: Vec<Train> = Vec::new();
     let mut new_field: Vec<Vec<Tile>> = field.clone();
-    for (idx, train) in trains.iter().enumerate(){
+    for (_, train) in trains.iter().enumerate(){
         let tile = &new_field[train.pos.py][train.pos.px];
         if !can_pass_through(tile, train.pos.side) {crashed=true; continue;}
-        if let Tile::EndTile{elems: elems, T_:_t_, B_:_b_, L_:_l_, R_:_r_} = tile {
+        if let Tile::EndTile{elems, t_:_t_, b_:_b_, l_:_l_, r_:_r_} = tile {
             if elems.v.contains(&Some(train.c)){
                 let mut newelems = elems.clone();
                 // Remove the FIRST instance of train.c in elems:
                 newelems.remove(elems.iter().position(|x| x == train.c).unwrap());
-                new_field[train.pos.py][train.pos.px] = Tile::EndTile{elems: newelems, T_: *_t_, B_: *_b_, L_: *_l_, R_: *_r_};
+                new_field[train.pos.py][train.pos.px] = Tile::EndTile{elems: newelems, t_: *_t_, b_: *_b_, l_: *_l_, r_: *_r_};
             }
             else{
                 crashed = true;
@@ -425,7 +423,7 @@ pub fn check_arrived_or_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (b
     };
     let completed = helper_check_completed(&new_field);
 
-    // println!(">>>> {:?}", printTile(&new_field[3][5]));
+    // println!(">>>> {:?}", print_tile(&new_field[3][5]));
     println!("after 4 trains{:?}; Crashed: {:?}, Completed: {:?}", new_trains, crashed, completed);
     return (crashed, completed, new_field, new_trains);
 }
@@ -434,13 +432,13 @@ pub fn check_arrived_or_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (b
 
 pub fn set_towards_side(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>){
     let mut new_trains: Vec<Train> = Vec::new();
-    for (idx, train) in trains.iter().enumerate(){
+    for train in trains.iter(){
         let tile = &field[train.pos.py][train.pos.px];
         match tile{
             Tile::TrackTile{toptrack:_, bottrack:_} | Tile::SingleTrackTile{track:_} => {
                 new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(out_side_from_in(train.pos.side, tile).unwrap())}});
             },
-            Tile::PaintTile{c: c, track:_} => {
+            Tile::PaintTile{c, track:_} => {
                 new_trains.push(Train{c: *c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(out_side_from_in(train.pos.side, tile).unwrap())}});
             },
             Tile::SplitTile{side_in:_} => {
@@ -473,10 +471,10 @@ pub fn check_center_colliding(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec
 
 pub fn do_center_coloring_things(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>){
     let mut new_trains: Vec<Train> = Vec::new();
-    for (idx, train) in trains.iter().enumerate(){
+    for train in trains.iter(){
         let tile = &field[train.pos.py][train.pos.px];
         match tile{
-            Tile::PaintTile{c: c, track:_} => {
+            Tile::PaintTile{c, track:_} => {
                 new_trains.push(Train{c: *c, pos: train.pos});
             },
             Tile::SplitTile{side_in:_} => {
@@ -492,7 +490,7 @@ pub fn do_center_coloring_things(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (
 
 
 
-pub fn runLevel(field:  Vec<Vec<Tile>>, stop_at_crash: bool, deepcopy_: bool, max_run: usize) -> (bool, usize){
+pub fn run_level(field:  Vec<Vec<Tile>>, stop_at_crash: bool, deepcopy_: bool, max_run: usize) -> (bool, usize){
     let mut field = field.clone();
     let mut crashed: bool;
     let mut completed: bool;
@@ -534,14 +532,14 @@ pub fn to_index_trackoptions(s: TrackOptions) -> usize {match s{TrackOptions::TL
 pub fn from_idx_str_trackoptions(s: char) -> TrackOptions {match s {'1' => TrackOptions::TL, '2' => TrackOptions::TB, '3' => TrackOptions::TR, '4' => TrackOptions::LB, '5' => TrackOptions::LR, '6' => TrackOptions::BR, _ => panic!("from_index_TrackOptions")}}
 pub fn c_str_dict (c: Colorz) -> String{match c{ Colorz::BLUE_ => "b".to_string(), Colorz::RED_ => "r".to_string(), Colorz::YELLOW_ => "y".to_string(), Colorz::GREEN_ => "g".to_string(), Colorz::ORANGE_ => "o".to_string(), Colorz::PURPLE_ => "p".to_string(), Colorz::BROWN_ => "z".to_string(),}}
 pub fn reverse_c_str_dict (s: char) -> Colorz{match s{ 'b' => Colorz::BLUE_, 'r' => Colorz::RED_, 'y' => Colorz::YELLOW_, 'g' => Colorz::GREEN_, 'o' => Colorz::ORANGE_, 'p' => Colorz::PURPLE_, 'z' => Colorz::BROWN_, _ => panic!("Invalid color string! {:?}", s),}}
-pub fn str_of_dirs(T_: bool, B_: bool, L_: bool, R_: bool) -> String{return format!("{}{}{}{}", T_ as usize, B_ as usize, L_ as usize, R_ as usize);}
+pub fn str_of_dirs(t_: bool, b_: bool, l_: bool, r_: bool) -> String{return format!("{}{}{}{}", t_ as usize, b_ as usize, l_ as usize, r_ as usize);}
 pub fn dirs_of_str(str: &str) -> (bool, bool, bool, bool){return (str.chars().nth(0).unwrap() == '1', str.chars().nth(1).unwrap() == '1', str.chars().nth(2).unwrap() == '1', str.chars().nth(3).unwrap() == '1');}
 pub fn dir_from_string(s: &str) -> Side{match s{ "t" => Side::T_, "b" => Side::B_, "l" => Side::L_, "r" => Side::R_, _ => panic!("Invalid direction string!"),}}
 pub fn string_from_dir(dir: Side) -> String{match dir{ Side::T_ => "t_".to_string(), Side::B_ => "b_".to_string(), Side::L_ => "l_".to_string(), Side::R_ => "r_".to_string(),}}
 pub fn pos_to_int(s:String, pos:usize)->i32{ let c: char = s.chars().nth(pos).unwrap(); let i: i32 = c.to_digit(10).unwrap() as i32; return i; }
-pub fn pos_to_trackOption(s: String, pos: usize) -> TrackOptions{ let c: char = s.chars().nth(pos).unwrap(); return from_idx_str_trackoptions(c); }
-pub fn pos_to_Side(s: String, pos: usize) -> Side{ let c: char = s.chars().nth(pos).unwrap(); return match c { '1' => Side::T_, '2' => Side::B_, '3' => Side::L_, '4' => Side::R_, _ => panic!("Invalid direction int!"),}; }
-pub fn mk_EndTile((T_, B_, L_, R_): (bool, bool, bool, bool), colors: VectorOfColorz) -> Tile{ return Tile::EndTile{T_: T_, B_: B_, L_: L_, R_: R_, elems: colors}; }
+pub fn pos_to_trackoption(s: String, pos: usize) -> TrackOptions{ let c: char = s.chars().nth(pos).unwrap(); return from_idx_str_trackoptions(c); }
+pub fn pos_to_side(s: String, pos: usize) -> Side{ let c: char = s.chars().nth(pos).unwrap(); return match c { '1' => Side::T_, '2' => Side::B_, '3' => Side::L_, '4' => Side::R_, _ => panic!("Invalid direction int!"),}; }
+pub fn mk_end_tile((t_, b_, l_, r_): (bool, bool, bool, bool), colors: VectorOfColorz) -> Tile{ return Tile::EndTile{t_: t_, b_: b_, l_: l_, r_: r_, elems: colors}; }
 pub fn colorz_to_long_str(color: Colorz) -> String { match color { Colorz::RED_ => "red".to_string(), Colorz::BLUE_ => "blue".to_string(), Colorz::GREEN_ => "green".to_string(), Colorz::YELLOW_ => "yellow".to_string(), Colorz::ORANGE_ => "orange".to_string(), Colorz::PURPLE_ => "purple".to_string(), Colorz::BROWN_ => "brown".to_string(), } }
 
 
@@ -555,54 +553,54 @@ fn colors_from_string(s: &str) -> VectorOfColorz{
 }
 
 
-pub fn parseTile(t: &str) -> Tile{
+pub fn parse_tile(t: &str) -> Tile{
     if t == "00" {return Tile::EmptyTile;}
     else if t == "MM" {return Tile::RockTile;}
-    else if t.chars().nth(0).unwrap() == 'E' {return mk_EndTile(dirs_of_str(&t[1..5]), colors_from_string(&t[6..t.len()]));}
+    else if t.chars().nth(0).unwrap() == 'E' {return mk_end_tile(dirs_of_str(&t[1..5]), colors_from_string(&t[6..t.len()]));}
     else if t.chars().nth(0).unwrap() == 'S' {return Tile::StartTile{dir: dir_from_string(&t[1..2]), elems: colors_from_string(&t[3..t.len()])};}
-    else if t.chars().nth(0).unwrap() == 'D' {return Tile::SplitTile{side_in: pos_to_Side(t.to_string(), 1)};}
-    else if t.chars().nth(0).unwrap() == 'b' {return Tile::PaintTile{track: get_Track(pos_to_trackOption(t.to_string(), 1)), c: Colorz::BLUE_};}
-    else if t.chars().nth(0).unwrap() == 'r' {return Tile::PaintTile{track: get_Track(pos_to_trackOption(t.to_string(), 1)), c: Colorz::RED_};}
-    else if t.chars().nth(0).unwrap() == 'y' {return Tile::PaintTile{track: get_Track(pos_to_trackOption(t.to_string(), 1)), c: Colorz::YELLOW_};}
-    else if t.chars().nth(0).unwrap() == 'g' {return Tile::PaintTile{track: get_Track(pos_to_trackOption(t.to_string(), 1)), c: Colorz::GREEN_};}
-    else if t.chars().nth(0).unwrap() == 'o' {return Tile::PaintTile{track: get_Track(pos_to_trackOption(t.to_string(), 1)), c: Colorz::ORANGE_};}
-    else if t.chars().nth(0).unwrap() == 'p' {return Tile::PaintTile{track: get_Track(pos_to_trackOption(t.to_string(), 1)), c: Colorz::PURPLE_};}
-    else if t.chars().nth(0).unwrap() == 'z' {return Tile::PaintTile{track: get_Track(pos_to_trackOption(t.to_string(), 1)), c: Colorz::BROWN_};}
-    else if t.chars().nth(0).unwrap() == '0' {return Tile::SingleTrackTile{track: get_Track(pos_to_trackOption(t.to_string(), 1))};}
-    else {return Tile::TrackTile{toptrack: get_Track(pos_to_trackOption(t.to_string(), 0)), bottrack: get_Track(pos_to_trackOption(t.to_string(), 1))};}
+    else if t.chars().nth(0).unwrap() == 'D' {return Tile::SplitTile{side_in: pos_to_side(t.to_string(), 1)};}
+    else if t.chars().nth(0).unwrap() == 'b' {return Tile::PaintTile{track: get_track(pos_to_trackoption(t.to_string(), 1)), c: Colorz::BLUE_};}
+    else if t.chars().nth(0).unwrap() == 'r' {return Tile::PaintTile{track: get_track(pos_to_trackoption(t.to_string(), 1)), c: Colorz::RED_};}
+    else if t.chars().nth(0).unwrap() == 'y' {return Tile::PaintTile{track: get_track(pos_to_trackoption(t.to_string(), 1)), c: Colorz::YELLOW_};}
+    else if t.chars().nth(0).unwrap() == 'g' {return Tile::PaintTile{track: get_track(pos_to_trackoption(t.to_string(), 1)), c: Colorz::GREEN_};}
+    else if t.chars().nth(0).unwrap() == 'o' {return Tile::PaintTile{track: get_track(pos_to_trackoption(t.to_string(), 1)), c: Colorz::ORANGE_};}
+    else if t.chars().nth(0).unwrap() == 'p' {return Tile::PaintTile{track: get_track(pos_to_trackoption(t.to_string(), 1)), c: Colorz::PURPLE_};}
+    else if t.chars().nth(0).unwrap() == 'z' {return Tile::PaintTile{track: get_track(pos_to_trackoption(t.to_string(), 1)), c: Colorz::BROWN_};}
+    else if t.chars().nth(0).unwrap() == '0' {return Tile::SingleTrackTile{track: get_track(pos_to_trackoption(t.to_string(), 1))};}
+    else {return Tile::TrackTile{toptrack: get_track(pos_to_trackoption(t.to_string(), 0)), bottrack: get_track(pos_to_trackoption(t.to_string(), 1))};}
 }
 
-pub fn parseMap(map_: Vec<String>) -> Vec<Vec<Tile>>{
+pub fn parse_map(map_: Vec<String>) -> Vec<Vec<Tile>>{
     let mut m: Vec<Vec<Tile>> = Vec::new();
     for row in map_{
         let mut row_vec: Vec<Tile> = Vec::new();
         for s in row.split(" "){
-            row_vec.push(parseTile(s));
+            row_vec.push(parse_tile(s));
         }
         m.push(row_vec);
     }
     return m;
 }
 
-pub fn printTile(t: &Tile) -> String{
+pub fn print_tile(t: &Tile) -> String{
     match t{
         Tile::EmptyTile => return "00".to_string(),
         Tile::RockTile => return "MM".to_string(),
         Tile::StartTile{dir, elems} => return format!("S{}{}", string_from_dir(*dir), elems.iter().map(|x| c_str_dict(x)).collect::<String>()),
-        Tile::EndTile{T_, B_, L_, R_, elems} => return format!("E{}_{}", str_of_dirs(*T_, *B_, *L_, *R_), elems.iter().map(|x| c_str_dict(x)).collect::<String>()),
+        Tile::EndTile{t_, b_, l_, r_, elems} => return format!("E{}_{}", str_of_dirs(*t_, *b_, *l_, *r_), elems.iter().map(|x| c_str_dict(x)).collect::<String>()),
         Tile::SplitTile{side_in} => return format!("D{}", to_index_side(*side_in)),
-        Tile::PaintTile{track, c} => return format!("{}{}", c_str_dict(*c), to_index_trackoptions(getTrackOption(*track))),
-        Tile::SingleTrackTile{track} => return format!("{}{}", "0", to_index_trackoptions(getTrackOption(*track))),
-        Tile::TrackTile{toptrack, bottrack} => return format!("{}{}", to_index_trackoptions(getTrackOption(*toptrack)), to_index_trackoptions(getTrackOption(*bottrack))),
+        Tile::PaintTile{track, c} => return format!("{}{}", c_str_dict(*c), to_index_trackoptions(get_track_option(*track))),
+        Tile::SingleTrackTile{track} => return format!("{}{}", "0", to_index_trackoptions(get_track_option(*track))),
+        Tile::TrackTile{toptrack, bottrack} => return format!("{}{}", to_index_trackoptions(get_track_option(*toptrack)), to_index_trackoptions(get_track_option(*bottrack))),
     }
 }
 
-pub fn printMap(map_: &Vec<Vec<Tile>>) -> Vec<String>{
+pub fn print_map(map_: &Vec<Vec<Tile>>) -> Vec<String>{
     let mut map_str: Vec<String> = Vec::new();
     for i in 0..7{
         let mut row_str: String = String::new();
         for j in 0..7{
-            row_str.push_str(&printTile(&map_[i][j]));
+            row_str.push_str(&print_tile(&map_[i][j]));
             row_str.push_str(" ");
         }
         map_str.push(row_str);
@@ -610,8 +608,8 @@ pub fn printMap(map_: &Vec<Vec<Tile>>) -> Vec<String>{
     return map_str;
 }
 
-pub fn prettyPrintMap(map_: &Vec<Vec<Tile>>){
-    let reprmap = printMap(map_);
+pub fn pretty_print_map(map_: &Vec<Vec<Tile>>){
+    let reprmap = print_map(map_);
     let res = reprmap.join("\n");
     println!("{}", res);
 }

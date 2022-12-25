@@ -16,9 +16,9 @@ pub fn test(){
                                 "00 00 00 00 00 00 00".to_string(),
                                 "00 00 00 00 00 00 00".to_string(),
                                 "00 00 00 00 00 00 00".to_string()];
-    let map = parseMap(map_s);
-    prettyPrintMap(&map);
-    let res = runLevel(map, true, true, 20);
+    let map = parse_map(map_s);
+    pretty_print_map(&map);
+    let res = run_level(map, true, true, 20);
     println!("res:  (WON, steps) {:?}", res);
     assert! (res.0 == true);
 
@@ -31,9 +31,9 @@ pub fn test(){
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 E1000_gg 00 00 00".to_string(),
                                 "00 00 00 00 00 00 00".to_string()];
-    let map = parseMap(map_s);
-    prettyPrintMap(&map);
-    let res = runLevel(map, true, true, 20);
+    let map = parse_map(map_s);
+    pretty_print_map(&map);
+    let res = run_level(map, true, true, 20);
     println!("res: (WON, steps) {:?}", res);
     assert! (res.0 == true);
 
@@ -46,9 +46,9 @@ pub fn test(){
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 St_yy 00 00 00".to_string()];
-    let map = parseMap(map_s);
-    prettyPrintMap(&map);
-    let res = runLevel(map, true, true, 20);
+    let map = parse_map(map_s);
+    pretty_print_map(&map);
+    let res = run_level(map, true, true, 20);
     println!("res:  (WON, steps) {:?}", res);
     assert! (res.0 == true);
     
@@ -61,9 +61,9 @@ pub fn test(){
                                 "00 00 00 23 01 00 00".to_string(),
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 St_y 00 00 00".to_string()];
-    let map = parseMap(map_s);
-    prettyPrintMap(&map);
-    let res = runLevel(map, true, true, 20);
+    let map = parse_map(map_s);
+    pretty_print_map(&map);
+    let res = run_level(map, true, true, 20);
     println!("res:  (WON, steps) {:?}", res);
     assert! (res.0 == true);
 
@@ -76,9 +76,9 @@ pub fn test(){
                                 "00 00 00 23 00 00 00".to_string(),
                                 "00 00 00 St_y 00 00 00".to_string(),
                                 "00 00 00 00 00 00 00".to_string()];
-    let map = parseMap(map_s);
-    prettyPrintMap(&map);
-    let res = runLevel(map, true, true, 20);
+    let map = parse_map(map_s);
+    pretty_print_map(&map);
+    let res = run_level(map, true, true, 20);
     println!("res:  (WON, steps) {:?}", res);
     assert! (res.0 == true);
 
@@ -91,9 +91,9 @@ pub fn test(){
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 St_y 00 00 00".to_string()];
-    let map = parseMap(map_s);
-    prettyPrintMap(&map);
-    let res = runLevel(map, true, true, 20);
+    let map = parse_map(map_s);
+    pretty_print_map(&map);
+    let res = run_level(map, true, true, 20);
     println!("res:  (WON, steps) {:?}", res);
     assert! (res.0 == true);
     
@@ -106,9 +106,9 @@ pub fn test(){
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 St_y 00 00 00".to_string()];
-    let map = parseMap(map_s);
-    prettyPrintMap(&map);
-    let res = runLevel(map, true, true, 20);
+    let map = parse_map(map_s);
+    pretty_print_map(&map);
+    let res = run_level(map, true, true, 20);
     println!("res:  (WON, steps) {:?}", res);
     assert! (res.0 == true);
 
@@ -121,9 +121,9 @@ pub fn test(){
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 E1000_y 00 00 00".to_string()];
-    let map = parseMap(map_s);
-    prettyPrintMap(&map);
-    let res = runLevel(map, true, true, 20);
+    let map = parse_map(map_s);
+    pretty_print_map(&map);
+    let res = run_level(map, true, true, 20);
     println!("res:  (WON, steps) {:?}", res);
     assert! (res.0 == true);
 
@@ -136,9 +136,9 @@ pub fn test(){
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 02 00 00 00".to_string(),
                                 "00 00 00 St_o 00 00 00".to_string()];
-    let map = parseMap(map_s);
-    prettyPrintMap(&map);
-    let res = runLevel(map, true, true, 20);
+    let map = parse_map(map_s);
+    pretty_print_map(&map);
+    let res = run_level(map, true, true, 20);
     println!("res:  (WON, steps) {:?}", res);
 
                                 

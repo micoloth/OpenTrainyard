@@ -26,6 +26,12 @@ pub struct PlayerPlugin;
 pub struct Player;
 
 
+mod simulator;
+use simulator::*;
+
+mod tests;
+use tests::test;
+
 use crate::utils::Actions;
 
 fn move_player(
@@ -109,6 +115,7 @@ impl Plugin for GamePlugin {
 
 
 fn main() {
+    test();
     App::new()
         .insert_resource(Msaa { samples: 1 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
