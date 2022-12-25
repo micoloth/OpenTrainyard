@@ -15,7 +15,7 @@ mod loading;
 mod menu;
 mod player;
 
-use crate::actions::ActionsPlugin;
+use crate::player::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
