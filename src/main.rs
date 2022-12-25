@@ -198,6 +198,8 @@ pub fn add_color_minitiles_children(child_cmd: &mut ChildBuilder, elems: VectorO
 fn get_transform_and_texture(t :Tile, assets: &HashMap<String, Handle<Image>>) -> (Handle<Image>, Transform){
     let mut transform = Transform::from_xyz(0., 0., 1.);
     let texture_path: String;
+    // Print the tile:
+    println!(">>>>>>>>>>>>Tile: {}", print_tile(&t));
     let (texture_path, transform): (String, Transform) = match t {
         Tile::SingleTrackTile{track:_} | Tile::TrackTile { toptrack:_, bottrack:_ } => { 
             match &print_tile(&t)[..] { 
@@ -420,7 +422,8 @@ fn spawn_tile(
     // mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities), With<Board>>,
     mut evt: EventReader<TileSpawnEvent>,
     textures: Res<TextureAssets>) {
-for trigger_event in evt.iter() {
+    for trigger_event in evt.iter() {
+    println!("Received!!!!!");
     // for (board_id, board_dimensions, mut board_entities) in board_q.iter_mut() {
         // let mut board_entity = commands.entity(board_id);  // Get entity by id:
         // if board is not None:
@@ -443,7 +446,7 @@ for trigger_event in evt.iter() {
 
         // Make a &HashMap<String, Handle<Image>> from "06" => to br
         let mut asset_map: HashMap<String, Handle<Image>> = HashMap::new();
-        asset_map.insert("06".to_string(), textures.br.clone());
+        asset_map.insert("br.png".to_string(), textures.br.clone());
         
         // let child_id=  make_tile(t, &mut commands, &board_assets_map.assets, size, coordinates);
         let child_id=  make_tile(t, &mut commands, &asset_map, size, coordinates);
@@ -486,11 +489,14 @@ fn move_player(
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(GameState::Playing).with_system(spawn_player))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(move_player));
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(move_player))
+            .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(spawn_tile));
     }
 }
 
-fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
+fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>, 
+    mut tile_spawn_event_writer: EventWriter<TileSpawnEvent>
+) {
     let mut x: EntityCommands = commands
         .spawn_bundle(SpriteBundle {
             texture: textures.e_elem_4_green.clone(),
@@ -498,6 +504,16 @@ fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
             ..Default::default()
         });
         x.insert(Player);
+
+        // Spawn an event creating a Tile at (0,0):
+        let tile_spawn_event = TileSpawnEvent {
+            x: 0,
+            y: 0,
+            new_tile: Tile::SingleTrackTile { track: get_track(TrackOptions::BR), },
+        };
+        tile_spawn_event_writer.send(tile_spawn_event);
+        println!(">> Spawned player");
+    
 }
 
 
@@ -532,17 +548,17 @@ impl Plugin for GamePlugin {
             .add_plugin(InternalAudioPlugin)
             .add_plugin(PlayerPlugin);
 
-        #[cfg(debug_assertions)]
-        {
-            app.add_plugin(FrameTimeDiagnosticsPlugin::default())
-                .add_plugin(LogDiagnosticsPlugin::default());
-        }
+        // #[cfg(debug_assertions)]
+        // {
+        //     app.add_plugin(FrameTimeDiagnosticsPlugin::default())
+        //         .add_plugin(LogDiagnosticsPlugin::default());
+        // }
     }
 }
 
 
 fn main() {
-    test();
+    // test();
     App::new()
         .insert_resource(Msaa { samples: 1 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
@@ -556,6 +572,9 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(GamePlugin)
         .add_startup_system(set_window_icon)
+
+        .add_event::<TileSpawnEvent>()
+        
         .run();
 }
 
