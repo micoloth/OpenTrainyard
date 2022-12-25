@@ -1,0 +1,1458 @@
+use bevy::{log, transform};
+use bevy::log::{Level, LogSettings};
+use bevy::prelude::*;
+use bevy::prelude::Vec3;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::process::Child;
+// use bevy::ecs::schedule::StateData;
+use bevy::prelude::Vec2;
+use bevy::core::FixedTimestep;  // 0.9: Thi is in Time, not in core
+use bevy::math::Vec3Swizzles;
+use bevy::prelude::Component;
+use std::fmt::{self, Display, Formatter};
+use std::ops::{Add, Sub};
+
+mod simulator;
+use simulator::*;
+
+// mod map_printer;
+// use map_printer::*;
+// use map_printer::add_color_minitiles;
+
+// REMEMBER: with >> inster() <<, YOU CAN ALWAYS INSERT A COMPONENT, EVEN IF IT IS NOT PRESENT IN THE ENTITY !!! IT's PURPOSEFULLY VERY SIMPLE !!!
+
+
+mod tests_;
+use tests_::test;
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// COMPONENTS
+/////////////////////////////////////////////////////////////////////////////////////
+
+use bevy::prelude::*;
+use bevy::ecs::system::EntityCommands;
+
+// use staticvec::{staticvec, StaticVec};
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct Bounds2 {
+    pub position: Vec2,
+    pub size: Vec2,
+}
+impl Bounds2 {
+    #[inline]
+    #[must_use]
+    pub fn in_bounds(&self, coords: Vec2) -> bool {
+        coords.x >= self.position.x
+            && coords.y >= self.position.y
+            && coords.x <= self.position.x + self.size.x
+            && coords.y <= self.position.y + self.size.y
+    }
+}
+
+// Computes a tile size that matches the window according to the tile map size
+fn adaptative_tile_size(window: &Window, (min, max): (f32, f32), (width, height): (u16, u16), ) -> f32 {
+    let max_width = window.width() / width as f32;
+    let max_heigth = window.height() / height as f32;
+    max_width.min(max_heigth).clamp(min, max)
+}
+
+
+#[cfg_attr(feature = "debug", derive(bevy_inspector_egui::Inspectable))]
+#[derive(Debug, Copy, Default, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component)]
+pub struct Coordinates {
+    pub x: u16,
+    pub y: u16,
+}
+
+impl From<(u16, u16)> for Coordinates {
+    fn from((x, y): (u16, u16)) -> Self {
+        Self { x, y }
+    }
+}
+
+impl Add for Coordinates {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl Add<(i16, i16)> for Coordinates {
+    type Output = Self;
+
+    fn add(self, (x, y): (i16, i16)) -> Self::Output {
+        let x = ((self.x as i16) + x as i16) as u16;
+        let y = ((self.y as i16) + y as i16) as u16;
+        Self { x, y }
+    }
+}
+
+impl Sub for Coordinates {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x.saturating_sub(rhs.x),
+            y: self.y.saturating_sub(rhs.y),
+        }
+    }
+}
+
+// Assets for the trains. Must be used as a resource.
+#[derive(Debug, Clone, Default)]
+pub struct TrainAssets {
+    train_blue: Handle<Image>,
+    train_red: Handle<Image>,
+    train_yellow: Handle<Image>,
+    train_orange: Handle<Image>,
+    train_green: Handle<Image>,
+    train_purple: Handle<Image>,
+    train_brown: Handle<Image>,
+}
+fn get_train_assets(asset_server: &Res<AssetServer>) -> TrainAssets {
+    return TrainAssets {
+        train_blue: asset_server.load("samples/s_arrow_elem_rigth.png"),  // "samples/train_blue.png"),
+        train_red: asset_server.load("samples/s_arrow_elem_rigth.png"),  // "samples/train_red.png"),
+        train_yellow: asset_server.load("samples/s_arrow_elem_rigth.png"),  // "samples/train_yellow.png"),
+        train_orange: asset_server.load("samples/s_arrow_elem_rigth.png"),  // "samples/train_orange.png"),
+        train_green: asset_server.load("samples/s_arrow_elem_rigth.png"),  // "samples/train_green.png"),
+        train_purple: asset_server.load("samples/s_arrow_elem_rigth.png"),  // "samples/train_purple.png"),
+        train_brown: asset_server.load("samples/s_arrow_elem_rigth.png"),  // "samples/train_brown.png"),
+    }
+}
+fn get_train_image(train_assets: &TrainAssets, color: Colorz) -> Handle<Image> {
+    match color {
+        Colorz::RED_ => train_assets.train_red.clone(),
+        Colorz::BLUE_ => train_assets.train_blue.clone(),
+        Colorz::YELLOW_ => train_assets.train_yellow.clone(),
+        Colorz::ORANGE_ => train_assets.train_orange.clone(),
+        Colorz::GREEN_ => train_assets.train_green.clone(),
+        Colorz::PURPLE_ => train_assets.train_purple.clone(),
+        Colorz::BROWN_ => train_assets.train_brown.clone(),
+    }
+}
+
+
+
+// Assets for the board. Must be used as a resource.
+//
+// Use the loader for partial setup
+#[derive(Debug, Clone)]
+pub struct BoardAssetsMap {
+    pub assets: HashMap<String, Handle<Image>>,
+}
+
+pub fn get_assets_in_a_hashmap(asset_server: &Res<AssetServer>)-> BoardAssetsMap {
+    let prefixes = vec!["s", "e"];
+    let dimensions = vec![1, 9, 4];
+    let colors = vec!["blue", "brown", "green", "orange", "purple", "red", "yellow"];
+    let mut assets: HashMap<String, Handle<Image>> = HashMap::new();
+    for prefix in prefixes.iter() {
+        for dimension in dimensions.iter() {
+            for color in colors.iter() {
+                let key = format!("{}_elem_{}_{}.png", prefix, dimension, color);
+                let value = format!("samples/{}_elem_{}_{}.png", prefix, dimension, color);
+                // Check if file in "value" exists:
+                // Concatenate "assets/" with "value":
+                let asset_path = format!("assets/{}", value);
+                if std::path::Path::new(&asset_path).exists() {
+                    assets.insert(key, asset_server.load(&value));
+                }
+            }
+        }
+    }
+    assets.insert("br_over_tb.png".to_string(), asset_server.load("samples/br_over_tb.png"));
+    assets.insert("br.png".to_string(), asset_server.load("samples/br.png"));
+    assets.insert("e_base.png".to_string(), asset_server.load("samples/e_base.png"));
+    assets.insert("e_funnel_elem_rigth.png".to_string(), asset_server.load("samples/e_funnel_elem_rigth.png"));
+    assets.insert("empty.png".to_string(), asset_server.load("samples/empty.png"));
+    assets.insert("lr_over_tb.png".to_string(), asset_server.load("samples/lr_over_tb.png"));
+    assets.insert("p_blue.png".to_string(), asset_server.load("samples/p_blue.png"));
+    assets.insert("p_green.png".to_string(), asset_server.load("samples/p_green.png"));
+    assets.insert("p_orange.png".to_string(), asset_server.load("samples/p_orange.png"));
+    assets.insert("p_outer_cur_br.png".to_string(), asset_server.load("samples/p_outer_cur_br.png"));
+    assets.insert("p_outer_str_lr.png".to_string(), asset_server.load("samples/p_outer_str_lr.png"));
+    assets.insert("p_purple.png".to_string(), asset_server.load("samples/p_purple.png"));
+    assets.insert("p_red.png".to_string(), asset_server.load("samples/p_red.png"));
+    assets.insert("p_yellow.png".to_string(), asset_server.load("samples/p_yellow.png"));
+    assets.insert("rock.png".to_string(), asset_server.load("samples/rock.png"));
+    assets.insert("s_arrow_elem_rigth.png".to_string(), asset_server.load("samples/s_arrow_elem_rigth.png"));
+    assets.insert("s_base.png".to_string(), asset_server.load("samples/s_base.png"));
+    assets.insert("scissor_u.png".to_string(), asset_server.load("samples/scissor_u.png"));
+    assets.insert("tb_over_br.png".to_string(), asset_server.load("samples/tb_over_br.png"));
+    assets.insert("tb.png".to_string(), asset_server.load("samples/tb.png"));
+    assets.insert("tr_over_tl.png".to_string(), asset_server.load("samples/tr_over_tl.png"));
+    assets.insert("track_funny_tr_bl.png".to_string(), asset_server.load("samples/track_funny_tr_bl.png"));
+
+    let res =  BoardAssetsMap{assets: assets};
+    // println!("assets keys are: {:?}", res.assets.keys());
+    return res;
+}
+
+// let mut v = StaticVec::<usize, 4>::new();
+
+pub fn get_poss_minitile_1() -> Vec<usize> {vec![11,]}
+pub fn get_poss_minitile_4() -> Vec<usize> {vec![11, 25,]}
+pub fn get_poss_minitile_9() -> Vec<usize> {vec![11, 20, 29,]}
+
+pub fn get_dimension_minitile_1() -> u32 {27}
+pub fn get_dimension_minitile_4() -> u32 {12}
+pub fn get_dimension_minitile_9() -> u32 {8}
+
+
+pub fn flipmatrix_vertical(mut t: Transform) -> Transform {
+    t = t.clone();
+    t.scale.y *= -1.;
+    return t;
+}
+pub fn flipmatrix_horizontal(mut t: Transform) -> Transform {
+    t.scale.x *= -1.;
+    return t;
+}
+pub fn rotate_tile(mut t: Transform, angle: f32) -> Transform {
+    t.rotate(Quat::from_rotation_z(angle));  // std::f32::consts::PI / 2.
+    return t;
+}
+pub fn rotate_tile_90(mut t: Transform, times: i16) -> Transform {
+    t.rotate(Quat::from_rotation_z(std::f32::consts::PI / 2. * times as f32));  // std::f32::consts::PI / 2.
+    return t;
+}
+
+
+pub fn add_sprite_on_sprite(mut sprit_parent: EntityCommands, child_asset: Handle<Image>, x: f32, y: f32, big_tile_size: f32, small_tile_size: f32) {
+
+}
+
+// Julia code:
+// function add_color_minitiles!(base, elems, is_start)
+//     # Add the colors:
+//     # Check if length(t.elems) fits in 1, 4  or 9:
+//     prefix = if is_start "s" else "e" end
+//     (N, poss) = if length(elems) == 1 (1, poss_minitile_1)
+//         elseif length(elems) <= 4 (4, poss_minitile_4)
+//         elseif length(elems) <= 9 (9, poss_minitile_9)
+//         else raise("Too many elements in StartTile")
+//     end
+//     for (i, pos_y) in enumerate(poss)
+//         for (j, pos_x) in enumerate(poss)
+//             n_to_get = (i-1)*length(poss) + j
+//             if n_to_get <= length(elems)
+//                 minitile =  samples["$(prefix)_elem_$(N)_$(string(elems[n_to_get])[1:end-1]).png"]
+//                 base[pos_y:(pos_y+size(minitile)[1]-1), pos_x:(pos_x+size(minitile)[2]-1)] = minitile
+//             else
+//                 break
+//             end
+//         end
+//     end
+// end
+// Turn Julia code into Rust code: 
+// Julia to Rust:
+pub fn add_color_minitiles_children(child_cmd: &mut ChildBuilder, elems: VectorOfColorz, is_start: bool, assets: &HashMap<String, Handle<Image>>, big_tile_size: f32) {
+    let scale = big_tile_size / 46.;
+    let (N, poss, small_tile_size) = if elems.len() == 1 { (1, get_poss_minitile_1(), get_dimension_minitile_1()) }
+        else if elems.len() <= 4 { (4, get_poss_minitile_4(), get_dimension_minitile_4()) }
+        else if elems.len() <= 9 { (9, get_poss_minitile_9(), get_dimension_minitile_9()) }
+        else { panic!("Too many elements in StartTile"); };
+    for (i, y) in poss.iter().enumerate() {
+        for (j, x) in poss.iter().enumerate() {
+            let n_to_get = i*poss.len() + j;
+            if n_to_get < elems.len() {
+                let pos_x = - (23. - (*x as f32) - (small_tile_size as f32)/2.) * scale;
+                let pos_y = (23. - (*y as f32) - (small_tile_size as f32)/2.) * scale;
+                let prefix = if is_start {"s"} else {"e"};
+                let minitile = format!("{}_elem_{}_{}.png", prefix, N, colorz_to_long_str(elems.v[n_to_get].unwrap()));
+                let child_asset = assets.get(&minitile).unwrap();
+                    child_cmd.spawn_bundle(SpriteBundle {
+                        sprite: Sprite {
+                            custom_size: Some(Vec2::splat(small_tile_size as f32)),
+                            ..Default::default()
+                        },
+                        transform: Transform::from_xyz(pos_x, pos_y, 1.),
+                        texture: (*child_asset).clone(),
+                        global_transform: Default::default(), visibility: Default::default(),
+                    });
+                } else {
+                    break;
+                }
+            }
+        }
+
+}
+
+
+
+// Julia code:
+// function add_arrow_minitile!(base, dir)
+//     arrow = samples["s_arrow_elem_rigth.png"]
+//     # Add the arrow:
+//     if dir == r_
+//         base[13:(46-13+1), (46-6+1):end] = arrow
+//     elseif dir == l_
+//         base[13:(46-13+1), 1:6] = flipmatrix_horizontal(arrow)
+//     elseif dir == t_
+//         base[1:6, 13:(46-13+1)] = rotate_tile(arrow, 1)
+//     elseif dir == b_
+//         base[(46-6+1):end, 13:(46-13+1)] = rotate_tile(arrow, -1)
+//     end
+// end
+// Turn Julia code into Rust code: 
+// Julia to Rust:
+
+fn add_arrow_minitile_children(child_cmd: &mut ChildBuilder, dir: Side, assets: &HashMap<String, Handle<Image>>, big_tile_size: f32) {
+    let scale = big_tile_size / 46.;
+    let arrow = assets.get("s_arrow_elem_rigth.png").unwrap();
+    let pos_x: f32;
+    let pos_y: f32;
+    let mut t = Transform::from_xyz(0., 0., 1.);
+    if dir == Side::R_ {
+        t = flipmatrix_horizontal(t);
+        pos_x = - (23. - 6. - 6./2.) * scale;
+        pos_y = (23. - 23. - 6./2.) * scale;
+    } else if dir == Side::T_ {
+        t = rotate_tile(t, std::f32::consts::PI / 2.);
+        pos_x = - (23. - 23. - 6./2.) * scale;
+        pos_y = (23. - 6. - 6./2.) * scale;
+    } else if dir == Side::B_ {
+        t = rotate_tile(t, -std::f32::consts::PI / 2.);
+        pos_x = - (23. - 23. - 6./2.) * scale;
+        pos_y = (23. - 46. - 6./2.) * scale;
+    }
+    else {
+        pos_x = - (23. - 46. + 6. - 6./2.) * scale;
+        pos_y = (23. - 23. - 6./2.) * scale;
+    }
+    // Translate t to the right position:
+    t.translation.x = pos_x;
+    t.translation.y = pos_y;
+    child_cmd.spawn_bundle(SpriteBundle {
+        sprite: Sprite {
+            custom_size: Some(Vec2::new(6., 46.-26.)),
+            ..Default::default()
+        },
+        transform: t,
+        texture: (*arrow).clone(),
+        global_transform: Default::default(), visibility: Default::default(),
+    });
+}
+
+
+
+
+// Julia code:
+// function add_funnels_minitile!(base, t_, b_, l_, r_)
+//     funnel = samples["e_funnel_elem_rigth.png"]
+//     # Add the funnel:
+//     if r_ base[:, (46-8+2):46] = funnel end
+//     if l_ base[:, 1:7] = flipmatrix_horizontal(funnel) end
+//     if t_ base[1:7, :] = rotate_tile(funnel, 1) end
+//     if b_ base[(46-8+2):46, :] = rotate_tile(funnel, -1) end
+// end
+// Turn Julia code into Rust code: 
+// Julia to Rust:
+
+fn add_funnels_minitile_children(child_cmd: &mut ChildBuilder, t_: bool, b_: bool, l_: bool, r_: bool, assets: &HashMap<String, Handle<Image>>, big_tile_size: f32) {
+    let scale = big_tile_size / 46.;
+    let funnel = assets.get("e_funnel_elem_rigth.png").unwrap();
+    let mut t = Transform::from_xyz(0., 0., 1.);
+    let pos_x: f32;
+    let pos_y: f32;
+    if r_ {
+        pos_x = - (23. - 8. - 8./2.); // * scale;
+        pos_y = (23. - 23. - 8./2.); // * scale;
+    } else if l_ {
+        t = flipmatrix_horizontal(t);
+        pos_x = - (23. - 8. - 8./2.); // * scale;
+        pos_y = (23. - 23. - 8./2.); // * scale;
+    } else if t_ {
+        t = rotate_tile(t, std::f32::consts::PI / 2.);
+        pos_x = - (23. - 23. - 8./2.); // * scale;
+        pos_y = (23. - 8. - 8./2.); // * scale;
+    } else {
+        t = rotate_tile(t, -std::f32::consts::PI / 2.);
+        pos_x = - (23. - 23. - 8./2.); // * scale;
+        pos_y = (23. - 46. - 8./2.); // * scale;
+    }
+    // Translate t to the right position:
+    t.translation.x = pos_x;
+    t.translation.y = pos_y;
+    child_cmd.spawn_bundle(SpriteBundle {
+        sprite: Sprite {
+            custom_size: Some(Vec2::new(7., 46.)),
+            ..Default::default()
+        },
+        transform: t,
+        texture: (*funnel).clone(),
+        ..Default::default()
+    });
+}
+
+
+
+// extern crate partial_application;
+use partial_application::partial;
+
+
+// # make_start(StartTile(b_, [red_, blue_, green_]))
+// # make_end(EndTile(false, true, true, false, [red_]))
+// # parseTile(printTile(EndTile(false, true, true, false, [red_])))
+// # parseTile(printTile(StartTile(b_, [red_, blue_, green_])))
+
+
+
+
+
+// track_functions_dict = Dict(
+
+// )
+
+//Julia to Rust:
+fn get_transform_and_texture(t :Tile, assets: &HashMap<String, Handle<Image>>) -> (Handle<Image>, Transform){
+    let mut transform = Transform::from_xyz(0., 0., 1.);
+    let texture_path: String;
+    let (texture_path, transform): (String, Transform) = match t {
+        Tile::SingleTrackTile{track:_} | Tile::TrackTile { toptrack:_, bottrack:_ } => { 
+            match &printTile(&t)[..] { 
+                "01" => {("br.png".to_string(), rotate_tile_90(transform, 2)) } // get_tile_track_1_tl() 
+                "02" => {("tb.png".to_string(), transform) } // get_tile_track_2_tb() 
+                "03" => {("br.png".to_string(), rotate_tile_90(transform, 1)) } // get_tile_track_3_tr() 
+                "04" => {("br.png".to_string(), rotate_tile_90(transform, 3)) } // get_tile_track_4_lb() 
+                "05" => {("tb.png".to_string(), rotate_tile_90(transform, 1)) } // get_tile_track_5_lr() 
+                "06" => {("br.png".to_string(), transform) } // get_tile_track_6_br()
+                "31" => {("tr_over_tl.png".to_string(), transform) } // get_tile_track_tr3_over_tl1()
+                "13" => {("tr_over_tl.png".to_string(), flipmatrix_horizontal(transform)) } // get_tile_track_tl1_over_tr3()
+                "12" => {("br_over_tb.png".to_string(), rotate_tile_90(transform, 2)) } // get_tile_track_tl1_over_tb2()
+                "21" => {("tb_over_br.png".to_string(), rotate_tile_90(transform, 2)) } // get_tile_track_tb2_over_tl1()
+                "14" => {("tr_over_tl.png".to_string(), rotate_tile_90(transform, 1)) } // get_tile_track_tl1_over_lb4()
+                "41" => {("tr_over_tl.png".to_string(), rotate_tile_90(flipmatrix_horizontal(transform), 1)) } // get_tile_track_lb4_over_tl1()
+                "15" => {("br_over_tb.png".to_string(), flipmatrix_horizontal(rotate_tile_90(transform, 1))) } // get_tile_track_tl1_over_lr5()
+                "51" => {("tb_over_br.png".to_string(), flipmatrix_horizontal(rotate_tile_90(transform, 1))) } // get_tile_track_lr5_over_tl1()
+                "16" => {("track_funny_tr_bl.png".to_string(), flipmatrix_horizontal(transform)) } // get_tile_track_tl1_over_br6()
+                "61" => {("track_funny_tr_bl.png".to_string(), flipmatrix_horizontal(transform)) } // get_tile_track_br6_over_tl1()
+                "23" => {("tb_over_br.png".to_string(), flipmatrix_vertical(transform)) } // get_tile_track_tb2_over_tr3()
+                "32" => {("br_over_tb.png".to_string(), flipmatrix_vertical(transform)) } // get_tile_track_tr3_over_tb2()
+                "24" => {("tb_over_br.png".to_string(), flipmatrix_horizontal(transform)) } // get_tile_track_tb2_over_lb4()
+                "42" => {("br_over_tb.png".to_string(), flipmatrix_horizontal(transform)) } // get_tile_track_lb4_over_tb2()
+                "25" => {("lr_over_tb.png".to_string(), rotate_tile_90(transform, 1)) } // get_tile_track_tb2_over_lr5()
+                "52" => {("lr_over_tb.png".to_string(), transform) } // get_tile_track_lr5_over_tb2()
+                "26" => {("tb_over_br.png".to_string(), transform) } // get_tile_track_tb2_over_br6()
+                "62" => {("br_over_tb.png".to_string(), transform) } // get_tile_track_br6_over_tb2()
+                "34" => {("track_funny_tr_bl.png".to_string(), transform) } // get_tile_track_tr3_over_lb4()
+                "43" => {("track_funny_tr_bl.png".to_string(), transform) } // get_tile_track_lb4_over_tr3()
+                "35" => {("br_over_tb.png".to_string(), rotate_tile_90(transform, 1)) } // get_tile_track_tr3_over_lr5()
+                "53" => {("tb_over_br.png".to_string(), rotate_tile_90(transform, 1)) } // get_tile_track_lr5_over_tr3()
+                "36" => {("tr_over_tl.png".to_string(), flipmatrix_vertical(rotate_tile_90(transform, -1))) } // get_tile_track_tr3_over_br6()
+                "63" => {("tr_over_tl.png".to_string(), rotate_tile_90(transform, -1)) } // get_tile_track_br6_over_tr3()
+                "45" => {("br_over_tb.png".to_string(), rotate_tile_90(transform, -1)) } // get_tile_track_lb4_over_lr5()
+                "54" => {("tb_over_br.png".to_string(), rotate_tile_90(transform, -1)) } // get_tile_track_lr5_over_lb4()
+                "46" => {("tr_over_tl.png".to_string(), flipmatrix_horizontal(flipmatrix_vertical(transform))) } // get_tile_track_lb4_over_br6()
+                "64" => {("tr_over_tl.png".to_string(), flipmatrix_vertical(transform)) } // get_tile_track_br6_over_lb4()
+                "56" => {("tb_over_br.png".to_string(), rotate_tile_90(flipmatrix_vertical(rotate_tile_90(transform, -1)), 2)) } // get_tile_track_lr5_over_br6()
+                "65" => {("br_over_tb.png".to_string(), rotate_tile_90(flipmatrix_vertical(rotate_tile_90(transform, -1)), 2)) }// get_tile_track_br6_over_lr5()
+                _ => {panic!("Unknown tile combination: {}", printTile(&t)) }
+            }
+        },
+        Tile::PaintTile { track, c } => {
+            if track.B_ && track.T_ { ("p_outer_str_lr.png".to_string(), rotate_tile_90(transform, 1))}
+            else if track.L_ && track.R_ { ("p_outer_str_lr.png".to_string(), transform)}
+            else if track.B_ && track.R_ { ("p_outer_cur_br.png".to_string(), transform)}
+            else if track.B_ && track.L_ { ("p_outer_cur_br.png".to_string(), rotate_tile_90(transform, -1))}
+            else if track.T_ && track.R_ { ("p_outer_cur_br.png".to_string(), rotate_tile_90(transform, 1))}
+            else if track.T_ && track.L_ { ("p_outer_cur_br.png".to_string(), rotate_tile_90(transform, 2))}
+            else { panic!("Unknown tile combination: {}", printTile(&t)) }
+        },
+        Tile::EmptyTile => {
+            ("empty.png".to_string(), transform)
+        },
+        Tile::RockTile => {
+            ("rock.png".to_string(), transform)
+        },
+        Tile::SplitTile { side_in } => {
+            match  &printTile(&t)[..] {
+                "D1" => {("scissor_u.png".to_string(), transform) }
+                "D2" => {("scissor_u.png".to_string(), rotate_tile_90(transform, 2)) }
+                "D3" => {("scissor_u.png".to_string(), rotate_tile_90(transform, 1)) }
+                "D4" => {("scissor_u.png".to_string(), rotate_tile_90(transform, -1)) }
+                _ => {panic!("Unknown tile combination: {}", printTile(&t)) }
+            }
+        },
+        Tile::StartTile{ dir: _, elems: _ } => {
+            ("s_base.png".to_string(), transform)
+        },
+        Tile::EndTile{ T_: _, B_: _, L_: _, R_: _, elems: _ } => {
+            ("e_base.png".to_string(), transform)
+        },
+    };
+    let texture = assets.get(&texture_path).unwrap().clone();
+    return (texture, transform);
+}
+
+
+fn make_tile(t :Tile, commands: &mut Commands, assets: &HashMap<String, Handle<Image>>, big_tile_size: f32, coordinates: Coordinates) -> Entity{
+    let (transl_x, transl_y) = ((coordinates.x as f32 * big_tile_size) + (big_tile_size / 2.), ((6 - coordinates.y) as f32 * big_tile_size) + (big_tile_size / 2.));
+
+    let (texture, transform) = get_transform_and_texture(t, assets);
+    // Translate the tile to the right position:
+    let transform = transform.with_translation(Vec3::new(transl_x, transl_y, 0.));
+    let mut child = commands.spawn_bundle(TileSpriteBundle {
+        coordinates, // Tile coordinates
+        texture: texture,
+        transform: transform,
+        name: Name::new(format!("Tile ({}, {})", coordinates.x, coordinates.y)), // Tile name
+        sprite: Sprite { custom_size: Some(Vec2::splat(big_tile_size)), color: Color::WHITE, ..Default::default()
+        },
+        global_transform: Default::default(), visibility: Default::default(),
+    });
+    if let Tile::StartTile{dir, elems} = t {
+            child.with_children(partial!(add_color_minitiles_children => _, elems, true, assets, big_tile_size))
+            .with_children(partial!(add_arrow_minitile_children => _, dir, assets, big_tile_size)).id();
+    }
+    else if let Tile::EndTile{T_, B_, L_, R_, elems} = t {
+        child.with_children(partial!(add_color_minitiles_children => _, elems, false, assets, big_tile_size))
+            .with_children(partial!(add_funnels_minitile_children => _, T_, B_, L_, R_, assets, big_tile_size)).id();
+    }
+    else if let Tile::PaintTile{track, c} = t {
+        child.with_children( | parent | {
+            let size = ((40-6) as f32) / 46. * big_tile_size;
+            let inner = assets.get(&format!("p_{}.png", colorz_to_long_str(c))).unwrap().clone();
+            parent.spawn_bundle(SpriteBundle {
+                texture: inner,
+                transform: Transform::from_xyz(0., 0., 1.),
+                sprite: Sprite {
+                    custom_size: Some(Vec2::splat(big_tile_size)),
+                    color: Color::WHITE,
+                    ..Default::default()
+                },
+                global_transform: Default::default(), visibility: Default::default(),
+            });
+        });
+    }
+    return child.id();
+       
+}
+
+
+pub fn make_train(train: Train, commands: &mut Commands, train_assets: &TrainAssets, board_dimensions: &BoardDimensions, tick_rateo: f32) -> Entity {
+    
+    let transform = get_train_transform(train, board_dimensions, tick_rateo);
+    let child = commands.spawn_bundle(TrainBundle {
+        train: train,
+        texture: get_train_image(train_assets, train.c),
+        transform: transform,
+        // sprite: Sprite { custom_size: Some(Vec2::splat(board_dimensions.tile_size)), color: Color::WHITE, ..Default::default()},
+        global_transform: Default::default(), visibility: Default::default(), sprite: Default::default(),
+    });
+    return child.id();
+}
+
+
+
+// #[derive(Debug, Resource, Serialize, Deserialize)] 
+pub struct BoardOptionsDefault { // We use serde to allow saving option presets and loading them at runtime
+    pub map_size: (u16, u16),  // Tile map size
+    pub position: BoardPosition,  // Baard world position
+    pub tile_size: TileSize,  // Tile world size
+}
+fn get_BoardOptionsDefault() -> BoardOptionsDefault {
+    BoardOptionsDefault {
+        map_size: (7, 7),
+        tile_size: TileSize::Adaptive{min: 10.0, max: 50.0,},
+        position: BoardPosition::Centered {offset: Vec3::new(0., 25., 0.)},
+    }
+}
+
+pub struct TicksInATick {
+    pub ticks: u32,
+    pub is_in_game: bool,
+    pub current_tick: u32,
+    pub locked_waiting_for_tick_event: bool,
+}
+fn get_TicksInATickDefault() -> TicksInATick {
+    TicksInATick {
+        ticks: 200,
+        is_in_game: false,
+        current_tick: 0,
+        locked_waiting_for_tick_event: false,
+    }
+}
+
+
+// Button action type
+#[cfg_attr(feature = "debug", derive(bevy_inspector_egui::Inspectable))]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component)] 
+pub enum ButtonAction {Clear,Generate}
+
+#[derive(Debug)] pub struct ButtonColors {pub normal: Color,pub hovered: Color,pub pressed: Color}
+#[derive(Debug, Clone, Eq, PartialEq, Hash)] pub enum AppState {InGame, Out}
+
+
+
+
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum TileSize {  // Tile size options
+    Fixed(f32),  // Fixed tile size
+    Adaptive { min: f32, max: f32 },  // Window adaptative tile size
+}
+impl Default for TileSize {fn default() -> Self {Self::Adaptive {min: 10.0,max: 50.0,}} }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum BoardPosition {  // Board position customization options
+    Centered { offset: Vec3 },  // Centered board
+    Custom(Vec3),  // Custom position
+}
+impl Default for BoardPosition { fn default() -> Self { Self::Centered { offset: Default::default(), } }}
+
+
+#[derive(Debug, Component)] pub struct Board;
+#[derive(Debug, Component)] pub struct BoardTileMap { pub map: Vec<Vec<Tile>> }
+#[derive(Debug, Component)] pub struct BoardEntities { pub tiles: HashMap<Coordinates, Entity> }
+#[derive(Debug, Component)] pub struct BoardHoverable { pub hovered_pos_1: Option<Coordinates>, pub hovered_pos_2: Option<Coordinates>,}
+#[derive(Debug, Component, Clone, Serialize, Deserialize)] pub struct BoardDimensions { // We use serde to allow saving option presets and loading them at runtime
+    pub map_size: (u16, u16),  // Tile map size
+    pub tile_size: f32,  // Tile world size
+    pub height: u16,
+    pub width: u16,
+    pub bounds: Bounds2,
+    pub position: Vec3
+}
+#[derive(Bundle)]
+struct BoardBundle {
+    board: Board,
+    name: Name,
+    transform: Transform, // This component is required until https://github.com/bevyengine/bevy/pull/2331 is merged
+    global_transform: GlobalTransform,
+    tile_map: BoardTileMap,
+    entities: BoardEntities,
+    hoverable: BoardHoverable,
+    options: BoardDimensions,
+}
+
+#[derive(Bundle)]
+pub struct TileSpriteBundle{
+    pub name: Name, // Tile name
+    pub coordinates: Coordinates, // Tile coordinates
+    
+    // Flattened SpriteBundle #[bundle] : SO NICE!!
+    pub sprite: Sprite,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+    pub texture: Handle<Image>,
+    pub visibility: Visibility, // User indication of whether an entity is visible
+}
+
+
+#[derive(Bundle)]
+pub struct TrainBundle{
+    pub train: Train,
+
+    // Flattened SpriteBundle #[bundle] : SO NICE!!
+    pub sprite: Sprite,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+    pub texture: Handle<Image>,
+    pub visibility: Visibility, // User indication of whether an entity is visible
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// EVENTS
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+#[derive(Debug, Clone)]
+pub struct TileSpawnEvent{
+    x: usize,
+    y: usize,
+    new_tile: Tile,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum LogicTickEvent{
+    TickBegin,
+    TickMiddle,
+    TickEnd,
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// SYSTEMS HELPER FUNCTIONS
+/////////////////////////////////////////////////////////////////////////////////////
+
+// Translates a mouse position to board coordinates
+pub fn hovered_tile(board: &BoardDimensions, window: &Window) -> Option<Coordinates> {
+    let window_size = Vec2::new(window.width(), window.height());
+    let position = window.cursor_position()? - window_size / 2.;
+    if !board.bounds.in_bounds(position) {return None;}
+    let coordinates = position - board.bounds.position;
+    Some(Coordinates {
+        x: (coordinates.x / board.tile_size) as u16,
+        y: 6 - ((coordinates.y / board.tile_size) as u16),
+    })
+}
+
+fn get_track_option_from_3_coordinates(p_before: Coordinates, p_central: Coordinates, p_after: Coordinates) -> Option<TrackOptions> {
+    let delta_before = (p_central.x as i8 - p_before.x as i8  , (p_central.y as i8) - p_before.y as i8);
+    let delta_after = (p_central.x as i8 - p_after.x as i8, (p_central.y as i8) - p_after.y as i8);
+    // get the sides where the deltas point to:
+    let side_before = match delta_before {
+        (0, 1) => Side::T_, (0, -1) => Side::B_, (1, 0) => Side::L_, (-1, 0) => Side::R_,
+        _ => return None,
+    };
+    let side_after = match delta_after {
+        (0, 1) => Side::T_, (0, -1) => Side::B_, (1, 0) => Side::L_, (-1, 0) => Side::R_,
+        _ => return None,
+    };
+    // get the track option from the sides:
+    match (side_before, side_after) {
+        (Side::T_, Side::L_) => Some(TrackOptions::TL), (Side::T_, Side::B_) => Some(TrackOptions::TB), (Side::T_, Side::R_) => Some(TrackOptions::TR), (Side::L_, Side::B_) => Some(TrackOptions::LB), (Side::L_, Side::R_) => Some(TrackOptions::LR), (Side::B_, Side::R_) => Some(TrackOptions::BR), 
+        (Side::L_, Side::T_) => Some(TrackOptions::TL), (Side::B_, Side::T_) => Some(TrackOptions::TB), (Side::R_, Side::T_) => Some(TrackOptions::TR), (Side::B_, Side::L_) => Some(TrackOptions::LB), (Side::R_, Side::L_) => Some(TrackOptions::LR), (Side::R_, Side::B_) => Some(TrackOptions::BR),
+        _ => return None,
+    }
+}
+
+
+fn get_new_tile_from_track_option(old_tile: Tile, new_track_option: TrackOptions) -> Tile {
+    // Move the old toptrack to bottom track, and add a new toptrack from the new track option.
+    // If the new track option is the same as the old toptrack, then the tile becomes a SingleTrackTile.
+    match old_tile {
+        Tile::TrackTile{toptrack, bottrack} => {
+            if new_track_option == getTrackOption(toptrack) { Tile::SingleTrackTile{track: toptrack}}
+            else { Tile::TrackTile{toptrack: get_Track(new_track_option), bottrack: toptrack}}
+        },
+        Tile::SingleTrackTile{track} => {
+            if new_track_option == getTrackOption(track) { Tile::SingleTrackTile{track}}
+            else { Tile::TrackTile{toptrack: get_Track(new_track_option), bottrack: track}}
+        },
+        Tile::EmptyTile => Tile::SingleTrackTile{track: get_Track(new_track_option)},
+        _ => {old_tile}
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+fn get_train_transform(t:Train, board: &BoardDimensions, tick_rateo: f32) -> Transform {
+    let mut transform = Transform::from_translation(Vec3::new(0.0, 0.0, 2.0));
+    let in_side: Side = t.pos.side;
+    let out_side: Side = t.pos.towards_side.unwrap();
+
+    let angle = tick_rateo * 0.5 * std::f32::consts::PI;
+
+    let (x, y, train_angle) =  match (in_side, out_side) {
+        // For STRAIGHT tracks (in/out is right/left or top/bottom), the train should go from left to rigth or right to left. Use tick_rateo to get the fraction of the way.
+        // ASSUME THAT the tile has side 1, and the origin is in the TOP LEFT corner ( x=0 is leftmost, Y=0 is topmost)
+        (Side::L_, Side::R_) => {(tick_rateo, 0.5, 0.)},
+        (Side::R_, Side::L_) => {(1. - tick_rateo, 0.5, - std::f32::consts::PI)},
+        (Side::T_, Side::B_) => {(0.5, 1. - tick_rateo, - std::f32::consts::PI / 2.)},
+        (Side::B_, Side::T_) => {(0.5, tick_rateo, std::f32::consts::PI / 2.)},
+        // For CURVED tracks, the train should do a CURVED arc from one side of the tile to the other, PIVOTING AROUND THE CONER, that is a CONCAVE arc towards the center of the tile.
+        (Side::R_, Side::T_) => {( 1.- 0.5*angle.sin(), 1. - 0.5 * angle.cos(), - angle + std::f32::consts::PI)},
+        (Side::T_, Side::L_) => {(0.5* angle.cos(), 1. - 0.5 * angle.sin(), -angle - std::f32::consts::PI /2.)},
+        (Side::L_, Side::B_) => {( 0.5*angle.sin(), 0.5 * angle.cos(), - angle)},
+        (Side::B_, Side::R_) => {(1. - 0.5* angle.cos(), 0.5*angle.sin(), - angle + std::f32::consts::PI /2.)},
+        (Side::T_, Side::R_) => {(1. - 0.5* angle.cos(), 1.- 0.5 * angle.sin(), angle - std::f32::consts::PI /2.)},
+        (Side::R_, Side::B_) => {(1. - 0.5*angle.sin(), 0.5 * angle.cos(), angle + std::f32::consts::PI)},
+        (Side::B_, Side::L_) => {(0.5* angle.cos(), 0.5 * angle.sin(), angle + std::f32::consts::PI /2.)},
+        (Side::L_, Side::T_) => {( 0.5*angle.sin(), 1. - 0.5 * angle.cos(), angle)},
+        _ => {panic!("WTF")}
+        };
+        transform.translation.x = (x + t.pos.px as f32) * board.tile_size;
+        transform.translation.y = (y + (6 - t.pos.py)as f32) * board.tile_size;
+        transform.rotation = Quat::from_rotation_z( train_angle);
+        
+        transform.scale = Vec3::splat(2.5);
+        
+        return transform;
+}
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// SYSTEMS
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+
+pub fn check_mouse_action(mouse_input: Res<Input<MouseButton>>, windows: Res<Windows>, mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap), With<Board>>, mut spawn_event: EventWriter<TileSpawnEvent>,) {
+    if mouse_input.pressed(MouseButton::Left) {
+        for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+            let window = windows.get_primary().expect("no primary window");
+            let pos = hovered_tile(board_dimensions, window);
+            let pos = match pos { None => continue, Some(b) => b, };
+            if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
+                let p_old = hoverable.hovered_pos_1.unwrap();
+                let p_central = hoverable.hovered_pos_2.unwrap();
+                let p_new = pos;
+                hoverable.hovered_pos_1 = hoverable.hovered_pos_2; 
+                hoverable.hovered_pos_2 = Some(p_new);
+                let track_option = get_track_option_from_3_coordinates(p_old, p_central, p_new);
+                let track_option = match track_option { None => continue, Some(b) => b, };
+                let new_tile = get_new_tile_from_track_option(boardTileMap.map[p_central.y as usize][p_central.x as usize], track_option);
+                boardTileMap.map[p_central.y as usize][p_central.x as usize] = new_tile;
+                spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
+            }
+            else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos);}
+            else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos);}
+            // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
+        }
+    }
+    else if mouse_input.any_just_released([MouseButton::Left, MouseButton::Right]) {
+        for (_, mut hoverable,  _) in board_q.iter_mut() { 
+            hoverable.hovered_pos_1 = None;
+            hoverable.hovered_pos_2 = None;
+        }
+    }
+}
+
+
+
+// System to generate the complete board
+pub fn create_board( 
+        mut commands: Commands, 
+        board_options: Res<BoardOptionsDefault>, 
+        windows: Res<Windows>, 
+        mut tick_status: ResMut<TicksInATick>,
+        mut spawn_event: EventWriter<TileSpawnEvent>
+    ) {
+    let width_ = board_options.map_size.0;
+    let height_ = board_options.map_size.1;
+
+    // Tilemap Setup
+    // let tile_map: Vec<Vec<Tile>> = (0..height_).into_iter()
+    // .map(|_| (0..width_).into_iter().map(|_| Tile::EmptyTile).collect())
+    // .collect();
+
+    let map_s = vec!["00 00 00 E0100_g 00 00 00".to_string(),
+                                "00 00 00 02 00 00 00".to_string(),
+                                "00 00 06 01 00 00 00".to_string(),
+                                "Sr_b 05 53 45 05 05 E0010_g".to_string(),
+                                "00 00 00 23 00 00 00".to_string(),
+                                "00 00 00 St_y 00 00 00".to_string(),
+                                "00 00 00 00 00 00 00".to_string()];
+    let tile_map:Vec<Vec<Tile>> = parseMap(map_s);
+    // tile_map is a vector. Reverse it: 
+    // let tile_map:Vec<Vec<Tile>> = tile_map.into_iter().rev().collect();  // The reason y i need this is a COMPLETE MISTERY lol
+
+    // We define the size of our tiles in world space
+    let tile_size = match board_options.tile_size {
+        TileSize::Fixed(v) => v,
+        TileSize::Adaptive { min, max } => adaptative_tile_size(windows.get_primary().unwrap(), (min, max), (width_, height_), ),
+    };
+    let board_size = Vec2::new( width_ as f32 * tile_size, height_ as f32 * tile_size);  // We deduce the size of the complete board
+    let board_position = match board_options.position {  // We define the board anchor position (bottom left)
+        BoardPosition::Centered { offset } => {Vec3::new(-(board_size.x / 2.), -(board_size.y / 2.), 0.) + offset}
+        BoardPosition::Custom(p) => p,
+    };
+    log::info!("board size: {}", board_size);
+
+    // Init BoardDimensions component
+    let board_dimensions = BoardDimensions {
+        bounds: Bounds2 {position: board_position.xy(),size: board_size,},
+        tile_size,
+        width: width_,
+        height: height_,
+        map_size: board_options.map_size,
+        position: board_position
+    };
+
+    // We add the main resource of the game, the board
+    commands.spawn_bundle(BoardBundle {
+        board: Board,
+        name: Name::new("Board"),
+        transform: Transform::from_translation(board_dimensions.position), // This component is required until
+        global_transform: GlobalTransform::default(),
+        tile_map: BoardTileMap { map: tile_map.clone() },
+        entities: BoardEntities { tiles: HashMap::new() },
+        hoverable: BoardHoverable { hovered_pos_1: None, hovered_pos_2: None },
+        options: board_dimensions,
+    });
+
+    // Launch event to spawn each tile
+    for (y, line) in tile_map.iter().enumerate() {
+        for (x, tile) in line.iter().enumerate() {
+            spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile});
+        }
+    }
+
+    tick_status.is_in_game = true;
+    tick_status.current_tick = 1000;
+}
+
+
+
+fn spawn_tile(
+        mut commands: Commands,
+        board_assets_map: Res<BoardAssetsMap>,
+        mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities), With<Board>>,
+        mut evt: EventReader<TileSpawnEvent>) {
+    for trigger_event in evt.iter() {
+        for (board_id, board_dimensions, mut board_entities) in board_q.iter_mut() {
+            let mut board_entity = commands.entity(board_id);  // Get entity by id:
+            // if board is not None:
+            let (x, y) = (trigger_event.x, trigger_event.y);
+            let coordinates = Coordinates { x: x as u16, y: y as u16, };
+            let size = board_dimensions.tile_size;
+            let t = trigger_event.new_tile;
+
+            // get entity by coordinates using hashmap
+            let old_entity: Option<Entity> = board_entities.tiles.get(&coordinates).cloned();
+            if let Some(old_entity) = old_entity {
+                board_entity.remove_children(&[old_entity]);
+                board_entities.tiles.remove(&coordinates);
+                commands.entity(old_entity).despawn_recursive();
+            }
+
+            if let Tile::StartTile { dir, elems } = t {
+                println!(">> Happening !! {:?}", t);
+            }
+            
+            let child_id=  make_tile(t, &mut commands, &board_assets_map.assets, size, coordinates);
+
+            let mut board_entity = commands.entity(board_id);  // Get entity by id:
+            board_entity.push_children(&[child_id]);// add the child to the parent
+            board_entities.tiles.insert(coordinates, child_id); // add the child to the hashmap:
+    
+        }
+    }
+}
+
+
+fn cleanup_board(mut commands: Commands, board_q: Query<Entity, With<Board>>,) {
+    let board_id = board_q.single();
+    commands.entity(board_id).despawn_recursive();
+}
+
+
+fn move_trains(
+        mut trains_q: Query<(&mut Train, &mut Transform)>, 
+        // windows: Res<Windows>,
+        board_q: Query<(&BoardDimensions), With<Board>>,
+        mut tick_status: ResMut<TicksInATick>,
+        mut logic_tick_event: EventWriter<LogicTickEvent>) {
+            
+            
+    if tick_status.locked_waiting_for_tick_event || !tick_status.is_in_game {return;}
+    for (board_dimensions) in board_q.iter() {    // Really, there's just 1 board
+        for (train, mut transform) in trains_q.iter_mut() {
+            *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_status.ticks as f32));
+        }
+    }
+    tick_status.current_tick += 1;
+    if tick_status.current_tick >= tick_status.ticks {
+        tick_status.current_tick = 0;
+        tick_status.locked_waiting_for_tick_event = true;
+        logic_tick_event.send(LogicTickEvent::TickEnd);
+    } else if tick_status.current_tick == ((tick_status.ticks as f32 / 2.) as u32) {
+        logic_tick_event.send(LogicTickEvent::TickMiddle);
+        tick_status.locked_waiting_for_tick_event = true;
+    }
+}
+
+
+// children: Query<(Entity, &Parent), With<Uncover>>,
+// parents: Query<(&Coordinates, Option<&Bomb>, Option<&BombNeighbor>)>,
+// mut board_completed_event_wr: EventWriter<BoardCompletedEvent>,
+// mut bomb_explosion_event_wr: EventWriter<BombExplosionEvent>,
+// ) {
+// // We iterate through tile covers to uncover
+// for (entity, parent) in children.iter() {
+//     // we destroy the entity
+//     commands.entity(entity).despawn_recursive();
+
+fn logic_tick_event(
+        mut commands: Commands,
+        train_assets: Res<TrainAssets>,
+        mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities, &mut BoardTileMap), With<Board>>,
+        trains_q: Query<(Entity, &Train)>,
+        mut tick_status: ResMut<TicksInATick>,
+        mut evt: EventReader<LogicTickEvent>,
+        mut spawn_event: EventWriter<TileSpawnEvent>
+    ) {
+    for trigger_event in evt.iter() {
+        for (board_id, board_dimensions, mut board_entities, mut board_tilemap) in board_q.iter_mut() {
+            // if board is not None:
+            
+            // Despawn all trains sprites and save the train in current_trains: 
+            let mut current_trains: Vec<Train> = Vec::new();
+            for (train_entity, train) in trains_q.iter() {
+                let mut board_entity = commands.entity(board_id);  // Get entity by id:
+                current_trains.push(*train);
+                board_entity.remove_children(&[train_entity]);
+                commands.entity(train_entity).despawn_recursive();
+            }
+
+            let mut crashed;
+            let mut  completed;
+            let mut new_tilemap: Vec<Vec<Tile>>;
+            let mut new_trains: Vec<Train>;
+            (new_tilemap, new_trains) = (board_tilemap.map.clone(), current_trains);
+
+            if *trigger_event == LogicTickEvent::TickEnd {
+                (new_tilemap, new_trains) = go_to_towards_side(new_trains, new_tilemap);
+                (new_tilemap, new_trains) = add_beginnings(new_trains, new_tilemap);
+                (new_tilemap, new_trains) = flip_exchanges(new_trains, new_tilemap);
+                (new_tilemap, new_trains) = check_merges(new_trains, new_tilemap);
+                (new_tilemap, new_trains) = check_border_collisions(new_trains, new_tilemap);
+                (crashed, completed, new_tilemap, new_trains) = check_arrived_or_crashed(new_trains, new_tilemap);
+                (new_tilemap, new_trains) = set_towards_side(new_trains, new_tilemap);
+                
+                prettyPrintMap(&new_tilemap);
+                // Send an event to spawn all changed tiles:
+                for (y, line) in new_tilemap.iter().enumerate() {
+                    for (x, tile) in line.iter().enumerate() {
+                        if tile != &board_tilemap.map[y][x] {
+                            spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile});
+                            board_tilemap.map[y][x] = *tile;
+                        }
+                    }
+                }
+            }
+            else if *trigger_event == LogicTickEvent::TickMiddle {
+                (new_tilemap, new_trains) = check_center_colliding(new_trains, new_tilemap);
+                (new_tilemap, new_trains) = do_center_coloring_things(new_trains, new_tilemap);
+                println!("");
+                println!("");
+                println!("");
+                println!("");
+                println!("");
+            }
+            else{
+                panic!("Unknown LogicTickEvent: for now we dont use {:?}", trigger_event);
+            }
+            
+            // spawnn all trains:
+            for train in new_trains {
+                let child_id = make_train(train, &mut commands, &train_assets, &board_dimensions, tick_status.current_tick as f32 / tick_status.ticks as f32);
+                let mut board_entity = commands.entity(board_id);  // Get entity by id:
+                board_entity.push_children(&[child_id]);// add the child to the parent
+            };
+
+            break; // Never ever 2 logic ticks should happen sincronously anyway
+        }
+        break; // Never ever 2 logic ticks should happen sincronously anyway
+    }
+    tick_status.locked_waiting_for_tick_event = false;
+}
+
+
+
+
+#[allow(clippy::type_complexity)]
+fn input_handler(
+    button_colors: Res<ButtonColors>,
+    mut interaction_query: Query<(&Interaction, &ButtonAction, &mut UiColor),(Changed<Interaction>, With<Button>)>,
+    mut state: ResMut<State<AppState>>,
+) {
+    for (interaction, action, mut color) in interaction_query.iter_mut() {
+        match *interaction {
+            Interaction::Clicked => {
+                *color = button_colors.pressed.into();
+                match action {
+                    ButtonAction::Clear => {
+                        log::debug!("clearing detected");
+                        if state.current() == &AppState::InGame {
+                            log::info!("clearing game");
+                            state.set(AppState::Out).unwrap();
+                        }
+                    }
+                    ButtonAction::Generate => {
+                        log::debug!("loading detected");
+                        if state.current() == &AppState::Out {
+                            log::info!("loading game");
+                            state.set(AppState::InGame).unwrap();
+                        }
+                    }
+                }
+            }
+            Interaction::Hovered => {
+                *color = button_colors.hovered.into();
+            }
+            Interaction::None => {
+                *color = button_colors.normal.into();
+            }
+        }
+    }
+}
+
+// fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, asset_shapes: Res<BoardAssetsMap>) {
+fn setup_ui(mut commands: &mut Commands, asset_server: &AssetServer, asset_shapes: &BoardAssetsMap) {
+    let button_materials = ButtonColors {
+        normal: Color::GRAY,
+        hovered: Color::DARK_GRAY,
+        pressed: Color::BLACK,
+    };
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.), Val::Px(50.)),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+
+                ..Default::default()
+            },
+            color: Color::WHITE.into(),
+            ..Default::default()
+        })
+        .insert(Name::new("UI"))
+        .with_children(|parent| {
+            let font = asset_server.load("fonts/pixeled.ttf");
+            setup_single_menu(
+                parent,
+                "CLEAR",
+                button_materials.normal.into(),
+                font.clone(),
+                ButtonAction::Clear,
+            );
+            // setup_scrollbar(
+            //     parent,
+            //     "GENERATE",
+            //     button_materials.normal.into(),
+            //     font,
+            //     ButtonAction::Generate,
+            //     &asset_shapes.assets
+            // );
+        });
+    commands.insert_resource(button_materials);
+}
+
+fn setup_single_menu(
+    parent: &mut ChildBuilder,
+    text: &str,
+    color: UiColor,
+    font: Handle<Font>,
+    action: ButtonAction,
+) {
+    parent
+        .spawn_bundle(ButtonBundle {
+            style: Style {
+                size: Size::new(Val::Percent(95.), Val::Auto),
+                margin: Rect::all(Val::Px(10.)),
+                // horizontally center child text
+                justify_content: JustifyContent::Center,
+                // vertically center child text
+                align_items: AlignItems::Center,
+                ..Default::default()
+            },
+            color,
+            ..Default::default()
+        })
+        .insert(action)
+        .insert(Name::new(text.to_string()))
+        .with_children(|builder| {
+            builder.spawn_bundle(TextBundle {
+                text: Text {
+                    sections: vec![TextSection {
+                        value: text.to_string(),
+                        style: TextStyle {
+                            font,
+                            font_size: 30.,
+                            color: Color::WHITE,
+                        },
+                    }],
+                    alignment: TextAlignment {
+                        vertical: VerticalAlign::Center,
+                        horizontal: HorizontalAlign::Center,
+                    },
+                },
+                ..Default::default()
+            });
+        });
+}
+
+
+
+use bevy::ui::widget::ImageMode;
+use bevy::ui::FocusPolicy;
+#[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarLimits { max: f32, min: f32, current: f32, step: f32,}
+#[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarPosition { max_x: f32, min_x: f32, current_x: f32, step_x: f32,}
+#[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarStatus { dragging: bool }
+
+#[derive(Bundle, Clone, Debug, Default)]
+pub struct ScrollBarHandleBundle {
+    pub scrollBarLimits: ScrollBarLimits,
+    pub scrollBarPosition: ScrollBarPosition,
+    pub scrollBarStatus: ScrollBarStatus,
+
+    pub sprite: Sprite,
+
+    // Flattened components of ImageBundle AND ButtonBundle - Nice!   (kinda .....)
+    pub style: Style,  // Describes the style including flexbox settings
+    pub image_mode: ImageMode,  // Configures how the image should scale
+    pub calculated_size: CalculatedSize,  // The calculated size based on the given image
+    pub color: UiColor,  // The color of the node
+    pub image: UiImage,  // The image of the node
+    pub transform: Transform,  // The transform of the node
+    pub global_transform: GlobalTransform,  // The global transform of the node
+    pub visibility: Visibility,  // Describes the visibility properties of the node
+    pub button: Button,  // Marker component that signals this node is a button
+    pub interaction: Interaction,  // Describes whether and how the button has been interacted with by the input
+    pub focus_policy: FocusPolicy,  // Whether this node should block interaction with lower nodes
+}
+
+pub fn getScrollBarHandleBundle(img: Handle<Image>, color: UiColor, limits: ScrollBarLimits) -> ScrollBarHandleBundle {
+    let mut sbh = ScrollBarHandleBundle{
+        image: UiImage(img),
+        transform: Transform::from_translation(Vec3::new(0., 0., 3.)).with_scale(Vec3::splat(5.)),
+        global_transform: Default::default(), visibility: Default::default(),
+        ..Default::default()
+    };
+
+    return sbh;
+}
+
+
+
+fn setup_scrollbar(
+    parent: &mut ChildBuilder,
+    text: &str,
+    color: UiColor,
+    font: Handle<Font>,
+    action: ButtonAction,
+    assets: &HashMap<String, Handle<Image>>, 
+) {
+    let arrow = assets.get("s_arrow_elem_rigth.png").unwrap();
+    parent
+        .spawn_bundle(
+            NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(95.), Val::Auto),
+                    margin: Rect::all(Val::Px(10.)),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                color,
+                ..Default::default()
+        })
+        .with_children(|builder| {
+            builder.spawn_bundle(
+                getScrollBarHandleBundle((*arrow).clone(), color, ScrollBarLimits { max: 100., min: 0., current: 0., step: 1.})
+            );
+        })
+        .insert(Name::new(text.to_string()));
+}
+
+#[allow(clippy::type_complexity)]
+fn scrollbar_input_handler(
+    button_colors: Res<ButtonColors>,
+    mut interaction_query: Query<(&Interaction, &mut UiColor, &mut ScrollBarPosition, &mut ScrollBarLimits, &mut ScrollBarStatus),(Changed<Interaction>)>,
+    mut state: ResMut<State<AppState>>,
+) {
+    for (interaction, mut color, mut sbpos, mut sblimits, mut sbstatus) in interaction_query.iter_mut() {
+        match *interaction {
+            Interaction::Clicked => {
+                // Set the image transparency to 0.5:
+                if let Color::Rgba { red, green, blue, alpha } = color.0.as_rgba(){  // Surprise surprise!
+                    *color = Color::rgba(red, green, blue, 0.5).into();
+                }
+                sbstatus.dragging = true;
+            }
+            Interaction::Hovered => {
+                if let Color::Rgba { red, green, blue, alpha } = color.0.as_rgba(){  // Surprise surprise!
+                    *color = Color::rgba(red, green, blue, 0.1).into();
+                }
+            }
+            Interaction::None => {
+                *color = button_colors.normal.into();
+                sbstatus.dragging = false;
+            }
+        }
+    }
+}
+
+
+
+#[allow(clippy::type_complexity)]
+fn scrollbar_dragging_handler(
+    button_colors: Res<ButtonColors>, 
+    windows: Res<Windows>,
+    mut interaction_query: Query<(&mut Transform, &mut GlobalTransform, &mut Style, &mut ScrollBarPosition, &mut ScrollBarLimits, &mut ScrollBarStatus)>,
+    mut state: ResMut<State<AppState>>,
+) {
+    for (mut transform, mut gltr, mut style, mut sbpos, mut sblimits, mut sbstatus) in interaction_query.iter_mut() {
+        if sbstatus.dragging {
+            let window = windows.get_primary().expect("no primary window");
+            let window_size = Vec2::new(window.width(), window.height());
+            if let Some(pos) = window.cursor_position() {
+                println!("THANKSSS, {:?}", pos);
+                let position = pos - window_size / 2.;
+                let pos_x = position.x;
+                sbpos.current_x = pos_x;
+
+                // print current x position of the image from transform:
+                println!("Current x position of the image: {:?}", transform.translation.x);
+                // transform.translation.x = pos_x;
+                // let mut old_pos:Rect<Val> = style.position;
+                // old_pos.left = Val::Px(pos_x as f32);
+                // old_pos.right = Val::Px((pos_x as f32) + 20.);
+                // style.position = old_pos;
+                
+                println!("New x position of the image: {:?}", gltr.translation.x);
+                println!("New x position of the image: {:?}", style.position);
+
+            }
+
+        }
+    }
+}
+
+
+
+
+
+
+fn setup_static_resources(mut commands: Commands, asset_server: Res<AssetServer>, ) {
+    let assets = get_assets_in_a_hashmap(&asset_server);
+    setup_ui(&mut commands, &asset_server, &assets);
+    commands.insert_resource(get_BoardOptionsDefault());
+    commands.insert_resource(get_TicksInATickDefault());
+    commands.insert_resource(get_train_assets(&asset_server));
+    commands.insert_resource(assets);
+}
+
+fn setup_game_state(mut state: ResMut<State<AppState>>){ 
+    state.set(AppState::InGame).unwrap();  // Launch game
+}
+fn setup_camera(mut commands: Commands) {
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());  // 2D orthographic camera
+    commands.spawn_bundle(UiCameraBundle::default());  // UI Camera
+}
+
+// Defines the amount of time that should elapse between each physics step.
+const TIME_STEP: f32 = 1.0 / 60.0;
+
+
+fn main() {
+    
+    
+    test();
+
+
+    let mut app = App::new();
+    app
+    .insert_resource(WindowDescriptor { title: "Mine Sweeper!".to_string(), width: 700., height: 750., ..Default::default() }) // Window setup
+    .insert_resource(LogSettings { level: Level::INFO, ..Default::default() }) // Log setup
+    .add_plugins(DefaultPlugins) // Bevy default plugins
+    .add_startup_system(setup_camera) // Startup system (cameras)
+    .add_startup_system(setup_game_state) // Startup system (game state)
+    .add_startup_system(setup_static_resources)
+    .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(create_board),)
+    .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup_board),)
+    .add_system(input_handler) // State handling
+    .add_system(scrollbar_input_handler) // State handling
+    .add_system(scrollbar_dragging_handler) // State handling
+    .add_system(spawn_tile) // State handling
+    .add_system(logic_tick_event) // State handling
+    .add_event::<TileSpawnEvent>()
+    .add_event::<LogicTickEvent>()
+    .add_state(AppState::Out)
+    .add_system_set(
+        SystemSet::new()
+        .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
+        .with_system(check_mouse_action)
+        .with_system(move_trains)   
+    )
+    .run(); // Run the app
+
+
+
+
+}
+
+
+
+////////////////////////// HELPUL THING: TYPES OF ADD SYSTEMS
+// .add_system_set(SystemSet::on_update(AppState::InGame).with_system(...))  
+// .add_system_set(SystemSet::on_in_stack_update(AppState::InGame).with_system(...),)  
+
+
+////////////////////////// HELPFUL THING: ANIMATION
+//
+// The sprite is animated by changing its translation depending on the time that has passed since
+// the last frame.
+// fn sprite_movement(time: Res<Time>, mut sprite_position: Query<(&mut Direction, &mut Transform)>) {
+//     for (mut logo, mut transform) in &mut sprite_position {
+//         match *logo {
+//             Direction::Up => transform.translation.y += 150. * time.delta_seconds(),
+//             Direction::Down => transform.translation.y -= 150. * time.delta_seconds(),
+//         }
+
+//         if transform.translation.y > 200. {
+//             *logo = Direction::Down;
+//         } else if transform.translation.y < -200. {
+//             *logo = Direction::Up;
+//         }
+//     }
+// }
+
+////////////////////////// HELPFUL THING: TEXT
+//
+// Generates the bomb counter text 2D Bundle for a given value
+// fn bomb_count_text_bundle(
+//     count: u8,
+//     board_assets: &Res<BoardAssets>,
+//     size: f32,
+// ) -> Text2dBundle {
+//     // We retrieve the text and the correct color
+//     let color = board_assets.bomb_counter_color(count);
+//     // We generate a text bundle
+//     Text2dBundle {
+//         text: Text {
+//             sections: vec![TextSection {
+//                 value: count.to_string(),
+//                 style: TextStyle {
+//                     color,
+//                     font: board_assets.bomb_counter_font.clone(),
+//                     font_size: size,
+//                 },
+//             }],
+//             alignment: TextAlignment {
+//                 vertical: VerticalAlign::Center,
+//                 horizontal: HorizontalAlign::Center,
+//             },
+//         },
+//         transform: Transform::from_xyz(0., 0., 1.),
+//         ..Default::default()
+//     }
+// }
+
+
+////////////////////////// HELPFUL THING: ANOTHER WAY TO READ MOUSE (Clicks Only)
+// use bevy::input::{mouse::MouseButtonInput, ElementState};
+// pub fn input_handling( windows: Res<Windows>, mut button_evr: EventReader<MouseButtonInput>,) {
+// let window = windows.get_primary().unwrap();
+// for event in button_evr.iter() {
+//     if let ElementState::Pressed = event.state {
+//         let position = window.cursor_position();
+//         if let Some(pos) = position {
+//             match event.button {
+//                 MouseButton::Left => {}
+//                 MouseButton::Right => {}
+//                 _ => (),
+//             }
+//         }
+//     }
+// }
+// }
