@@ -9,7 +9,6 @@ use bevy::DefaultPlugins;
 use std::io::Cursor;
 use winit::window::Icon;
 
-mod actions;
 mod audio;
 mod loading;
 mod menu;
