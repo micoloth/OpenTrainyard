@@ -12,9 +12,9 @@ use winit::window::Icon;
 mod audio;
 mod loading;
 mod menu;
-mod player;
+mod utils;
 
-use crate::player::ActionsPlugin;
+use crate::utils::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
@@ -26,7 +26,7 @@ pub struct PlayerPlugin;
 pub struct Player;
 
 
-use crate::player::Actions;
+use crate::utils::Actions;
 
 fn move_player(
     time: Res<Time>,

@@ -1,4 +1,4 @@
-use crate::player::Actions;
+use crate::utils::Actions;
 use crate::loading::AudioAssets;
 use crate::GameState;
 use bevy::prelude::*;
