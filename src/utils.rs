@@ -2,73 +2,51 @@ use crate::GameState;
 use bevy::prelude::*;
 
 
+use std::ops::{Add, Sub};
 
-pub struct ActionsPlugin;
 
-use bevy::prelude::{Input, KeyCode, Res};
 
-pub enum GameControl {
-    Up,
-    Down,
-    Left,
-    Right,
+#[cfg_attr(feature = "debug", derive(bevy_inspector_egui::Inspectable))]
+#[derive(Debug, Copy, Default, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component)]
+pub struct Coordinates {
+    pub x: u16,
+    pub y: u16,
 }
 
-impl GameControl {
-    pub fn pressed(&self, keyboard_input: &Res<Input<KeyCode>>) -> bool {
-        match self {
-            GameControl::Up => {
-                keyboard_input.pressed(KeyCode::W) || keyboard_input.pressed(KeyCode::Up)
-            }
-            GameControl::Down => {
-                keyboard_input.pressed(KeyCode::S) || keyboard_input.pressed(KeyCode::Down)
-            }
-            GameControl::Left => {
-                keyboard_input.pressed(KeyCode::A) || keyboard_input.pressed(KeyCode::Left)
-            }
-            GameControl::Right => {
-                keyboard_input.pressed(KeyCode::D) || keyboard_input.pressed(KeyCode::Right)
-            }
+impl From<(u16, u16)> for Coordinates {
+    fn from((x, y): (u16, u16)) -> Self {
+        Self { x, y }
+    }
+}
+
+impl Add for Coordinates {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
         }
     }
 }
 
-pub fn get_movement(control: GameControl, input: &Res<Input<KeyCode>>) -> f32 {
-    if control.pressed(input) {
-        1.0
-    } else {
-        0.0
+impl Add<(i16, i16)> for Coordinates {
+    type Output = Self;
+
+    fn add(self, (x, y): (i16, i16)) -> Self::Output {
+        let x = ((self.x as i16) + x as i16) as u16;
+        let y = ((self.y as i16) + y as i16) as u16;
+        Self { x, y }
     }
 }
 
+impl Sub for Coordinates {
+    type Output = Self;
 
-// This plugin listens for keyboard input and converts the input into Actions
-// Actions can then be used as a resource in other systems to act on the player input.
-impl Plugin for ActionsPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<Actions>().add_system_set(
-            SystemSet::on_update(GameState::Playing).with_system(set_movement_actions),
-        );
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x.saturating_sub(rhs.x),
+            y: self.y.saturating_sub(rhs.y),
+        }
     }
 }
-
-#[derive(Default)]
-pub struct Actions {
-    pub player_movement: Option<Vec2>,
-}
-
-fn set_movement_actions(mut actions: ResMut<Actions>, keyboard_input: Res<Input<KeyCode>>) {
-    let player_movement = Vec2::new(
-        get_movement(GameControl::Right, &keyboard_input)
-            - get_movement(GameControl::Left, &keyboard_input),
-        get_movement(GameControl::Up, &keyboard_input)
-            - get_movement(GameControl::Down, &keyboard_input),
-    );
-
-    if player_movement != Vec2::ZERO {
-        actions.player_movement = Some(player_movement.normalize());
-    } else {
-        actions.player_movement = None;
-    }
-}
-
