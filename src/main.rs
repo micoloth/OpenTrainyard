@@ -101,22 +101,6 @@ pub struct TileSpriteBundle {
     pub computed_visibility: ComputedVisibility,
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
-// EVENTS
-/////////////////////////////////////////////////////////////////////////////////////
-
-#[derive(Debug, Clone)]
-pub struct TileSpawnEvent {
-    x: usize,
-    y: usize,
-    new_tile: Tile,
-}
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum LogicTickEvent {
-    TickBegin,
-    TickMiddle,
-    TickEnd,
-}
 
 #[derive(Debug, Clone)]
 pub enum TileSize {
@@ -239,6 +223,22 @@ pub enum ButtonAction {Clear,Generate}
 #[derive(Debug)] pub struct ButtonColors {pub normal: Color,pub hovered: Color,pub pressed: Color}
 #[derive(Debug, Clone, Eq, PartialEq, Hash)] pub enum AppState {InGame, Out}
 
+/////////////////////////////////////////////////////////////////////////////////////
+// EVENTS
+/////////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Debug, Clone)]
+pub struct TileSpawnEvent {
+    x: usize,
+    y: usize,
+    new_tile: Tile,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum LogicTickEvent {
+    TickBegin,
+    TickMiddle,
+    TickEnd,
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -285,15 +285,6 @@ pub fn rotate_tile_90(mut t: Transform, times: i16) -> Transform {
     return t;
 }
 
-pub fn add_sprite_on_sprite(
-    mut sprit_parent: EntityCommands,
-    child_asset: Handle<Image>,
-    x: f32,
-    y: f32,
-    big_tile_size: f32,
-    small_tile_size: f32,
-) {
-}
 pub fn add_color_minitiles_children(
     child_cmd: &mut ChildBuilder,
     elems: VectorOfColorz,
@@ -348,7 +339,6 @@ fn get_transform_and_texture(
     let mut transform = Transform::from_xyz(0., 0., 1.);
     let texture_path: String;
     // Print the tile:
-    println!(">>>>>>>>>>>>Tile: {}", print_tile(&t));
     let (texture_path, transform): (String, Transform) = match t {
         Tile::SingleTrackTile { track: _ }
         | Tile::TrackTile {
@@ -595,7 +585,6 @@ fn make_tile(
         (coordinates.x as f32 * big_tile_size),
         (coordinates.y as f32 * big_tile_size),
     );
-    println!("Received!!!!! {:?} {:?}", transl_x, transl_y);
 
     let (texture, transform) = get_transform_and_texture(t, assets);
     // Translate the tile to the right position:
@@ -655,77 +644,98 @@ fn make_tile(
     return child.id();
 }
 
-// pub fn hovered_tile(board: &BoardDimensions, window: &Window) -> Option<Coordinates> {
-//     let window_size = Vec2::new(window.width(), window.height());
-//     let position = window.cursor_position()? - window_size / 2.;
-//     if !board.bounds.in_bounds(position) {return None;}
-//     let coordinates = position - board.bounds.position;
-//     Some(Coordinates {
-//         x: (coordinates.x / board.tile_size) as u16,
-//         y: 6 - ((coordinates.y / board.tile_size) as u16),
-//     })
-// }
+pub fn hovered_tile(board: &BoardDimensions, window: &Window) -> Option<Coordinates> {
+    let window_size = Vec2::new(window.width(), window.height());
+    let position = window.cursor_position()? - window_size / 2.;
+    if !in_bounds(position, board.rect) {return None;}
+    // Get vec2 with x and y out of the vec3 position:
+    let boardpospos: Vec2 = Vec2::new(position.x, position.y);
+    let coordinates = position - boardpospos;
+    Some(Coordinates {
+        x: (coordinates.x / board.tile_size) as u16,
+        y: 6 - ((coordinates.y / board.tile_size) as u16),
+    })
+}
+
+
+fn get_track_option_from_3_coordinates(p_before: Coordinates, p_central: Coordinates, p_after: Coordinates) -> Option<TrackOptions> {
+    let delta_before = (p_central.x as i8 - p_before.x as i8  , (p_central.y as i8) - p_before.y as i8);
+    let delta_after = (p_central.x as i8 - p_after.x as i8, (p_central.y as i8) - p_after.y as i8);
+    // get the sides where the deltas point to:
+    let side_before = match delta_before {
+        (0, 1) => Side::T_, (0, -1) => Side::B_, (1, 0) => Side::L_, (-1, 0) => Side::R_,
+        _ => return None,
+    };
+    let side_after = match delta_after {
+        (0, 1) => Side::T_, (0, -1) => Side::B_, (1, 0) => Side::L_, (-1, 0) => Side::R_,
+        _ => return None,
+    };
+    // get the track option from the sides:
+    match (side_before, side_after) {
+        (Side::T_, Side::L_) => Some(TrackOptions::TL), (Side::T_, Side::B_) => Some(TrackOptions::TB), (Side::T_, Side::R_) => Some(TrackOptions::TR), (Side::L_, Side::B_) => Some(TrackOptions::LB), (Side::L_, Side::R_) => Some(TrackOptions::LR), (Side::B_, Side::R_) => Some(TrackOptions::BR), 
+        (Side::L_, Side::T_) => Some(TrackOptions::TL), (Side::B_, Side::T_) => Some(TrackOptions::TB), (Side::R_, Side::T_) => Some(TrackOptions::TR), (Side::B_, Side::L_) => Some(TrackOptions::LB), (Side::R_, Side::L_) => Some(TrackOptions::LR), (Side::R_, Side::B_) => Some(TrackOptions::BR),
+        _ => return None,
+    }
+}
+
+
+fn get_new_tile_from_track_option(old_tile: Tile, new_track_option: TrackOptions) -> Tile {
+    // Move the old toptrack to bottom track, and add a new toptrack from the new track option.
+    // If the new track option is the same as the old toptrack, then the tile becomes a SingleTrackTile.
+    match old_tile {
+        Tile::TrackTile{toptrack, bottrack} => {
+            if new_track_option == get_track_option(toptrack) { Tile::SingleTrackTile{track: toptrack}}
+            else { Tile::TrackTile{toptrack: get_track(new_track_option), bottrack: toptrack}}
+        },
+        Tile::SingleTrackTile{track} => {
+            if new_track_option == get_track_option(track) { Tile::SingleTrackTile{track}}
+            else { Tile::TrackTile{toptrack: get_track(new_track_option), bottrack: track}}
+        },
+        Tile::EmptyTile => Tile::SingleTrackTile{track: get_track(new_track_option)},
+        _ => {old_tile}
+    }
+}
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
 ///
 
-// pub fn check_mouse_action(mouse_input: Res<Input<MouseButton>>, windows: Res<Windows>, mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap), With<Board>>, mut spawn_event: EventWriter<TileSpawnEvent>,) {
-//     if mouse_input.pressed(MouseButton::Left) {
-//         for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
-//             let window = windows.get_primary().expect("no primary window");
-//             let pos = hovered_tile(board_dimensions, window);
-//             let pos = match pos { None => continue, Some(b) => b, };
-//             if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
-//                 let p_old = hoverable.hovered_pos_1.unwrap();
-//                 let p_central = hoverable.hovered_pos_2.unwrap();
-//                 let p_new = pos;
-//                 hoverable.hovered_pos_1 = hoverable.hovered_pos_2;
-//                 hoverable.hovered_pos_2 = Some(p_new);
-//                 let track_option = get_track_option_from_3_coordinates(p_old, p_central, p_new);
-//                 let track_option = match track_option { None => continue, Some(b) => b, };
-//                 let new_tile = get_new_tile_from_track_option(boardTileMap.map[p_central.y as usize][p_central.x as usize], track_option);
-//                 boardTileMap.map[p_central.y as usize][p_central.x as usize] = new_tile;
-//                 spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
-//             }
-//             else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos);}
-//             else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos);}
-//             // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
-//         }
-//     }
-//     else if mouse_input.any_just_released([MouseButton::Left, MouseButton::Right]) {
-//         for (_, mut hoverable,  _) in board_q.iter_mut() {
-//             hoverable.hovered_pos_1 = None;
-//             hoverable.hovered_pos_2 = None;
-//         }
-//     }
-// }
-
-pub fn simple_mouse_action(
-    mouse_input: Res<Input<MouseButton>>,
-    windows: Res<Windows>,
-    mut spawn_event: EventWriter<TileSpawnEvent>,
-) {
+pub fn check_mouse_action(mouse_input: Res<Input<MouseButton>>, windows: Res<Windows>, mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap), With<Board>>, mut spawn_event: EventWriter<TileSpawnEvent>,) {
     if mouse_input.pressed(MouseButton::Left) {
-        let window = windows.get_primary().expect("no primary window");
-        let position = window.cursor_position();
-        println!("Position: {:?}", position);
-        let coordinates = Coordinates {
-            x: position.unwrap().x as u16,
-            y: position.unwrap().y as u16,
-        };
-
-        // Spawn tile creation event at mouse position:
-        spawn_event.send(TileSpawnEvent {
-            x: coordinates.x as usize,
-            y: coordinates.y as usize,
-            new_tile: Tile::SingleTrackTile {
-                track: get_track(TrackOptions::BR),
-            },
-        });
+        for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+            let window = windows.get_primary().expect("no primary window");
+            let pos = hovered_tile(board_dimensions, window);
+            let pos = match pos { None => continue, Some(b) => b, };
+            if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
+                let p_old = hoverable.hovered_pos_1.unwrap();
+                let p_central = hoverable.hovered_pos_2.unwrap();
+                let p_new = pos;
+                hoverable.hovered_pos_1 = hoverable.hovered_pos_2;
+                hoverable.hovered_pos_2 = Some(p_new);
+                let track_option = get_track_option_from_3_coordinates(p_old, p_central, p_new);
+                let track_option = match track_option { None => continue, Some(b) => b, };
+                let new_tile = get_new_tile_from_track_option(boardTileMap.map[p_central.y as usize][p_central.x as usize], track_option);
+                boardTileMap.map[p_central.y as usize][p_central.x as usize] = new_tile;
+                spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
+            }
+            else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos);}
+            else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos);}
+            // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
+        }
+    }
+    else if mouse_input.any_just_released([MouseButton::Left, MouseButton::Right]) {
+        for (_, mut hoverable,  _) in board_q.iter_mut() {
+            hoverable.hovered_pos_1 = None;
+            hoverable.hovered_pos_2 = None;
+        }
     }
 }
+
+
 
 // System to generate the complete board
 pub fn create_board(
@@ -757,17 +767,17 @@ pub fn create_board(
     let tile_map: Vec<Vec<Tile>> = parse_map(map_s);
     let n_width_ = tile_map.len();
     let n_height_ = tile_map.len();
-    let tile_size = match board_options.tile_size {
-        TileSize::Fixed(v) => v,
-        TileSize::Adaptive =>  (
-            windows.get_primary().unwrap().width() / n_width_ as f32).min(
-                windows.get_primary().unwrap().height() / n_height_ as f32) //.clamp(min, max)
-    };
-    // let board_size = Vec2::new(n_width_ as f32 * tile_size, n_height_ as f32 * tile_size); // We deduce the size of the complete board
+    // let tile_size = match board_options.tile_size {
+    //     TileSize::Fixed(v) => v,
+    //     TileSize::Adaptive =>  (
+    //         windows.get_primary().unwrap().width() / n_width_ as f32).min(
+    //             windows.get_primary().unwrap().height() / n_height_ as f32) //.clamp(min, max)
+    // };
+    let tile_size = 50.0;
     let board_position = match board_options.position {
         BoardPosition::Centered { offset } => {
-            offset
-            // Vec3::new(-(board_size.x / 2.), -(board_size.y / 2.), 0.) + offset
+            // offset
+            Vec3::new(-(n_width_ as f32 * tile_size / 2.), -(n_height_ as f32 * tile_size / 2.), 0.) + offset
         }
         BoardPosition::Custom(p) => p,
     };
@@ -865,7 +875,6 @@ fn spawn_tile(
             if let Tile::StartTile { dir, elems } = t {
                 println!(">> Happening !! {:?}", t);
             }
-            println!("Received!!!!! {:?}", coordinates);
             
             // Make a &HashMap<String, Handle<Image>> from "06" => to br
             let mut asset_map: HashMap<String, Handle<Image>> = HashMap::new();
@@ -908,7 +917,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(GameState::Playing).with_system(spawn_player))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(move_player))
-            // .add_system_set(SystemSet::on_update(GameState::Playing).with_system(simple_mouse_action))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(check_mouse_action))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(spawn_tile))
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(create_board),)
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_board),)
