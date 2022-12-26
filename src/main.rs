@@ -17,8 +17,10 @@ mod utils;
 
 use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
+use crate::loading::BoardAssetsMap;
 use crate::menu::MenuPlugin;
 use crate::utils::ActionsPlugin;
+
 
 use crate::loading::TextureAssets;
 pub struct PlayerPlugin;
@@ -852,7 +854,7 @@ fn cleanup_board(mut commands: Commands, board_q: Query<Entity, With<Board>>) {
 
 fn spawn_tile(
     mut commands: Commands,
-    // board_assets_map: Res<BoardAssetsMap>,
+    board_assets_map: Res<BoardAssetsMap>,
     mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities), With<Board>>,
     mut evt: EventReader<TileSpawnEvent>,
     textures: Res<TextureAssets>,
@@ -880,10 +882,7 @@ fn spawn_tile(
             if let Tile::StartTile { dir, elems } = t {
                 println!(">> Happening !! {:?}", t);
             }
-            
-            // Make a &HashMap<String, Handle<Image>> from "06" => to br
-            let mut asset_map: HashMap<String, Handle<Image>> = HashMap::new();
-            asset_map.insert("br.png".to_string(), textures.br.clone());
+            let asset_map = &board_assets_map.assets;
             
             // let child_id=  make_tile(t, &mut commands, &board_assets_map.assets, size, coordinates);
             let child_id = make_tile(t, &mut commands, &asset_map, size, coordinates);
@@ -990,6 +989,9 @@ impl Plugin for GamePlugin {
         // }
     }
 }
+
+
+
 
 fn main() {
     // test();
