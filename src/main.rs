@@ -18,11 +18,12 @@ mod utils;
 use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
 use crate::loading::BoardAssetsMap;
+use crate::loading::TrainAssets;
+use crate::loading::TextureAssets;
 use crate::menu::MenuPlugin;
 use crate::utils::ActionsPlugin;
 
 
-use crate::loading::TextureAssets;
 pub struct PlayerPlugin;
 
 #[derive(Component)]
@@ -215,6 +216,37 @@ fn get_ticks_in_a_tick_default() -> TicksInATick {
         locked_waiting_for_tick_event: false,
     }
 }
+
+
+
+#[derive(Bundle)]
+pub struct TrainBundle{
+    pub train: Train,
+
+    // Flattened SpriteBundle #[bundle] : SO NICE!!
+    pub sprite: Sprite,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+    pub texture: Handle<Image>,
+    pub visibility: Visibility, // User indication of whether an entity is visible
+    pub computed_visibility: ComputedVisibility,
+}
+impl Default for TrainBundle {
+    fn default() -> Self {
+        Self {
+            train: Train { c: Colorz::BROWN_, pos: Pos { px: 0, py: 0, side: Side::T_, going_in: true, towards_side: Some(Side::B_) } },
+            sprite: Default::default(),
+            transform: Default::default(),
+            global_transform: Default::default(),
+            texture: Default::default(),
+            visibility: Default::default(),
+            computed_visibility: Default::default(),
+        }
+    }
+}
+
+
+
 
 
 // Button action type
@@ -646,6 +678,81 @@ fn make_tile(
     return child.id();
 }
 
+
+
+
+fn get_train_image(train_assets: &TrainAssets, color: Colorz) -> Handle<Image> {
+    match color {
+        Colorz::RED_ => train_assets.train_red.clone(),
+        Colorz::BLUE_ => train_assets.train_blue.clone(),
+        Colorz::YELLOW_ => train_assets.train_yellow.clone(),
+        Colorz::ORANGE_ => train_assets.train_orange.clone(),
+        Colorz::GREEN_ => train_assets.train_green.clone(),
+        Colorz::PURPLE_ => train_assets.train_purple.clone(),
+        Colorz::BROWN_ => train_assets.train_brown.clone(),
+    }
+}
+
+
+
+
+
+
+fn get_train_transform(t:Train, board: &BoardDimensions, tick_rateo: f32) -> Transform {
+    let mut transform = Transform::from_translation(Vec3::new(0.0, 0.0, 4.0));
+    let in_side: Side = t.pos.side;
+    let out_side: Side = t.pos.towards_side.unwrap();
+
+    let angle = tick_rateo * 0.5 * std::f32::consts::PI;
+
+    let (x, y, train_angle) =  match (in_side, out_side) {
+        // For STRAIGHT tracks (in/out is right/left or top/bottom), the train should go from left to rigth or right to left. Use tick_rateo to get the fraction of the way.
+        // ASSUME THAT the tile has side 1, and the origin is in the TOP LEFT corner ( x=0 is leftmost, Y=0 is topmost)
+        (Side::L_, Side::R_) => {(tick_rateo, 0.5, 0.)},
+        (Side::R_, Side::L_) => {(1. - tick_rateo, 0.5, - std::f32::consts::PI)},
+        (Side::T_, Side::B_) => {(0.5, 1. - tick_rateo, - std::f32::consts::PI / 2.)},
+        (Side::B_, Side::T_) => {(0.5, tick_rateo, std::f32::consts::PI / 2.)},
+        // For CURVED tracks, the train should do a CURVED arc from one side of the tile to the other, PIVOTING AROUND THE CONER, that is a CONCAVE arc towards the center of the tile.
+        (Side::R_, Side::T_) => {( 1.- 0.5*angle.sin(), 1. - 0.5 * angle.cos(), - angle + std::f32::consts::PI)},
+        (Side::T_, Side::L_) => {(0.5* angle.cos(), 1. - 0.5 * angle.sin(), -angle - std::f32::consts::PI /2.)},
+        (Side::L_, Side::B_) => {( 0.5*angle.sin(), 0.5 * angle.cos(), - angle)},
+        (Side::B_, Side::R_) => {(1. - 0.5* angle.cos(), 0.5*angle.sin(), - angle + std::f32::consts::PI /2.)},
+        (Side::T_, Side::R_) => {(1. - 0.5* angle.cos(), 1.- 0.5 * angle.sin(), angle - std::f32::consts::PI /2.)},
+        (Side::R_, Side::B_) => {(1. - 0.5*angle.sin(), 0.5 * angle.cos(), angle + std::f32::consts::PI)},
+        (Side::B_, Side::L_) => {(0.5* angle.cos(), 0.5 * angle.sin(), angle + std::f32::consts::PI /2.)},
+        (Side::L_, Side::T_) => {( 0.5*angle.sin(), 1. - 0.5 * angle.cos(), angle)},
+        _ => {panic!("WTF")}
+        };
+        transform.translation.x = (x + t.pos.px as f32) * board.tile_size - board.tile_size / 2.;
+        transform.translation.y = (y + (6 - t.pos.py)as f32) * board.tile_size - board.tile_size / 2.;
+        transform.rotation = Quat::from_rotation_z( train_angle);
+        
+        transform.scale = Vec3::splat(1.);
+        
+        return transform;
+}
+
+
+pub fn make_train(train: Train, commands: &mut Commands, train_assets: &TrainAssets, board_dimensions: &BoardDimensions, tick_rateo: f32) -> Entity {
+    
+    let transform = get_train_transform(train, board_dimensions, tick_rateo);
+    let child = commands.spawn_bundle(TrainBundle {
+        train: train,
+        texture: get_train_image(train_assets, train.c),
+        transform: transform,
+        // sprite: Sprite { custom_size: Some(Vec2::splat(board_dimensions.tile_size)), color: Color::WHITE, ..Default::default()},
+        ..Default::default()
+    });
+    return child.id();
+}
+
+
+
+
+
+
+
+
 pub fn hovered_tile(board: &BoardDimensions, window: &Window) -> Option<Coordinates> {
     let window_size = Vec2::new(window.width(), window.height());
     let position = window.cursor_position()? - window_size / 2.;
@@ -850,7 +957,6 @@ fn spawn_tile(
     board_assets_map: Res<BoardAssetsMap>,
     mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities), With<Board>>,
     mut evt: EventReader<TileSpawnEvent>,
-    textures: Res<TextureAssets>,
 ) {
     for trigger_event in evt.iter() {
         for (board_id, board_dimensions, mut board_entities) in board_q.iter_mut() {
@@ -890,62 +996,152 @@ fn spawn_tile(
 }
 
 
-fn move_player(
-    time: Res<Time>,
-    actions: Res<Actions>,
-    mut player_query: Query<&mut Transform, With<Player>>,
-) {
-    if actions.player_movement.is_none() {
-        return;
-    }
-    let speed = 150.;
-    let movement = Vec3::new(
-        actions.player_movement.unwrap().x * speed * time.delta_seconds(),
-        actions.player_movement.unwrap().y * speed * time.delta_seconds(),
-        0.,
-    );
-    for mut player_transform in &mut player_query {
-        player_transform.translation += movement;
+
+
+
+fn move_trains(
+    mut trains_q: Query<(&mut Train, &mut Transform)>, 
+    // windows: Res<Windows>,
+    board_q: Query<(&BoardDimensions), With<Board>>,
+    mut tick_status: ResMut<TicksInATick>,
+    mut logic_tick_event: EventWriter<LogicTickEvent>) {
+        
+        
+if tick_status.locked_waiting_for_tick_event || !tick_status.is_in_game {return;}
+for (board_dimensions) in board_q.iter() {    // Really, there's just 1 board
+    for (train, mut transform) in trains_q.iter_mut() {
+        *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_status.ticks as f32));
     }
 }
+tick_status.current_tick += 1;
+if tick_status.current_tick >= tick_status.ticks {
+    tick_status.current_tick = 0;
+    tick_status.locked_waiting_for_tick_event = true;
+    logic_tick_event.send(LogicTickEvent::TickEnd);
+} else if tick_status.current_tick == ((tick_status.ticks as f32 / 2.) as u32) {
+    logic_tick_event.send(LogicTickEvent::TickMiddle);
+    tick_status.locked_waiting_for_tick_event = true;
+}
+}
+
+
+
+
+// children: Query<(Entity, &Parent), With<Uncover>>,
+// parents: Query<(&Coordinates, Option<&Bomb>, Option<&BombNeighbor>)>,
+// mut board_completed_event_wr: EventWriter<BoardCompletedEvent>,
+// mut bomb_explosion_event_wr: EventWriter<BombExplosionEvent>,
+// ) {
+// // We iterate through tile covers to uncover
+// for (entity, parent) in children.iter() {
+//     // we destroy the entity
+//     commands.entity(entity).despawn_recursive();
+
+fn logic_tick_event(
+    mut commands: Commands,
+    train_assets: Res<TrainAssets>,
+    mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities, &mut BoardTileMap), With<Board>>,
+    trains_q: Query<(Entity, &Train)>,
+    mut tick_status: ResMut<TicksInATick>,
+    mut evt: EventReader<LogicTickEvent>,
+    mut spawn_event: EventWriter<TileSpawnEvent>
+) {
+for trigger_event in evt.iter() {
+    for (board_id, board_dimensions, mut board_entities, mut board_tilemap) in board_q.iter_mut() {
+        // if board is not None:
+        
+        // Despawn all trains sprites and save the train in current_trains: 
+        let mut current_trains: Vec<Train> = Vec::new();
+        for (train_entity, train) in trains_q.iter() {
+            let mut board_entity = commands.entity(board_id);  // Get entity by id:
+            current_trains.push(*train);
+            board_entity.remove_children(&[train_entity]);
+            commands.entity(train_entity).despawn_recursive();
+        }
+
+        let mut crashed;
+        let mut  completed;
+        let mut new_tilemap: Vec<Vec<Tile>>;
+        let mut new_trains: Vec<Train>;
+        (new_tilemap, new_trains) = (board_tilemap.map.clone(), current_trains);
+
+        if *trigger_event == LogicTickEvent::TickEnd {
+            (new_tilemap, new_trains) = go_to_towards_side(new_trains, new_tilemap);
+            (new_tilemap, new_trains) = add_beginnings(new_trains, new_tilemap);
+            (new_tilemap, new_trains) = flip_exchanges(new_trains, new_tilemap);
+            (new_tilemap, new_trains) = check_merges(new_trains, new_tilemap);
+            (new_tilemap, new_trains) = check_border_collisions(new_trains, new_tilemap);
+            (crashed, completed, new_tilemap, new_trains) = check_arrived_or_crashed(new_trains, new_tilemap);
+            (new_tilemap, new_trains) = set_towards_side(new_trains, new_tilemap);
+            
+            // pretty_print_map(&new_tilemap);
+            // Send an event to spawn all changed tiles:
+            for (y, line) in new_tilemap.iter().enumerate() {
+                for (x, tile) in line.iter().enumerate() {
+                    if tile != &board_tilemap.map[y][x] {
+                        spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile});
+                        board_tilemap.map[y][x] = *tile;
+                    }
+                }
+            }
+        }
+        else if *trigger_event == LogicTickEvent::TickMiddle {
+            (new_tilemap, new_trains) = check_center_colliding(new_trains, new_tilemap);
+            (new_tilemap, new_trains) = do_center_coloring_things(new_trains, new_tilemap);
+            println!("");
+            println!("");
+            println!("");
+            println!("");
+            println!("");
+        }
+        else{
+            panic!("Unknown LogicTickEvent: for now we dont use {:?}", trigger_event);
+        }
+        
+        // spawnn all trains:
+        for train in new_trains {
+            let child_id = make_train(train, &mut commands, &train_assets, &board_dimensions, tick_status.current_tick as f32 / tick_status.ticks as f32);
+            let mut board_entity = commands.entity(board_id);  // Get entity by id:
+            board_entity.push_children(&[child_id]);// add the child to the parent
+        };
+
+        break; // Never ever 2 logic ticks should happen sincronously anyway
+    }
+    break; // Never ever 2 logic ticks should happen sincronously anyway
+}
+tick_status.locked_waiting_for_tick_event = false;
+}
+
+
+// Defines the amount of time that should elapse between each physics step.
+const TIME_STEP: f32 = 1.0 / 60.0;
+
+
+
+use bevy::time::FixedTimestep;  // 0.9: Thi is in Time, not in core
+
 
 /// This plugin handles player related stuff like movement
 /// Player logic is only active during the State `GameState::Playing`
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::Playing).with_system(spawn_player))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(move_player))
+        app
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(check_mouse_action))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(spawn_tile))
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(create_board),)
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_board),)
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(logic_tick_event))
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing)
+                .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
+                .with_system(check_mouse_action)
+                .with_system(move_trains)   
+            )
             ;
     }
 }
 
-fn spawn_player(
-    mut commands: Commands,
-    textures: Res<TextureAssets>,
-    mut tile_spawn_event_writer: EventWriter<TileSpawnEvent>,
-) {
-    let mut x: EntityCommands = commands.spawn_bundle(SpriteBundle {
-        texture: textures.e_elem_4_green.clone(),
-        transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
-        ..Default::default()
-    });
-    x.insert(Player);
 
-    // Spawn an event creating a Tile at (0,0):
-    // let tile_spawn_event = TileSpawnEvent {
-    //     x: 0,
-    //     y: 0,
-    //     new_tile: Tile::SingleTrackTile {
-    //         track: get_track(TrackOptions::BR),
-    //     },
-    // };
-    // tile_spawn_event_writer.send(tile_spawn_event);
-    // println!(">> Spawned player");
-}
 
 // use bevy::app::App;
 #[cfg(debug_assertions)]
@@ -985,8 +1181,6 @@ impl Plugin for GamePlugin {
 }
 
 
-
-
 fn main() {
     // test();
     App::new()
@@ -1005,6 +1199,7 @@ fn main() {
         .add_plugin(GamePlugin)
         .add_startup_system(set_window_icon)
         .add_event::<TileSpawnEvent>()
+        .add_event::<LogicTickEvent>()
         .run();
 }
 
