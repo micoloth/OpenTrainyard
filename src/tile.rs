@@ -52,13 +52,8 @@ pub fn spawn_tile(
     for trigger_event in evt.iter() {
         for (board_id, board_dimensions, mut board_entities) in board_q.iter_mut() {
             let mut board_entity = commands.entity(board_id);  // Get entity by id:
-            // if board is not None:
-            let (x, y) = (trigger_event.x, trigger_event.y);
-            let coordinates = Coordinates {
-                x: x as u16,
-                y: y as u16,
-            };
             let size = board_dimensions.tile_size;
+            let coordinates = Coordinates { x: trigger_event.x as u16, y: trigger_event.y as u16,};
             let t = trigger_event.new_tile;
 
             
@@ -70,9 +65,6 @@ pub fn spawn_tile(
                 commands.entity(old_entity).despawn_recursive();
             }
             
-            if let Tile::StartTile { dir, elems } = t {
-                println!(">> Happening !! {:?}", t);
-            }
             let asset_map = &board_assets_map.assets;
             
             // let child_id=  make_tile(t, &mut commands, &board_assets_map.assets, size, coordinates);
@@ -366,17 +358,6 @@ fn add_arrow_minitile_children(
     });
 }
 
-// Julia code:
-// function add_funnels_minitile!(base, t_, b_, l_, r_)
-//     funnel = samples["e_funnel_elem_rigth.png"]
-//     # Add the funnel:
-//     if r_ base[:, (46-8+2):46] = funnel end
-//     if l_ base[:, 1:7] = flipmatrix_horizontal(funnel) end
-//     if t_ base[1:7, :] = rotate_tile(funnel, 1) end
-//     if b_ base[(46-8+2):46, :] = rotate_tile(funnel, -1) end
-// end
-// Turn Julia code into Rust code:
-// Julia to Rust:
 
 fn add_funnels_minitile_children(
     child_cmd: &mut ChildBuilder,
@@ -433,17 +414,11 @@ fn make_tile(
 
     let (texture, transform) = get_transform_and_texture(t, assets);
     // Translate the tile to the right position:
-    let transform = transform.with_translation(Vec3::new(transl_x, transl_y, 2.));
     let mut child = commands.spawn_bundle(TileSpriteBundle {
         coordinates, // Tile coordinates
         texture: texture,
-        transform: transform,
-        name: Name::new(format!("Tile ({}, {})", coordinates.x, coordinates.y)), // Tile name
-        sprite: Sprite {
-            custom_size: Some(Vec2::splat(big_tile_size)),
-            color: Color::WHITE,
-            ..Default::default()
-        },
+        transform: transform.with_translation(Vec3::new(transl_x, transl_y, 2.));,
+        sprite: Sprite { custom_size: Some(Vec2::splat(big_tile_size)), ..Default::default()},
         ..Default::default()
     });
     if let Tile::StartTile { dir, elems } = t {
@@ -452,13 +427,7 @@ fn make_tile(
                 partial!(add_color_minitiles_children => _, elems, true, assets, big_tile_size),
             )
             .with_children(partial!(add_arrow_minitile_children => _, dir, assets, big_tile_size));
-    } else if let Tile::EndTile {
-        t_,
-        b_,
-        l_,
-        r_,
-        elems,
-    } = t
+    } else if let Tile::EndTile { t_, b_, l_, r_, elems,} = t
     {
         child
             .with_children(

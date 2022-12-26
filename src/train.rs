@@ -51,21 +51,21 @@ pub fn move_trains(
     mut logic_tick_event: EventWriter<LogicTickEvent>) {
         
         
-if tick_status.locked_waiting_for_tick_event || !tick_status.is_in_game {return;}
-for (board_dimensions) in board_q.iter() {    // Really, there's just 1 board
-    for (train, mut transform) in trains_q.iter_mut() {
-        *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_status.ticks as f32));
+    if tick_status.locked_waiting_for_tick_event || !tick_status.is_in_game {return;}
+    for (board_dimensions) in board_q.iter() {    // Really, there's just 1 board
+        for (train, mut transform) in trains_q.iter_mut() {
+            *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_status.ticks as f32));
+        }
     }
-}
-tick_status.current_tick += 1;
-if tick_status.current_tick >= tick_status.ticks {
-    tick_status.current_tick = 0;
-    tick_status.locked_waiting_for_tick_event = true;
-    logic_tick_event.send(LogicTickEvent::TickEnd);
-} else if tick_status.current_tick == ((tick_status.ticks as f32 / 2.) as u32) {
-    logic_tick_event.send(LogicTickEvent::TickMiddle);
-    tick_status.locked_waiting_for_tick_event = true;
-}
+    tick_status.current_tick += 1;
+    if tick_status.current_tick >= tick_status.ticks {
+        tick_status.current_tick = 0;
+        tick_status.locked_waiting_for_tick_event = true;
+        logic_tick_event.send(LogicTickEvent::TickEnd);
+    } else if tick_status.current_tick == ((tick_status.ticks as f32 / 2.) as u32) {
+        logic_tick_event.send(LogicTickEvent::TickMiddle);
+        tick_status.locked_waiting_for_tick_event = true;
+    }
 }
 
 
@@ -124,12 +124,10 @@ fn get_train_transform(t:Train, board: &BoardDimensions, tick_rateo: f32) -> Tra
 
 
 pub fn make_train(train: Train, commands: &mut Commands, train_assets: &TrainAssets, board_dimensions: &BoardDimensions, tick_rateo: f32) -> Entity {
-    
-    let transform = get_train_transform(train, board_dimensions, tick_rateo);
     let child = commands.spawn_bundle(TrainBundle {
         train: train,
         texture: get_train_image(train_assets, train.c),
-        transform: transform,
+        transform: get_train_transform(train, board_dimensions, tick_rateo),
         // sprite: Sprite { custom_size: Some(Vec2::splat(board_dimensions.tile_size)), color: Color::WHITE, ..Default::default()},
         ..Default::default()
     });
