@@ -585,7 +585,7 @@ fn make_tile(
     // let (transl_x, transl_y) = ((coordinates.x as f32 * big_tile_size) + (big_tile_size / 2.), ((6 - coordinates.y) as f32 * big_tile_size) + (big_tile_size / 2.));
     let (transl_x, transl_y) = (
         (coordinates.x as f32 * big_tile_size),
-        (coordinates.y as f32 * big_tile_size),
+        ((6 - coordinates.y) as f32 * big_tile_size),
     );
 
     let (texture, transform) = get_transform_and_texture(t, assets);
@@ -658,6 +658,7 @@ pub fn hovered_tile(board: &BoardDimensions, window: &Window) -> Option<Coordina
         x: (coordinates.x / board.tile_size) as u16,
         y: 6 - ((coordinates.y / board.tile_size) as u16),
     };
+
     Some(coords)
 }
 
@@ -724,9 +725,10 @@ pub fn check_mouse_action(mouse_input: Res<Input<MouseButton>>, windows: Res<Win
                 let new_tile = get_new_tile_from_track_option(boardTileMap.map[p_central.y as usize][p_central.x as usize], track_option);
                 boardTileMap.map[p_central.y as usize][p_central.x as usize] = new_tile;
                 spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
+                // print p_central.y and p_central.x:
             }
-            else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos);}
-            else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos);}
+            else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos); }
+            else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos); }
             // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
         }
     }
@@ -749,23 +751,14 @@ pub fn create_board(
     mut spawn_event: EventWriter<TileSpawnEvent>,
 ) {
     
-    // let map_s = vec![
-    //     "00 00 00 E0100_g 00 00 00".to_string(),
-    //     "00 00 00 02 00 00 00".to_string(),
-    //     "00 00 06 01 00 00 00".to_string(),
-    //     "Sr_b 05 53 45 05 05 E0010_g".to_string(),
-    //     "00 00 00 23 00 00 00".to_string(),
-    //     "00 00 00 St_y 00 00 00".to_string(),
-    //     "00 00 00 00 00 00 00".to_string(),
-    //     ];
     let map_s = vec![
-        "06 06 06 06 06 06 06".to_string(),
-        "06 06 06 06 06 06 06".to_string(),
-        "06 06 06 06 06 06 06".to_string(),
-        "06 06 06 06 06 06 06".to_string(),
-        "06 06 06 06 06 06 06".to_string(),
-        "06 06 06 06 06 06 06".to_string(),
-        "06 06 06 06 06 06 06".to_string(),
+        "00 00 00 E0100_g 00 00 00".to_string(),
+        "00 00 00 02 00 00 00".to_string(),
+        "00 00 06 01 00 00 00".to_string(),
+        "Sr_b 05 53 45 05 05 E0010_g".to_string(),
+        "00 00 00 23 00 00 00".to_string(),
+        "00 00 00 St_y 00 00 00".to_string(),
+        "00 00 00 00 00 00 00".to_string(),
         ];
     let tile_map: Vec<Vec<Tile>> = parse_map(map_s);
     let n_width_ = tile_map.len();
@@ -870,9 +863,10 @@ fn spawn_tile(
             };
             let size = board_dimensions.tile_size;
             let t = trigger_event.new_tile;
+
             
             // get entity by coordinates using hashmap
-            let old_entity: Option<Entity> = None; // board_entities.tiles.get(&coordinates).cloned();
+            let old_entity: Option<Entity> = board_entities.tiles.get(&coordinates).cloned();
             if let Some(old_entity) = old_entity {
                 board_entity.remove_children(&[old_entity]);
                 board_entities.tiles.remove(&coordinates);
