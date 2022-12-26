@@ -15,9 +15,9 @@ impl Plugin for MenuPlugin {
     }
 }
 
-struct ButtonColors {
-    normal: UiColor,
-    hovered: UiColor,
+pub struct ButtonColors {
+    pub normal: UiColor,
+    pub hovered: UiColor,
 }
 
 impl Default for ButtonColors {
