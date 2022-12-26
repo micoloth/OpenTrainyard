@@ -1,7 +1,7 @@
 // disable console on windows for release builds
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use bevy::prelude::{App, ClearColor, Color, Msaa, NonSend, WindowDescriptor};
+use bevy::prelude::*;
 use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
@@ -32,10 +32,7 @@ use crate::board::*;
 use crate::logic::*;
 
 
-pub struct PlayerPlugin;
 
-#[derive(Component)]
-pub struct Player;
 
 mod simulator;
 
@@ -66,16 +63,23 @@ const TIME_STEP: f32 = 1.0 / 60.0;
 use bevy::time::FixedTimestep;  // 0.9: Thi is in Time, not in core
 
 
+pub struct MainGamePlugin;
+
+
 /// This plugin handles player related stuff like movement
 /// Player logic is only active during the State `GameState::Playing`
-impl Plugin for PlayerPlugin {
+impl Plugin for MainGamePlugin {
     fn build(&self, app: &mut App) {
         app
+            .insert_resource(get_board_option_default())
+            .insert_resource(get_ticks_in_a_tick_default())
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(check_mouse_action))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(spawn_tile))
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(create_board),)
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_board),)
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(logic_tick_event))
+            .add_event::<TileSpawnEvent>()
+            .add_event::<LogicTickEvent>()
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
@@ -87,11 +91,6 @@ impl Plugin for PlayerPlugin {
 }
 
 
-
-// use bevy::app::App;
-#[cfg(debug_assertions)]
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::prelude::*;
 
 // This example game uses States to separate logic
 // See https://bevy-cheatbook.github.io/programming/states.html
@@ -106,24 +105,6 @@ enum GameState {
     Menu,
 }
 
-pub struct GamePlugin;
-
-impl Plugin for GamePlugin {
-    fn build(&self, app: &mut App) {
-        app.add_state(GameState::Loading)
-            .add_plugin(LoadingPlugin)
-            .add_plugin(MenuPlugin)
-            .add_plugin(InternalAudioPlugin)
-            .add_plugin(PlayerPlugin);
-
-        // #[cfg(debug_assertions)]
-        // {
-        //     app.add_plugin(FrameTimeDiagnosticsPlugin::default())
-        //         .add_plugin(LogDiagnosticsPlugin::default());
-        // }
-    }
-}
-215+
 
 
 fn main() {
@@ -131,20 +112,14 @@ fn main() {
     App::new()
         .insert_resource(Msaa { samples: 1 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
-        .insert_resource(WindowDescriptor {
-            width: 800.,
-            height: 600.,
-            title: "Trainyard".to_string(), // ToDo
-            canvas: Some("#bevy".to_owned()),
-            ..Default::default()
-        })
+        .insert_resource(WindowDescriptor {width: 600.,height: 800.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()),..Default::default()})
         .add_plugins(DefaultPlugins)
-        .insert_resource(get_board_option_default())
-        .insert_resource(get_ticks_in_a_tick_default())
-        .add_plugin(GamePlugin)
         .add_startup_system(set_window_icon)
-        .add_event::<TileSpawnEvent>()
-        .add_event::<LogicTickEvent>()
+        .add_plugin(LoadingPlugin)
+        .add_plugin(MenuPlugin)
+        .add_plugin(InternalAudioPlugin)
+        .add_plugin(MainGamePlugin)
+        .add_state(GameState::Loading)
         .run();
 }
 
