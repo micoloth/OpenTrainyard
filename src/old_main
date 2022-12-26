@@ -54,12 +54,6 @@ impl Bounds2 {
     }
 }
 
-// Computes a tile size that matches the window according to the tile map size
-fn adaptative_tile_size(window: &Window, (min, max): (f32, f32), (width, height): (u16, u16), ) -> f32 {
-    let max_width = window.width() / width as f32;
-    let max_heigth = window.height() / height as f32;
-    max_width.min(max_heigth).clamp(min, max)
-}
 
 
 // Assets for the trains. Must be used as a resource.
@@ -237,86 +231,8 @@ pub fn make_train(train: Train, commands: &mut Commands, train_assets: &TrainAss
 
 
 
-// #[derive(Debug, Resource, Serialize, Deserialize)] 
-pub struct BoardOptionsDefault { // We use serde to allow saving option presets and loading them at runtime
-    pub map_size: (u16, u16),  // Tile map size
-    pub position: BoardPosition,  // Baard world position
-    pub tile_size: TileSize,  // Tile world size
-}
-fn get_BoardOptionsDefault() -> BoardOptionsDefault {
-    BoardOptionsDefault {
-        map_size: (7, 7),
-        tile_size: TileSize::Adaptive{min: 10.0, max: 50.0,},
-        position: BoardPosition::Centered {offset: Vec3::new(0., 25., 0.)},
-    }
-}
-
-pub struct TicksInATick {
-    pub ticks: u32,
-    pub is_in_game: bool,
-    pub current_tick: u32,
-    pub locked_waiting_for_tick_event: bool,
-}
-fn get_TicksInATickDefault() -> TicksInATick {
-    TicksInATick {
-        ticks: 200,
-        is_in_game: false,
-        current_tick: 0,
-        locked_waiting_for_tick_event: false,
-    }
-}
 
 
-// Button action type
-#[cfg_attr(feature = "debug", derive(bevy_inspector_egui::Inspectable))]
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component)] 
-pub enum ButtonAction {Clear,Generate}
-
-#[derive(Debug)] pub struct ButtonColors {pub normal: Color,pub hovered: Color,pub pressed: Color}
-#[derive(Debug, Clone, Eq, PartialEq, Hash)] pub enum AppState {InGame, Out}
-
-
-
-
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum TileSize {  // Tile size options
-    Fixed(f32),  // Fixed tile size
-    Adaptive { min: f32, max: f32 },  // Window adaptative tile size
-}
-impl Default for TileSize {fn default() -> Self {Self::Adaptive {min: 10.0,max: 50.0,}} }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum BoardPosition {  // Board position customization options
-    Centered { offset: Vec3 },  // Centered board
-    Custom(Vec3),  // Custom position
-}
-impl Default for BoardPosition { fn default() -> Self { Self::Centered { offset: Default::default(), } }}
-
-
-#[derive(Debug, Component)] pub struct Board;
-#[derive(Debug, Component)] pub struct BoardTileMap { pub map: Vec<Vec<Tile>> }
-#[derive(Debug, Component)] pub struct BoardEntities { pub tiles: HashMap<Coordinates, Entity> }
-#[derive(Debug, Component)] pub struct BoardHoverable { pub hovered_pos_1: Option<Coordinates>, pub hovered_pos_2: Option<Coordinates>,}
-#[derive(Debug, Component, Clone, Serialize, Deserialize)] pub struct BoardDimensions { // We use serde to allow saving option presets and loading them at runtime
-    pub map_size: (u16, u16),  // Tile map size
-    pub tile_size: f32,  // Tile world size
-    pub height: u16,
-    pub width: u16,
-    pub bounds: Bounds2,
-    pub position: Vec3
-}
-#[derive(Bundle)]
-struct BoardBundle {
-    board: Board,
-    name: Name,
-    transform: Transform, // This component is required until https://github.com/bevyengine/bevy/pull/2331 is merged
-    global_transform: GlobalTransform,
-    tile_map: BoardTileMap,
-    entities: BoardEntities,
-    hoverable: BoardHoverable,
-    options: BoardDimensions,
-}
 
 
 
@@ -342,55 +258,6 @@ pub struct TrainBundle{
 /////////////////////////////////////////////////////////////////////////////////////
 
 // Translates a mouse position to board coordinates
-pub fn hovered_tile(board: &BoardDimensions, window: &Window) -> Option<Coordinates> {
-    let window_size = Vec2::new(window.width(), window.height());
-    let position = window.cursor_position()? - window_size / 2.;
-    if !board.bounds.in_bounds(position) {return None;}
-    let coordinates = position - board.bounds.position;
-    Some(Coordinates {
-        x: (coordinates.x / board.tile_size) as u16,
-        y: 6 - ((coordinates.y / board.tile_size) as u16),
-    })
-}
-
-fn get_track_option_from_3_coordinates(p_before: Coordinates, p_central: Coordinates, p_after: Coordinates) -> Option<TrackOptions> {
-    let delta_before = (p_central.x as i8 - p_before.x as i8  , (p_central.y as i8) - p_before.y as i8);
-    let delta_after = (p_central.x as i8 - p_after.x as i8, (p_central.y as i8) - p_after.y as i8);
-    // get the sides where the deltas point to:
-    let side_before = match delta_before {
-        (0, 1) => Side::T_, (0, -1) => Side::B_, (1, 0) => Side::L_, (-1, 0) => Side::R_,
-        _ => return None,
-    };
-    let side_after = match delta_after {
-        (0, 1) => Side::T_, (0, -1) => Side::B_, (1, 0) => Side::L_, (-1, 0) => Side::R_,
-        _ => return None,
-    };
-    // get the track option from the sides:
-    match (side_before, side_after) {
-        (Side::T_, Side::L_) => Some(TrackOptions::TL), (Side::T_, Side::B_) => Some(TrackOptions::TB), (Side::T_, Side::R_) => Some(TrackOptions::TR), (Side::L_, Side::B_) => Some(TrackOptions::LB), (Side::L_, Side::R_) => Some(TrackOptions::LR), (Side::B_, Side::R_) => Some(TrackOptions::BR), 
-        (Side::L_, Side::T_) => Some(TrackOptions::TL), (Side::B_, Side::T_) => Some(TrackOptions::TB), (Side::R_, Side::T_) => Some(TrackOptions::TR), (Side::B_, Side::L_) => Some(TrackOptions::LB), (Side::R_, Side::L_) => Some(TrackOptions::LR), (Side::R_, Side::B_) => Some(TrackOptions::BR),
-        _ => return None,
-    }
-}
-
-
-fn get_new_tile_from_track_option(old_tile: Tile, new_track_option: TrackOptions) -> Tile {
-    // Move the old toptrack to bottom track, and add a new toptrack from the new track option.
-    // If the new track option is the same as the old toptrack, then the tile becomes a SingleTrackTile.
-    match old_tile {
-        Tile::TrackTile{toptrack, bottrack} => {
-            if new_track_option == getTrackOption(toptrack) { Tile::SingleTrackTile{track: toptrack}}
-            else { Tile::TrackTile{toptrack: get_Track(new_track_option), bottrack: toptrack}}
-        },
-        Tile::SingleTrackTile{track} => {
-            if new_track_option == getTrackOption(track) { Tile::SingleTrackTile{track}}
-            else { Tile::TrackTile{toptrack: get_Track(new_track_option), bottrack: track}}
-        },
-        Tile::EmptyTile => Tile::SingleTrackTile{track: get_Track(new_track_option)},
-        _ => {old_tile}
-    }
-}
-
 
 
 
@@ -446,123 +313,8 @@ fn get_train_transform(t:Train, board: &BoardDimensions, tick_rateo: f32) -> Tra
 
 
 
-pub fn check_mouse_action(mouse_input: Res<Input<MouseButton>>, windows: Res<Windows>, mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap), With<Board>>, mut spawn_event: EventWriter<TileSpawnEvent>,) {
-    if mouse_input.pressed(MouseButton::Left) {
-        for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
-            let window = windows.get_primary().expect("no primary window");
-            let pos = hovered_tile(board_dimensions, window);
-            let pos = match pos { None => continue, Some(b) => b, };
-            if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
-                let p_old = hoverable.hovered_pos_1.unwrap();
-                let p_central = hoverable.hovered_pos_2.unwrap();
-                let p_new = pos;
-                hoverable.hovered_pos_1 = hoverable.hovered_pos_2; 
-                hoverable.hovered_pos_2 = Some(p_new);
-                let track_option = get_track_option_from_3_coordinates(p_old, p_central, p_new);
-                let track_option = match track_option { None => continue, Some(b) => b, };
-                let new_tile = get_new_tile_from_track_option(boardTileMap.map[p_central.y as usize][p_central.x as usize], track_option);
-                boardTileMap.map[p_central.y as usize][p_central.x as usize] = new_tile;
-                spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
-            }
-            else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos);}
-            else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos);}
-            // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
-        }
-    }
-    else if mouse_input.any_just_released([MouseButton::Left, MouseButton::Right]) {
-        for (_, mut hoverable,  _) in board_q.iter_mut() { 
-            hoverable.hovered_pos_1 = None;
-            hoverable.hovered_pos_2 = None;
-        }
-    }
-}
 
 
-
-// System to generate the complete board
-pub fn create_board( 
-        mut commands: Commands, 
-        board_options: Res<BoardOptionsDefault>, 
-        windows: Res<Windows>, 
-        mut tick_status: ResMut<TicksInATick>,
-        mut spawn_event: EventWriter<TileSpawnEvent>
-    ) {
-    let width_ = board_options.map_size.0;
-    let height_ = board_options.map_size.1;
-
-    // Tilemap Setup
-    // let tile_map: Vec<Vec<Tile>> = (0..height_).into_iter()
-    // .map(|_| (0..width_).into_iter().map(|_| Tile::EmptyTile).collect())
-    // .collect();
-
-    let map_s = vec!["00 00 00 E0100_g 00 00 00".to_string(),
-                                "00 00 00 02 00 00 00".to_string(),
-                                "00 00 06 01 00 00 00".to_string(),
-                                "Sr_b 05 53 45 05 05 E0010_g".to_string(),
-                                "00 00 00 23 00 00 00".to_string(),
-                                "00 00 00 St_y 00 00 00".to_string(),
-                                "00 00 00 00 00 00 00".to_string()];
-    let tile_map:Vec<Vec<Tile>> = parseMap(map_s);
-    // tile_map is a vector. Reverse it: 
-    // let tile_map:Vec<Vec<Tile>> = tile_map.into_iter().rev().collect();  // The reason y i need this is a COMPLETE MISTERY lol
-
-    // We define the size of our tiles in world space
-    let tile_size = match board_options.tile_size {
-        TileSize::Fixed(v) => v,
-        TileSize::Adaptive { min, max } => adaptative_tile_size(windows.get_primary().unwrap(), (min, max), (width_, height_), ),
-    };
-    let board_size = Vec2::new( width_ as f32 * tile_size, height_ as f32 * tile_size);  // We deduce the size of the complete board
-    let board_position = match board_options.position {  // We define the board anchor position (bottom left)
-        BoardPosition::Centered { offset } => {Vec3::new(-(board_size.x / 2.), -(board_size.y / 2.), 0.) + offset}
-        BoardPosition::Custom(p) => p,
-    };
-    log::info!("board size: {}", board_size);
-
-    // Init BoardDimensions component
-    let board_dimensions = BoardDimensions {
-        bounds: Bounds2 {position: board_position.xy(),size: board_size,},
-        tile_size,
-        width: width_,
-        height: height_,
-        map_size: board_options.map_size,
-        position: board_position
-    };
-
-    // We add the main resource of the game, the board
-    commands.spawn_bundle(BoardBundle {
-        board: Board,
-        name: Name::new("Board"),
-        transform: Transform::from_translation(board_dimensions.position), // This component is required until
-        global_transform: GlobalTransform::default(),
-        tile_map: BoardTileMap { map: tile_map.clone() },
-        entities: BoardEntities { tiles: HashMap::new() },
-        hoverable: BoardHoverable { hovered_pos_1: None, hovered_pos_2: None },
-        options: board_dimensions,
-    });
-
-    // Launch event to spawn each tile
-    for (y, line) in tile_map.iter().enumerate() {
-        for (x, tile) in line.iter().enumerate() {
-            spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile});
-        }
-    }
-
-    tick_status.is_in_game = true;
-    tick_status.current_tick = 1000;
-}
-
-
-
-
-
-
-
-
-
-fn cleanup_board(mut commands: Commands, board_q: Query<Entity, With<Board>>,) {
-    let board_id = board_q.single();
-    commands.entity(board_id).despawn_recursive();
-}
 
 
 fn move_trains(

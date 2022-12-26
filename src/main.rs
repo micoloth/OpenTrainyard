@@ -649,14 +649,15 @@ pub fn hovered_tile(board: &BoardDimensions, window: &Window) -> Option<Coordina
     let position = window.cursor_position()? - window_size / 2.;
     if !in_bounds(position, board.rect) {return None;}
     // Get vec2 with x and y out of the vec3 position:
-    let boardpospos: Vec2 = Vec2::new(position.x, position.y);
-    let coordinates = position - boardpospos;
-    Some(Coordinates {
+    let boardpospos: Vec2 = Vec2::new(board.position.x, board.position.y);
+    let offset = Vec2{x: board.tile_size / 2., y: board.tile_size / 2.};
+    let coordinates = position - boardpospos + offset;
+    let coords = Coordinates {
         x: (coordinates.x / board.tile_size) as u16,
         y: 6 - ((coordinates.y / board.tile_size) as u16),
-    })
+    };
+    Some(coords)
 }
-
 
 fn get_track_option_from_3_coordinates(p_before: Coordinates, p_central: Coordinates, p_after: Coordinates) -> Option<TrackOptions> {
     let delta_before = (p_central.x as i8 - p_before.x as i8  , (p_central.y as i8) - p_before.y as i8);
@@ -783,15 +784,19 @@ pub fn create_board(
     };
     // log::info!("board size: {}", board_size);
 
+    // x va spostato a sx (-) di ts/2
+    // y va spostato in giu (-) di ts/2
+    let offset_ts2 = tile_size / 2.;
+
     // Init BoardDimensions component
     let board_dimensions = BoardDimensions {
         tile_size,
         position: board_position,
         rect: Rect{
-            top: board_position.y,
-            bottom: board_position.y + n_height_ as f32 * tile_size,
-            left: board_position.x,
-            right: board_position.x + n_width_ as f32 * tile_size,
+            top: board_position.y - offset_ts2,
+            bottom: board_position.y + n_height_ as f32 * tile_size - offset_ts2,
+            left: board_position.x - offset_ts2,
+            right: board_position.x + n_width_ as f32 * tile_size - offset_ts2,
         }
     };
     // Println board_dimensions.position:
