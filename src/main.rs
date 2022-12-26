@@ -614,11 +614,7 @@ fn make_tile(
     big_tile_size: f32,
     coordinates: Coordinates,
 ) -> Entity {
-    // let (transl_x, transl_y) = ((coordinates.x as f32 * big_tile_size) + (big_tile_size / 2.), ((6 - coordinates.y) as f32 * big_tile_size) + (big_tile_size / 2.));
-    let (transl_x, transl_y) = (
-        (coordinates.x as f32 * big_tile_size),
-        ((6 - coordinates.y) as f32 * big_tile_size),
-    );
+    let (transl_x, transl_y) = ((coordinates.x as f32 * big_tile_size) + (big_tile_size / 2.), ((6 - coordinates.y) as f32 * big_tile_size) + (big_tile_size / 2.));
 
     let (texture, transform) = get_transform_and_texture(t, assets);
     // Translate the tile to the right position:
@@ -723,8 +719,8 @@ fn get_train_transform(t:Train, board: &BoardDimensions, tick_rateo: f32) -> Tra
         (Side::L_, Side::T_) => {( 0.5*angle.sin(), 1. - 0.5 * angle.cos(), angle)},
         _ => {panic!("WTF")}
         };
-        transform.translation.x = (x + t.pos.px as f32) * board.tile_size - board.tile_size / 2.;
-        transform.translation.y = (y + (6 - t.pos.py)as f32) * board.tile_size - board.tile_size / 2.;
+        transform.translation.x = (x + t.pos.px as f32) * board.tile_size;
+        transform.translation.y = (y + (6 - t.pos.py)as f32) * board.tile_size;
         transform.rotation = Quat::from_rotation_z( train_angle);
         
         transform.scale = Vec3::splat(1.);
@@ -759,8 +755,7 @@ pub fn hovered_tile(board: &BoardDimensions, window: &Window) -> Option<Coordina
     if !in_bounds(position, board.rect) {return None;}
     // Get vec2 with x and y out of the vec3 position:
     let boardpospos: Vec2 = Vec2::new(board.position.x, board.position.y);
-    let offset = Vec2{x: board.tile_size / 2., y: board.tile_size / 2.};
-    let coordinates = position - boardpospos + offset;
+    let coordinates = position - boardpospos;
     let coords = Coordinates {
         x: (coordinates.x / board.tile_size) as u16,
         y: 6 - ((coordinates.y / board.tile_size) as u16),
@@ -886,19 +881,15 @@ pub fn create_board(
     };
     // log::info!("board size: {}", board_size);
 
-    // x va spostato a sx (-) di ts/2
-    // y va spostato in giu (-) di ts/2
-    let offset_ts2 = tile_size / 2.;
-
     // Init BoardDimensions component
     let board_dimensions = BoardDimensions {
         tile_size,
         position: board_position,
         rect: Rect{
-            top: board_position.y - offset_ts2,
-            bottom: board_position.y + n_height_ as f32 * tile_size - offset_ts2,
-            left: board_position.x - offset_ts2,
-            right: board_position.x + n_width_ as f32 * tile_size - offset_ts2,
+            top: board_position.y,
+            bottom: board_position.y + n_height_ as f32 * tile_size,
+            left: board_position.x,
+            right: board_position.x + n_width_ as f32 * tile_size,
         }
     };
     // Println board_dimensions.position:
