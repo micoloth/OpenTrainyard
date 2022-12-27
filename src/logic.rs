@@ -9,6 +9,9 @@ pub struct Player;
 
 use crate::simulator::*;
 
+use bevy::utils::Instant;
+// use std::time::Instant;
+
 use crate::utils::Coordinates;
 use crate::board::*;
 
@@ -36,6 +39,11 @@ pub fn get_ticks_in_a_tick_default() -> TicksInATick {
     }
 }
 
+#[derive(Default)]
+pub struct DoubleClickInstant
+{
+    pub instant: Option<Instant>,
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -50,6 +58,11 @@ pub enum LogicTickEvent {
     TickEnd,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct DoubleClickEvent {
+    pub pos_x: f32,
+    pub pos_y: f32,
+}
 
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
@@ -60,7 +73,7 @@ pub fn check_mouse_action(mouse_input: Res<Input<MouseButton>>, windows: Res<Win
     if mouse_input.pressed(MouseButton::Left) {
         for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
             let window = windows.get_primary().expect("no primary window");
-            let pos = hovered_tile(board_dimensions, window);
+            let pos = hovered_tile(board_dimensions, window, window.cursor_position());
             let pos = match pos { None => continue, Some(b) => b, };
             if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
                 let p_old = hoverable.hovered_pos_1.unwrap();
@@ -88,6 +101,55 @@ pub fn check_mouse_action(mouse_input: Res<Input<MouseButton>>, windows: Res<Win
     }
 }
 
+
+
+use bevy::input::ButtonState;
+use bevy::input::mouse::MouseButtonInput;
+
+
+
+pub fn double_click_mouse(
+    //mouse_input: Res<Input<MouseButton>>, 
+    mut mousebtn_evr: EventReader<MouseButtonInput>,
+    windows: Res<Windows>, 
+    mut double_click_time: Local<DoubleClickInstant>,
+    mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap), With<Board>>, 
+    mut eventWriter: EventWriter<DoubleClickEvent>,
+    mut spawn_event: EventWriter<TileSpawnEvent>
+) {
+    for ev in mousebtn_evr.iter() {
+        match ev.state {
+            ButtonState::Pressed => {
+                if let Some(double_click_instant) = double_click_time.instant {
+                    if double_click_instant.elapsed().as_millis() < 400 && double_click_instant.elapsed().as_millis() > 30 {
+                        println!("Time: {}", double_click_instant.elapsed().as_millis());
+                        println!("DOUBLE CLICK");
+                        for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+                            let window = windows.get_primary().expect("no primary window");
+                            let pos = hovered_tile(board_dimensions, window, window.cursor_position());
+                            println!("  >>CLICKED {:?}", pos);
+                            let pos = match pos { None => break, Some(b) => b, };
+                            eventWriter.send(DoubleClickEvent{pos});
+                            // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
+                            let tile = boardTileMap.map[pos.y as usize][pos.x as usize];
+                            println!("  >>Old tile: {:?}", tile);
+                            let newtile = get_new_tile_from_flipping(tile);
+                            println!("  >>FLIPPED {:?}", newtile);
+                            if let Some(tile_) = newtile {
+                                spawn_event.send(TileSpawnEvent { x: pos.x as usize, y: pos.y as usize, new_tile: tile_ });
+
+                            }
+                        }
+                    }
+                }
+                *double_click_time = DoubleClickInstant{instant: Some(Instant::now())};
+                println!("SET CURRENT TIME: {:?}",Instant::now());
+        },
+
+        ButtonState::Released => {}
+    }
+}
+}
 
 
 pub fn logic_tick_event(
@@ -133,7 +195,6 @@ for trigger_event in evt.iter() {
                 for (x, tile) in line.iter().enumerate() {
                     if tile != &board_tilemap.map[y][x] {
                         spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile});
-                        board_tilemap.map[y][x] = *tile;
                     }
                 }
             }
@@ -174,9 +235,9 @@ tick_status.locked_waiting_for_tick_event = false;
 
 
 
-fn hovered_tile(board: &BoardDimensions, window: &Window) -> Option<Coordinates> {
+fn hovered_tile(board: &BoardDimensions, window: &Window, cursor_pos: Option<Vec2>) -> Option<Coordinates> {
     let window_size = Vec2::new(window.width(), window.height());
-    let position = window.cursor_position()? - window_size / 2.;
+    let position = cursor_pos? - window_size / 2.;
     if !in_bounds(position, board.rect) {return None;}
     // Get vec2 with x and y out of the vec3 position:
     let boardpospos: Vec2 = Vec2::new(board.position.x, board.position.y);
@@ -227,5 +288,12 @@ fn get_new_tile_from_track_option(old_tile: Tile, new_track_option: TrackOptions
     }
 }
 
-
+fn get_new_tile_from_flipping(old_tile: Tile) -> Option<Tile> {
+    match old_tile {
+        Tile::TrackTile{toptrack, bottrack} => {
+            Some(Tile::TrackTile{toptrack: bottrack, bottrack: toptrack})
+        },
+        _ => {None}
+    }
+}
 

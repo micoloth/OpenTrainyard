@@ -63,6 +63,20 @@ const TIME_STEP: f32 = 1.0 / 60.0;
 use bevy::time::FixedTimestep;  // 0.9: Thi is in Time, not in core
 
 
+// This example game uses States to separate logic
+// See https://bevy-cheatbook.github.io/programming/states.html
+// Or https://github.com/bevyengine/bevy/blob/main/examples/ecs/state.rs
+#[derive(Clone, Eq, PartialEq, Debug, Hash)]
+enum GameState {
+    // During the loading State the LoadingPlugin will load our assets
+    Loading,
+    // During this State the actual game logic is executed
+    Playing,
+    // Here the menu is drawn and waiting for player interaction
+    Menu,
+}
+
+
 pub struct MainGamePlugin;
 
 
@@ -80,29 +94,16 @@ impl Plugin for MainGamePlugin {
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(logic_tick_event))
             .add_event::<TileSpawnEvent>()
             .add_event::<LogicTickEvent>()
+            .add_event::<DoubleClickEvent>()
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-                .with_system(check_mouse_action)
-                .with_system(move_trains)   
+                // .with_system(move_trains)   
             )
+            .add_system(check_mouse_action)
+            .add_system(double_click_mouse)
             ;
     }
-}
-
-
-
-// This example game uses States to separate logic
-// See https://bevy-cheatbook.github.io/programming/states.html
-// Or https://github.com/bevyengine/bevy/blob/main/examples/ecs/state.rs
-#[derive(Clone, Eq, PartialEq, Debug, Hash)]
-enum GameState {
-    // During the loading State the LoadingPlugin will load our assets
-    Loading,
-    // During this State the actual game logic is executed
-    Playing,
-    // Here the menu is drawn and waiting for player interaction
-    Menu,
 }
 
 

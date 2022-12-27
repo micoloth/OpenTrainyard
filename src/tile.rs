@@ -46,16 +46,17 @@ pub struct TileSpawnEvent {
 pub fn spawn_tile(
     mut commands: Commands,
     board_assets_map: Res<BoardAssetsMap>,
-    mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities), With<Board>>,
+    mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities, &mut BoardTileMap), With<Board>>,
     mut evt: EventReader<TileSpawnEvent>,
 ) {
     for trigger_event in evt.iter() {
-        for (board_id, board_dimensions, mut board_entities) in board_q.iter_mut() {
+        for (board_id, board_dimensions, mut board_entities, mut board_tilemap) in board_q.iter_mut() {
             let mut board_entity = commands.entity(board_id);  // Get entity by id:
             let size = board_dimensions.tile_size;
             let coordinates = Coordinates { x: trigger_event.x as u16, y: trigger_event.y as u16,};
             let t = trigger_event.new_tile;
 
+            board_tilemap.map[coordinates.y as usize][coordinates.x as usize] = t;
             
             // get entity by coordinates using hashmap
             let old_entity: Option<Entity> = board_entities.tiles.get(&coordinates).cloned();
@@ -417,7 +418,7 @@ fn make_tile(
     let mut child = commands.spawn_bundle(TileSpriteBundle {
         coordinates, // Tile coordinates
         texture: texture,
-        transform: transform.with_translation(Vec3::new(transl_x, transl_y, 2.));,
+        transform: transform.with_translation(Vec3::new(transl_x, transl_y, 2.)),
         sprite: Sprite { custom_size: Some(Vec2::splat(big_tile_size)), ..Default::default()},
         ..Default::default()
     });
