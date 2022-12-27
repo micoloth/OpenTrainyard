@@ -117,7 +117,7 @@ impl Plugin for MainGamePlugin {
 fn main() {
     // test();
     App::new()
-        .insert_resource(Msaa { samples: 1 })
+        // .insert_resource(Msaa { samples: 1 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
         .insert_resource(WindowDescriptor {width: 600.,height: 800.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()),..Default::default()})
         .add_plugins(DefaultPlugins)

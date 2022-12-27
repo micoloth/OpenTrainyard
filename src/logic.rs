@@ -1,9 +1,6 @@
 use bevy::prelude::*;
 use crate::loading::TrainAssets;
 
-
-pub struct PlayerPlugin;
-
 #[derive(Component)]
 pub struct Player;
 
@@ -65,8 +62,8 @@ pub struct DoubleClickEvent {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TileHoverEvent {
-    newhover(Vec2),
-    released
+    Newhover(Vec2),
+    Released
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -76,7 +73,7 @@ pub enum TileHoverEvent {
 pub fn tile_hover_touch(touches: Res<Touches>, windows: Res<Windows>, mut hover_event: EventWriter<TileHoverEvent>,) {
     for finger in touches.iter() {
         if touches.just_released(finger.id()) {
-            hover_event.send(TileHoverEvent::released);
+            hover_event.send(TileHoverEvent::Released);
             break;
         }
         else {
@@ -84,7 +81,7 @@ pub fn tile_hover_touch(touches: Res<Touches>, windows: Res<Windows>, mut hover_
             let pos = match window.cursor_position() { None => continue, Some(b) => b, };
             let window_size = Vec2::new(window.width(), window.height());
             let pos = pos - window_size / 2.;            
-            hover_event.send(TileHoverEvent::newhover(pos));
+            hover_event.send(TileHoverEvent::Newhover(pos));
         }
     }
 }
@@ -95,10 +92,10 @@ pub fn tile_hover_mouse(mouse_input: Res<Input<MouseButton>>, windows: Res<Windo
             let pos = match window.cursor_position() { None => return, Some(b) => b, };
             let window_size = Vec2::new(window.width(), window.height());
             let pos = pos - window_size / 2.;            
-            hover_event.send(TileHoverEvent::newhover(pos));
+            hover_event.send(TileHoverEvent::Newhover(pos));
     }
     else if mouse_input.any_just_released([MouseButton::Left, MouseButton::Right]) {
-        hover_event.send(TileHoverEvent::released);
+        hover_event.send(TileHoverEvent::Released);
     }
 }
 
@@ -110,8 +107,8 @@ pub fn tile_hover_event(
     for ev in hover_event.iter() {
         // Match the 2 types of event:
         match ev {
-            TileHoverEvent::newhover(pos) => {
-                for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+            TileHoverEvent::Newhover(pos) => {
+                for (board_dimensions, mut hoverable, mut board_tile_map) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
                     let pos = hovered_tile(board_dimensions, *pos);
                     let pos = match pos { None => continue, Some(b) => b, };
                     if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
@@ -122,17 +119,17 @@ pub fn tile_hover_event(
                         hoverable.hovered_pos_2 = Some(p_new);
                         let track_option = get_track_option_from_3_coordinates(p_old, p_central, p_new);
                         let track_option = match track_option { None => continue, Some(b) => b, };
-                        let new_tile = get_new_tile_from_track_option(boardTileMap.map[p_central.y as usize][p_central.x as usize], track_option);
-                        boardTileMap.map[p_central.y as usize][p_central.x as usize] = new_tile;
+                        let new_tile = get_new_tile_from_track_option(board_tile_map.map[p_central.y as usize][p_central.x as usize], track_option);
+                        board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
                         spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
                         // print p_central.y and p_central.x:
                     }
                     else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos); }
                     else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos); }
-                    // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
+                    // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, board_tile_map.map[pos.y as usize][pos.x as usize]);
                 }
             }
-            TileHoverEvent::released => {
+            TileHoverEvent::Released => {
                 for (_, mut hoverable,  _) in board_q.iter_mut() {
                     hoverable.hovered_pos_1 = None;
                     hoverable.hovered_pos_2 = None;
@@ -143,21 +140,17 @@ pub fn tile_hover_event(
 }
 
 
-
-use bevy::input::ButtonState;
-use bevy::input::mouse::MouseButtonInput;
-
 pub fn double_click_touch(
     touches: Res<Touches>,
     mut double_click_time: Local<DoubleClickInstant>,
-    mut eventWriter: EventWriter<DoubleClickEvent>,
+    mut event_writer: EventWriter<DoubleClickEvent>,
 ) {
     for finger in touches.iter() {
         if touches.just_pressed(finger.id()) {
             if let Some(double_click_instant) = double_click_time.instant {
                 if double_click_instant.elapsed().as_millis() < 400 && double_click_instant.elapsed().as_millis() > 30 {
                     println!("DOUBLE CLICK");
-                    eventWriter.send(DoubleClickEvent{pos: finger.position() });
+                    event_writer.send(DoubleClickEvent{pos: finger.position() });
                 }
             }
             *double_click_time = DoubleClickInstant{instant: Some(Instant::now())};
@@ -170,7 +163,7 @@ pub fn double_click_mouse(
     mouse_input: Res<Input<MouseButton>>, 
     windows: Res<Windows>, 
     mut double_click_time: Local<DoubleClickInstant>,
-    mut eventWriter: EventWriter<DoubleClickEvent>,
+    mut event_writer: EventWriter<DoubleClickEvent>,
 ) {
     if mouse_input.just_pressed(MouseButton::Left) {
         if let Some(double_click_instant) = double_click_time.instant {
@@ -178,7 +171,7 @@ pub fn double_click_mouse(
                 println!("DOUBLE CLICK");
                 let pos = windows.get_primary().unwrap().cursor_position();
                 if let Some(pos) = pos {
-                    eventWriter.send(DoubleClickEvent{pos: pos});
+                    event_writer.send(DoubleClickEvent{pos: pos});
                 }
             }
         }
@@ -189,7 +182,7 @@ pub fn double_click_mouse(
 
 pub fn double_click_event(
     windows: Res<Windows>, 
-    mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap), With<Board>>, 
+    mut board_q: Query<(&BoardDimensions, &BoardTileMap), With<Board>>, 
     mut event_reader: EventReader<DoubleClickEvent>,
     mut spawn_event: EventWriter<TileSpawnEvent>
 ) {
@@ -197,12 +190,12 @@ pub fn double_click_event(
         let window = windows.get_primary().expect("no primary window");
         let window_size = Vec2::new(window.width(), window.height());
         let pos = ev.pos - window_size / 2.;
-        for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+        for (board_dimensions, board_tile_map) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
             let pos = hovered_tile(board_dimensions, pos);
             println!("  >>CLICKED {:?}", pos);
             let pos = match pos { None => break, Some(b) => b, };
-            // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
-            let tile = boardTileMap.map[pos.y as usize][pos.x as usize];
+            // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, board_tile_map.map[pos.y as usize][pos.x as usize]);
+            let tile = board_tile_map.map[pos.y as usize][pos.x as usize];
             println!("  >>Old tile: {:?}", tile);
             let newtile = get_new_tile_from_flipping(tile);
             println!("  >>FLIPPED {:?}", newtile);
@@ -218,14 +211,14 @@ pub fn double_click_event(
 pub fn logic_tick_event(
     mut commands: Commands,
     train_assets: Res<TrainAssets>,
-    mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities, &mut BoardTileMap), With<Board>>,
+    mut board_q: Query<(Entity, &BoardDimensions, &BoardTileMap), With<Board>>,
     trains_q: Query<(Entity, &Train)>,
     mut tick_status: ResMut<TicksInATick>,
     mut evt: EventReader<LogicTickEvent>,
     mut spawn_event: EventWriter<TileSpawnEvent>
 ) {
 for trigger_event in evt.iter() {
-    for (board_id, board_dimensions, mut board_entities, mut board_tilemap) in board_q.iter_mut() {
+    for (board_id, board_dimensions, board_tilemap) in board_q.iter_mut() {
         // if board is not None:
         
         // Despawn all trains sprites and save the train in current_trains: 
@@ -336,7 +329,7 @@ fn get_new_tile_from_track_option(old_tile: Tile, new_track_option: TrackOptions
     // Move the old toptrack to bottom track, and add a new toptrack from the new track option.
     // If the new track option is the same as the old toptrack, then the tile becomes a SingleTrackTile.
     match old_tile {
-        Tile::TrackTile{toptrack, bottrack} => {
+        Tile::TrackTile{toptrack, bottrack: _} => {
             if new_track_option == get_track_option(toptrack) { Tile::SingleTrackTile{track: toptrack}}
             else { Tile::TrackTile{toptrack: get_track(new_track_option), bottrack: toptrack}}
         },
