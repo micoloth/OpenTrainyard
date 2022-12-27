@@ -60,8 +60,7 @@ pub enum LogicTickEvent {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DoubleClickEvent {
-    pub pos_x: f32,
-    pub pos_y: f32,
+    pub pos: Vec2,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +72,10 @@ pub fn check_mouse_action(mouse_input: Res<Input<MouseButton>>, windows: Res<Win
     if mouse_input.pressed(MouseButton::Left) {
         for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
             let window = windows.get_primary().expect("no primary window");
-            let pos = hovered_tile(board_dimensions, window, window.cursor_position());
+            let window_size = Vec2::new(window.width(), window.height());
+            let pos = match window.cursor_position() { None => continue, Some(b) => b, };
+            let pos = pos - window_size / 2.;            
+            let pos = hovered_tile(board_dimensions, pos);
             let pos = match pos { None => continue, Some(b) => b, };
             if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
                 let p_old = hoverable.hovered_pos_1.unwrap();
@@ -106,49 +108,71 @@ pub fn check_mouse_action(mouse_input: Res<Input<MouseButton>>, windows: Res<Win
 use bevy::input::ButtonState;
 use bevy::input::mouse::MouseButtonInput;
 
-
-
-pub fn double_click_mouse(
-    //mouse_input: Res<Input<MouseButton>>, 
-    mut mousebtn_evr: EventReader<MouseButtonInput>,
-    windows: Res<Windows>, 
+pub fn double_click_touch(
+    touches: Res<Touches>,
     mut double_click_time: Local<DoubleClickInstant>,
-    mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap), With<Board>>, 
     mut eventWriter: EventWriter<DoubleClickEvent>,
-    mut spawn_event: EventWriter<TileSpawnEvent>
 ) {
-    for ev in mousebtn_evr.iter() {
-        match ev.state {
-            ButtonState::Pressed => {
-                if let Some(double_click_instant) = double_click_time.instant {
-                    if double_click_instant.elapsed().as_millis() < 400 && double_click_instant.elapsed().as_millis() > 30 {
-                        println!("Time: {}", double_click_instant.elapsed().as_millis());
-                        println!("DOUBLE CLICK");
-                        for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
-                            let window = windows.get_primary().expect("no primary window");
-                            let pos = hovered_tile(board_dimensions, window, window.cursor_position());
-                            println!("  >>CLICKED {:?}", pos);
-                            let pos = match pos { None => break, Some(b) => b, };
-                            eventWriter.send(DoubleClickEvent{pos});
-                            // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
-                            let tile = boardTileMap.map[pos.y as usize][pos.x as usize];
-                            println!("  >>Old tile: {:?}", tile);
-                            let newtile = get_new_tile_from_flipping(tile);
-                            println!("  >>FLIPPED {:?}", newtile);
-                            if let Some(tile_) = newtile {
-                                spawn_event.send(TileSpawnEvent { x: pos.x as usize, y: pos.y as usize, new_tile: tile_ });
-
-                            }
-                        }
-                    }
+    for finger in touches.iter() {
+        if touches.just_pressed(finger.id()) {
+            if let Some(double_click_instant) = double_click_time.instant {
+                if double_click_instant.elapsed().as_millis() < 400 && double_click_instant.elapsed().as_millis() > 30 {
+                    println!("DOUBLE CLICK");
+                    eventWriter.send(DoubleClickEvent{pos: finger.position() });
                 }
-                *double_click_time = DoubleClickInstant{instant: Some(Instant::now())};
-                println!("SET CURRENT TIME: {:?}",Instant::now());
-        },
-
-        ButtonState::Released => {}
+            }
+            *double_click_time = DoubleClickInstant{instant: Some(Instant::now())};
+            println!("SET CURRENT TIME: {:?}",Instant::now());
+        }
     }
 }
+
+pub fn double_click_mouse(
+    mouse_input: Res<Input<MouseButton>>, 
+    windows: Res<Windows>, 
+    mut double_click_time: Local<DoubleClickInstant>,
+    mut eventWriter: EventWriter<DoubleClickEvent>,
+) {
+    if mouse_input.just_pressed(MouseButton::Left) {
+        if let Some(double_click_instant) = double_click_time.instant {
+            if double_click_instant.elapsed().as_millis() < 400 && double_click_instant.elapsed().as_millis() > 30 {
+                println!("DOUBLE CLICK");
+                let pos = windows.get_primary().unwrap().cursor_position();
+                if let Some(pos) = pos {
+                    eventWriter.send(DoubleClickEvent{pos: pos});
+                }
+            }
+        }
+        *double_click_time = DoubleClickInstant{instant: Some(Instant::now())};
+        println!("SET CURRENT TIME: {:?}",Instant::now());
+    }
+}
+
+pub fn double_click_event(
+    windows: Res<Windows>, 
+    mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap), With<Board>>, 
+    mut event_reader: EventReader<DoubleClickEvent>,
+    mut spawn_event: EventWriter<TileSpawnEvent>
+) {
+    for ev in event_reader.iter() {
+        let window = windows.get_primary().expect("no primary window");
+        let window_size = Vec2::new(window.width(), window.height());
+        let pos = ev.pos - window_size / 2.;
+        for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+            let pos = hovered_tile(board_dimensions, pos);
+            println!("  >>CLICKED {:?}", pos);
+            let pos = match pos { None => break, Some(b) => b, };
+            // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
+            let tile = boardTileMap.map[pos.y as usize][pos.x as usize];
+            println!("  >>Old tile: {:?}", tile);
+            let newtile = get_new_tile_from_flipping(tile);
+            println!("  >>FLIPPED {:?}", newtile);
+            if let Some(tile_) = newtile {
+                spawn_event.send(TileSpawnEvent { x: pos.x as usize, y: pos.y as usize, new_tile: tile_ });
+
+            }
+        }
+    }
 }
 
 
@@ -235,9 +259,7 @@ tick_status.locked_waiting_for_tick_event = false;
 
 
 
-fn hovered_tile(board: &BoardDimensions, window: &Window, cursor_pos: Option<Vec2>) -> Option<Coordinates> {
-    let window_size = Vec2::new(window.width(), window.height());
-    let position = cursor_pos? - window_size / 2.;
+fn hovered_tile(board: &BoardDimensions, position: Vec2) -> Option<Coordinates> {
     if !in_bounds(position, board.rect) {return None;}
     // Get vec2 with x and y out of the vec3 position:
     let boardpospos: Vec2 = Vec2::new(board.position.x, board.position.y);
