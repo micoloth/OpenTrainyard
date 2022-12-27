@@ -18,6 +18,7 @@ impl Plugin for MenuPlugin {
 pub struct ButtonColors {
     pub normal: UiColor,
     pub hovered: UiColor,
+    pub pressed: UiColor
 }
 
 impl Default for ButtonColors {
@@ -25,6 +26,7 @@ impl Default for ButtonColors {
         ButtonColors {
             normal: Color::rgb(0.15, 0.15, 0.15).into(),
             hovered: Color::rgb(0.25, 0.25, 0.25).into(),
+            pressed: Color::rgb(0.35, 0.35, 0.35).into(),
         }
     }
 }
@@ -91,3 +93,93 @@ fn click_play_button(
 fn cleanup_menu(mut commands: Commands, button: Query<Entity, With<Button>>) {
     commands.entity(button.single()).despawn_recursive();
 }
+
+
+
+
+// // fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, asset_shapes: Res<BoardAssetsMap>) {
+//     fn setup_ui(mut commands: &mut Commands, asset_server: &AssetServer, asset_shapes: &BoardAssetsMap) {
+//         let button_materials = ButtonColors {
+//             normal: Color::GRAY,
+//             hovered: Color::DARK_GRAY,
+//             pressed: Color::BLACK,
+//         };
+//         commands
+//             .spawn_bundle(NodeBundle {
+//                 style: Style {
+//                     size: Size::new(Val::Percent(100.), Val::Px(50.)),
+//                     align_items: AlignItems::Center,
+//                     justify_content: JustifyContent::Center,
+    
+//                     ..Default::default()
+//                 },
+//                 color: Color::WHITE.into(),
+//                 ..Default::default()
+//             })
+//             .insert(Name::new("UI"))
+//             .with_children(|parent| {
+//                 let font = asset_server.load("fonts/pixeled.ttf");
+//                 setup_single_menu(
+//                     parent,
+//                     "CLEAR",
+//                     button_materials.normal.into(),
+//                     font.clone(),
+//                     ButtonAction::Clear,
+//                 );
+//                 // setup_scrollbar(
+//                 //     parent,
+//                 //     "GENERATE",
+//                 //     button_materials.normal.into(),
+//                 //     font,
+//                 //     ButtonAction::Generate,
+//                 //     &asset_shapes.assets
+//                 // );
+//             });
+//         commands.insert_resource(button_materials);
+//     }
+    
+//     fn setup_single_menu(
+//         parent: &mut ChildBuilder,
+//         text: &str,
+//         color: UiColor,
+//         font: Handle<Font>,
+//         action: ButtonAction,
+//     ) {
+//         parent
+//             .spawn_bundle(ButtonBundle {
+//                 style: Style {
+//                     size: Size::new(Val::Percent(95.), Val::Auto),
+//                     margin: Rect::all(Val::Px(10.)),
+//                     // horizontally center child text
+//                     justify_content: JustifyContent::Center,
+//                     // vertically center child text
+//                     align_items: AlignItems::Center,
+//                     ..Default::default()
+//                 },
+//                 color,
+//                 ..Default::default()
+//             })
+//             .insert(action)
+//             .insert(Name::new(text.to_string()))
+//             .with_children(|builder| {
+//                 builder.spawn_bundle(TextBundle {
+//                     text: Text {
+//                         sections: vec![TextSection {
+//                             value: text.to_string(),
+//                             style: TextStyle {
+//                                 font,
+//                                 font_size: 30.,
+//                                 color: Color::WHITE,
+//                             },
+//                         }],
+//                         alignment: TextAlignment {
+//                             vertical: VerticalAlign::Center,
+//                             horizontal: HorizontalAlign::Center,
+//                         },
+//                     },
+//                     ..Default::default()
+//                 });
+//             });
+//     }
+    
+    
