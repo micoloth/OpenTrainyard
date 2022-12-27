@@ -1,0 +1,29 @@
+
+
+cargo install wasm-server-runner
+
+cd 5_bevy_minesweeper
+
+cargo install -f wasm-bindgen-cli --version 0.2.79
+
+cargo serve
+
+cargo run
+
+
+
+
+################# FROM README:
+
+WASM build
+Native: cargo serve --release and open http://127.0.0.1:1334
+Browser: ./build_wasm.sh and open public/index.html in a browser
+
+
+
+
+################# WASM MODE:
+
+cd OpenTrainyard
+
+trunk serve

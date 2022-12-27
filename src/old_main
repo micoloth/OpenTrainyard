@@ -1,0 +1,308 @@
+use bevy::{log, transform};
+use bevy::log::{Level, LogSettings};
+use bevy::prelude::*;
+use bevy::prelude::Vec3;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::process::Child;
+// use bevy::ecs::schedule::StateData;
+use bevy::prelude::Vec2;
+use bevy::core::FixedTimestep;  // 0.9: Thi is in Time, not in core
+use bevy::math::Vec3Swizzles;
+use bevy::prelude::Component;
+use std::fmt::{self, Display, Formatter};
+use std::ops::{Add, Sub};
+
+mod simulator;
+use simulator::*;
+
+// mod map_printer;
+// use map_printer::*;
+// use map_printer::add_color_minitiles;
+
+// REMEMBER: with >> inster() <<, YOU CAN ALWAYS INSERT A COMPONENT, EVEN IF IT IS NOT PRESENT IN THE ENTITY !!! IT's PURPOSEFULLY VERY SIMPLE !!!
+
+
+mod tests_;
+use tests_::test;
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// COMPONENTS
+/////////////////////////////////////////////////////////////////////////////////////
+
+use bevy::prelude::*;
+use bevy::ecs::system::EntityCommands;
+
+// use staticvec::{staticvec, StaticVec};
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// SYSTEMS HELPER FUNCTIONS
+/////////////////////////////////////////////////////////////////////////////////////
+
+// Translates a mouse position to board coordinates
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// SYSTEMS
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+#[allow(clippy::type_complexity)]
+fn input_handler(
+    button_colors: Res<ButtonColors>,
+    mut interaction_query: Query<(&Interaction, &ButtonAction, &mut UiColor),(Changed<Interaction>, With<Button>)>,
+    mut state: ResMut<State<AppState>>,
+) {
+    for (interaction, action, mut color) in interaction_query.iter_mut() {
+        match *interaction {
+            Interaction::Clicked => {
+                *color = button_colors.pressed.into();
+                match action {
+                    ButtonAction::Clear => {
+                        log::debug!("clearing detected");
+                        if state.current() == &AppState::InGame {
+                            log::info!("clearing game");
+                            state.set(AppState::Out).unwrap();
+                        }
+                    }
+                    ButtonAction::Generate => {
+                        log::debug!("loading detected");
+                        if state.current() == &AppState::Out {
+                            log::info!("loading game");
+                            state.set(AppState::InGame).unwrap();
+                        }
+                    }
+                }
+            }
+            Interaction::Hovered => {
+                *color = button_colors.hovered.into();
+            }
+            Interaction::None => {
+                *color = button_colors.normal.into();
+            }
+        }
+    }
+}
+
+
+
+use bevy::ui::widget::ImageMode;
+use bevy::ui::FocusPolicy;
+#[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarLimits { max: f32, min: f32, current: f32, step: f32,}
+#[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarPosition { max_x: f32, min_x: f32, current_x: f32, step_x: f32,}
+#[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarStatus { dragging: bool }
+
+#[derive(Bundle, Clone, Debug, Default)]
+pub struct ScrollBarHandleBundle {
+    pub scrollBarLimits: ScrollBarLimits,
+    pub scrollBarPosition: ScrollBarPosition,
+    pub scrollBarStatus: ScrollBarStatus,
+
+    pub sprite: Sprite,
+
+    // Flattened components of ImageBundle AND ButtonBundle - Nice!   (kinda .....)
+    pub style: Style,  // Describes the style including flexbox settings
+    pub image_mode: ImageMode,  // Configures how the image should scale
+    pub calculated_size: CalculatedSize,  // The calculated size based on the given image
+    pub color: UiColor,  // The color of the node
+    pub image: UiImage,  // The image of the node
+    pub transform: Transform,  // The transform of the node
+    pub global_transform: GlobalTransform,  // The global transform of the node
+    pub visibility: Visibility,  // Describes the visibility properties of the node
+    pub button: Button,  // Marker component that signals this node is a button
+    pub interaction: Interaction,  // Describes whether and how the button has been interacted with by the input
+    pub focus_policy: FocusPolicy,  // Whether this node should block interaction with lower nodes
+}
+
+pub fn getScrollBarHandleBundle(img: Handle<Image>, color: UiColor, limits: ScrollBarLimits) -> ScrollBarHandleBundle {
+    let mut sbh = ScrollBarHandleBundle{
+        image: UiImage(img),
+        transform: Transform::from_translation(Vec3::new(0., 0., 3.)).with_scale(Vec3::splat(5.)),
+        global_transform: Default::default(), visibility: Default::default(),
+        ..Default::default()
+    };
+
+    return sbh;
+}
+
+
+
+fn setup_scrollbar(
+    parent: &mut ChildBuilder,
+    text: &str,
+    color: UiColor,
+    font: Handle<Font>,
+    action: ButtonAction,
+    assets: &HashMap<String, Handle<Image>>, 
+) {
+    let arrow = assets.get("s_arrow_elem_rigth.png").unwrap();
+    parent
+        .spawn_bundle(
+            NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(95.), Val::Auto),
+                    margin: Rect::all(Val::Px(10.)),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                color,
+                ..Default::default()
+        })
+        .with_children(|builder| {
+            builder.spawn_bundle(
+                getScrollBarHandleBundle((*arrow).clone(), color, ScrollBarLimits { max: 100., min: 0., current: 0., step: 1.})
+            );
+        })
+        .insert(Name::new(text.to_string()));
+}
+
+#[allow(clippy::type_complexity)]
+fn scrollbar_input_handler(
+    button_colors: Res<ButtonColors>,
+    mut interaction_query: Query<(&Interaction, &mut UiColor, &mut ScrollBarPosition, &mut ScrollBarLimits, &mut ScrollBarStatus),(Changed<Interaction>)>,
+    mut state: ResMut<State<AppState>>,
+) {
+    for (interaction, mut color, mut sbpos, mut sblimits, mut sbstatus) in interaction_query.iter_mut() {
+        match *interaction {
+            Interaction::Clicked => {
+                // Set the image transparency to 0.5:
+                if let Color::Rgba { red, green, blue, alpha } = color.0.as_rgba(){  // Surprise surprise!
+                    *color = Color::rgba(red, green, blue, 0.5).into();
+                }
+                sbstatus.dragging = true;
+            }
+            Interaction::Hovered => {
+                if let Color::Rgba { red, green, blue, alpha } = color.0.as_rgba(){  // Surprise surprise!
+                    *color = Color::rgba(red, green, blue, 0.1).into();
+                }
+            }
+            Interaction::None => {
+                *color = button_colors.normal.into();
+                sbstatus.dragging = false;
+            }
+        }
+    }
+}
+
+
+
+#[allow(clippy::type_complexity)]
+fn scrollbar_dragging_handler(
+    button_colors: Res<ButtonColors>, 
+    windows: Res<Windows>,
+    mut interaction_query: Query<(&mut Transform, &mut GlobalTransform, &mut Style, &mut ScrollBarPosition, &mut ScrollBarLimits, &mut ScrollBarStatus)>,
+    mut state: ResMut<State<AppState>>,
+) {
+    for (mut transform, mut gltr, mut style, mut sbpos, mut sblimits, mut sbstatus) in interaction_query.iter_mut() {
+        if sbstatus.dragging {
+            let window = windows.get_primary().expect("no primary window");
+            let window_size = Vec2::new(window.width(), window.height());
+            if let Some(pos) = window.cursor_position() {
+                println!("THANKSSS, {:?}", pos);
+                let position = pos - window_size / 2.;
+                let pos_x = position.x;
+                sbpos.current_x = pos_x;
+
+                // print current x position of the image from transform:
+                println!("Current x position of the image: {:?}", transform.translation.x);
+                // transform.translation.x = pos_x;
+                // let mut old_pos:Rect<Val> = style.position;
+                // old_pos.left = Val::Px(pos_x as f32);
+                // old_pos.right = Val::Px((pos_x as f32) + 20.);
+                // style.position = old_pos;
+                
+                println!("New x position of the image: {:?}", gltr.translation.x);
+                println!("New x position of the image: {:?}", style.position);
+
+            }
+
+        }
+    }
+}
+
+
+
+
+
+
+fn setup_static_resources(mut commands: Commands, asset_server: Res<AssetServer>, ) {
+    let assets = get_assets_in_a_hashmap(&asset_server);
+    setup_ui(&mut commands, &asset_server, &assets);
+    commands.insert_resource(get_BoardOptionsDefault());
+    commands.insert_resource(get_TicksInATickDefault());
+    commands.insert_resource(get_train_assets(&asset_server));
+    commands.insert_resource(assets);
+}
+
+fn setup_game_state(mut state: ResMut<State<AppState>>){ 
+    state.set(AppState::InGame).unwrap();  // Launch game
+}
+fn setup_camera(mut commands: Commands) {
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());  // 2D orthographic camera
+    commands.spawn_bundle(UiCameraBundle::default());  // UI Camera
+}
+
+
+fn main() {
+    
+    
+    test();
+
+
+    let mut app = App::new();
+    app
+    .insert_resource(WindowDescriptor { title: "Mine Sweeper!".to_string(), width: 700., height: 750., ..Default::default() }) // Window setup
+    .insert_resource(LogSettings { level: Level::INFO, ..Default::default() }) // Log setup
+    .add_plugins(DefaultPlugins) // Bevy default plugins
+    .add_startup_system(setup_camera) // Startup system (cameras)
+    .add_startup_system(setup_game_state) // Startup system (game state)
+    .add_startup_system(setup_static_resources)
+    .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(create_board),)
+    .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup_board),)
+    .add_system(input_handler) // State handling
+    .add_system(scrollbar_input_handler) // State handling
+    .add_system(scrollbar_dragging_handler) // State handling
+    .add_system(spawn_tile) // State handling
+    .add_system(logic_tick_event) // State handling
+    .add_event::<TileSpawnEvent>()
+    .add_event::<LogicTickEvent>()
+    .add_state(AppState::Out)
+    .add_system_set(
+        SystemSet::new()
+        .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
+        .with_system(check_mouse_action)
+        .with_system(move_trains)   
+    )
+    .run(); // Run the app
+
+
+
+
+}
+
+
