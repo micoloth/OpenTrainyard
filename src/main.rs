@@ -87,21 +87,27 @@ impl Plugin for MainGamePlugin {
         app
             .insert_resource(get_board_option_default())
             .insert_resource(get_ticks_in_a_tick_default())
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(check_mouse_action))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(spawn_tile))
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(create_board),)
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_board),)
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(logic_tick_event))
+            //////////// INTERACTIONS:
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(tile_hover_mouse))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(tile_hover_touch))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(tile_hover_event))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(double_click_mouse))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(double_click_touch))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(double_click_event))
             .add_event::<TileSpawnEvent>()
             .add_event::<LogicTickEvent>()
             .add_event::<DoubleClickEvent>()
+            .add_event::<TileHoverEvent>()
+            /////////////// MOVE TRAINS:
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-                // .with_system(move_trains)   
+                .with_system(move_trains)   
             )
-            .add_system(check_mouse_action)
-            .add_system(double_click_mouse)
             ;
     }
 }

@@ -63,42 +63,81 @@ pub struct DoubleClickEvent {
     pub pos: Vec2,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum TileHoverEvent {
+    newhover(Vec2),
+    released
+}
+
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
 
-
-pub fn check_mouse_action(mouse_input: Res<Input<MouseButton>>, windows: Res<Windows>, mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap), With<Board>>, mut spawn_event: EventWriter<TileSpawnEvent>,) {
-    if mouse_input.pressed(MouseButton::Left) {
-        for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+pub fn tile_hover_touch(touches: Res<Touches>, windows: Res<Windows>, mut hover_event: EventWriter<TileHoverEvent>,) {
+    for finger in touches.iter() {
+        if touches.just_released(finger.id()) {
+            hover_event.send(TileHoverEvent::released);
+            break;
+        }
+        else {
             let window = windows.get_primary().expect("no primary window");
-            let window_size = Vec2::new(window.width(), window.height());
             let pos = match window.cursor_position() { None => continue, Some(b) => b, };
+            let window_size = Vec2::new(window.width(), window.height());
             let pos = pos - window_size / 2.;            
-            let pos = hovered_tile(board_dimensions, pos);
-            let pos = match pos { None => continue, Some(b) => b, };
-            if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
-                let p_old = hoverable.hovered_pos_1.unwrap();
-                let p_central = hoverable.hovered_pos_2.unwrap();
-                let p_new = pos;
-                hoverable.hovered_pos_1 = hoverable.hovered_pos_2;
-                hoverable.hovered_pos_2 = Some(p_new);
-                let track_option = get_track_option_from_3_coordinates(p_old, p_central, p_new);
-                let track_option = match track_option { None => continue, Some(b) => b, };
-                let new_tile = get_new_tile_from_track_option(boardTileMap.map[p_central.y as usize][p_central.x as usize], track_option);
-                boardTileMap.map[p_central.y as usize][p_central.x as usize] = new_tile;
-                spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
-                // print p_central.y and p_central.x:
-            }
-            else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos); }
-            else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos); }
-            // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
+            hover_event.send(TileHoverEvent::newhover(pos));
         }
     }
+}
+
+pub fn tile_hover_mouse(mouse_input: Res<Input<MouseButton>>, windows: Res<Windows>,mut hover_event: EventWriter<TileHoverEvent>,) {
+    if mouse_input.pressed(MouseButton::Left) {
+            let window = windows.get_primary().expect("no primary window");
+            let pos = match window.cursor_position() { None => return, Some(b) => b, };
+            let window_size = Vec2::new(window.width(), window.height());
+            let pos = pos - window_size / 2.;            
+            hover_event.send(TileHoverEvent::newhover(pos));
+    }
     else if mouse_input.any_just_released([MouseButton::Left, MouseButton::Right]) {
-        for (_, mut hoverable,  _) in board_q.iter_mut() {
-            hoverable.hovered_pos_1 = None;
-            hoverable.hovered_pos_2 = None;
+        hover_event.send(TileHoverEvent::released);
+    }
+}
+
+pub fn tile_hover_event(
+        mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap), With<Board>>, 
+        mut hover_event: EventReader<TileHoverEvent>,
+        mut spawn_event: EventWriter<TileSpawnEvent>,
+    ) {
+    for ev in hover_event.iter() {
+        // Match the 2 types of event:
+        match ev {
+            TileHoverEvent::newhover(pos) => {
+                for (board_dimensions, mut hoverable, mut boardTileMap) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+                    let pos = hovered_tile(board_dimensions, *pos);
+                    let pos = match pos { None => continue, Some(b) => b, };
+                    if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
+                        let p_old = hoverable.hovered_pos_1.unwrap();
+                        let p_central = hoverable.hovered_pos_2.unwrap();
+                        let p_new = pos;
+                        hoverable.hovered_pos_1 = hoverable.hovered_pos_2;
+                        hoverable.hovered_pos_2 = Some(p_new);
+                        let track_option = get_track_option_from_3_coordinates(p_old, p_central, p_new);
+                        let track_option = match track_option { None => continue, Some(b) => b, };
+                        let new_tile = get_new_tile_from_track_option(boardTileMap.map[p_central.y as usize][p_central.x as usize], track_option);
+                        boardTileMap.map[p_central.y as usize][p_central.x as usize] = new_tile;
+                        spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
+                        // print p_central.y and p_central.x:
+                    }
+                    else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos); }
+                    else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos); }
+                    // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, boardTileMap.map[pos.y as usize][pos.x as usize]);
+                }
+            }
+            TileHoverEvent::released => {
+                for (_, mut hoverable,  _) in board_q.iter_mut() {
+                    hoverable.hovered_pos_1 = None;
+                    hoverable.hovered_pos_2 = None;
+                }
+            }
         }
     }
 }
