@@ -6,7 +6,6 @@ use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
 // use trainyard::GamePlugin;
-use bevy::ecs::system::EntityCommands;
 use std::io::Cursor;
 use winit::window::Icon;
 
@@ -18,11 +17,10 @@ mod tile;
 mod train;
 mod board;
 mod logic;
+mod scrollbar;
 
 use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
-use crate::loading::BoardAssetsMap;
-use crate::loading::TrainAssets;
 use crate::menu::MenuPlugin;
 
 
@@ -38,10 +36,6 @@ mod simulator;
 
 mod tests;
 use tests::test;
-
-
-use crate::board::*;
-
 
 
 

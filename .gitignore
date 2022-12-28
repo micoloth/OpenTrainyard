@@ -1,7 +1,10 @@
 target/
+target/*
+target/**
 .idea/
 .DS_Store
-
+**/OpenTrainyard/target/
+**/OpenTrainyard/target/**
 dist/
 
 .vscode/
