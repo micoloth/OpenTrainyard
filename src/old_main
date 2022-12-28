@@ -136,8 +136,8 @@ fn main() {
 
     let mut app = App::new();
     app
-    .insert_resource(WindowDescriptor { title: "Mine Sweeper!".to_string(), width: 700., height: 750., ..Default::default() }) // Window setup
-    .insert_resource(LogSettings { level: Level::INFO, ..Default::default() }) // Log setup
+    .insert_resource(WindowDescriptor { title: "Mine Sweeper!".to_string(), width: 700., height: 750., ..default() }) // Window setup
+    .insert_resource(LogSettings { level: Level::INFO, ..default() }) // Log setup
     .add_plugins(DefaultPlugins) // Bevy default plugins
     .add_startup_system(setup_camera) // Startup system (cameras)
     .add_startup_system(setup_game_state) // Startup system (game state)

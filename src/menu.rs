@@ -58,7 +58,7 @@ fn setup_menu(
 ) {
     commands.spawn_bundle(Camera2dBundle::default());
     make_button("Play".to_string(), &mut commands, &font_assets, &button_colors);
-    make_scrollbar(&mut commands, &textures);
+    make_scrollbar(&mut commands, &textures, 50., 250., 50., 25.);
 }
 
 
@@ -110,10 +110,10 @@ fn make_button(text: String, mut commands: &mut Commands, font_assets: &FontAsse
                 margin: UiRect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
-                ..Default::default()
+                ..default()
             },
             color: button_colors.normal,
-            ..Default::default()
+            ..default()
         }).insert(StartGameBotton)
         .with_children(|parent| {
             parent.spawn_bundle(TextBundle {
@@ -126,9 +126,9 @@ fn make_button(text: String, mut commands: &mut Commands, font_assets: &FontAsse
                             color: Color::rgb(0.9, 0.9, 0.9),
                         },
                     }],
-                    alignment: Default::default(),
+                    alignment: default(),
                 },
-                ..Default::default()
+                ..default()
             });
         });
 }
@@ -148,10 +148,10 @@ fn make_button(text: String, mut commands: &mut Commands, font_assets: &FontAsse
 //                     align_items: AlignItems::Center,
 //                     justify_content: JustifyContent::Center,
     
-//                     ..Default::default()
+//                     ..default()
 //                 },
 //                 color: Color::WHITE.into(),
-//                 ..Default::default()
+//                 ..default()
 //             })
 //             .insert(Name::new("UI"))
 //             .with_children(|parent| {
@@ -191,10 +191,10 @@ fn make_button(text: String, mut commands: &mut Commands, font_assets: &FontAsse
 //                     justify_content: JustifyContent::Center,
 //                     // vertically center child text
 //                     align_items: AlignItems::Center,
-//                     ..Default::default()
+//                     ..default()
 //                 },
 //                 color,
-//                 ..Default::default()
+//                 ..default()
 //             })
 //             .insert(action)
 //             .insert(Name::new(text.to_string()))
@@ -214,7 +214,7 @@ fn make_button(text: String, mut commands: &mut Commands, font_assets: &FontAsse
 //                             horizontal: HorizontalAlign::Center,
 //                         },
 //                     },
-//                     ..Default::default()
+//                     ..default()
 //                 });
 //             });
 //     }

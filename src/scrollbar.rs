@@ -36,16 +36,8 @@ pub struct ScrollBarHandleBundle {
     pub global_transform: GlobalTransform,
     pub visibility: Visibility,
     pub computed_visibility: ComputedVisibility,
-}
-
-pub fn getScrollBarHandleBundle(img: Handle<Image>, limits: ScrollBarLimits) -> ScrollBarHandleBundle {
-    let mut sbh = ScrollBarHandleBundle{
-        texture: UiImage(img),
-        transform: Transform::from_translation(Vec3::new(0., 0., 3.)).with_scale(Vec3::splat(5.)),
-        ..Default::default()
-    };
-
-    return sbh;
+    pub calculated_size: CalculatedSize,
+    pub image_mode: ImageMode,
 }
 
 
@@ -99,17 +91,21 @@ pub fn scrollbar_dragging_handler(
             let window = windows.get_primary().expect("no primary window");
             let window_size = Vec2::new(window.width(), window.height());
             if let Some(pos) = window.cursor_position() {
-                println!("THANKSSS, {:?}", pos);
-                let position = pos - window_size / 2.;
-                let pos_x = position.x;
-                sbpos.current_x = pos_x;
+                let handle_x = (sbpos.max_x - sbpos.min_x) * 0.07;
+
+                let relposx = pos.x - sbpos.min_x - handle_x/2.;
+                let relposx = relposx.clamp(0., sbpos.max_x - sbpos.min_x - handle_x);
+                // let position = pos - window_size / 2.;
+                let fraction = relposx / (sbpos.max_x - sbpos.min_x - handle_x);
+                println!("THANKSSS, {:?}", fraction);
 
                 // print current x position of the image from transform:
                 // transform.translation.x = pos_x;
                 // let mut old_pos:Rect<Val> = style.position;
                 // old_pos.left = Val::Px(pos_x as f32);
                 // old_pos.right = Val::Px((pos_x as f32) + 20.);
-                style.position.left = Val::Px(pos_x);
+                sbpos.current_x = relposx;
+                style.position.left = Val::Px(relposx );
                 
             }
 
@@ -125,32 +121,49 @@ pub fn scrollbar_dragging_handler(
 pub fn make_scrollbar(
     mut commands: &mut Commands,
     assets: &TileAssets, 
-) {
+    pleft: f32,
+    pright: f32,
+    ptop: f32,
+    pbottom: f32,
+)-> Entity {
     let arrow = assets.s_arrow_elem_rigth.clone();
-    commands
-        .spawn_bundle(
-            ScrollBarHandleBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
-                    size: Size::new(Val::Px(120.0), Val::Px(50.0)),
-                    //     // margin: UiRect::all(Val::Auto),
-                    //     // justify_content: JustifyContent::Center,
-                    //     // align_items: AlignItems::Center,
-                    position: UiRect {
-                        top: Val::Px(50.0),
-                        left: Val::Px(5.0),
-                        ..default()
-                    },
+    let back = commands.spawn_bundle(
+        ImageBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                size: Size::new(Val::Px(pright - pleft), Val::Px(ptop-pbottom)),
+                //     // margin: UiRect::all(Val::Auto),
+                //     // justify_content: JustifyContent::Center,
+                //     // align_items: AlignItems::Center,
+                position: UiRect {
+                    top: Val::Px(pleft),
+                    left: Val::Px(ptop),
                     ..default()
                 },
-                texture: UiImage(arrow),
-                transform: Transform::from_translation(Vec3::new(0., -200., 3.)).with_scale(Vec3::splat(5.)),
-                ..Default::default()
-        })
-        // .with_children(|builder| {
-        //     builder.spawn_bundle(
-        //         getScrollBarHandleBundle(arrow, ScrollBarLimits { max: 100., min: 0., current: 0., step: 1.})
-        //     );
-        // })
-        ;
+                ..default()
+            },
+            color: Color::rgb(1.0, 1.0, 1.0).into(),
+            ..default()
+        }).id();
+    let handle = commands.spawn_bundle(
+        ScrollBarHandleBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                size: Size::new(Val::Percent(7.), Val::Percent(100.)),
+                position: UiRect {
+                    top: Val::Px(0.),
+                    left: Val::Px(0.),
+                    ..default()
+                },
+                ..default()
+            },
+            // texture: UiImage(arrow),
+            color: UiColor(Color::rgb(1., 1.0, 1.0)),
+            scrollBarLimits: ScrollBarLimits { max: 100., min: 0., current: 0., step: 1.},
+            scrollBarPosition: ScrollBarPosition{ max_x: pright, min_x: pleft, current_x: pright, step_x: 1.},
+            ..default()
+    }).id();
+    commands.entity(back).push_children(&[handle]);// add the child to the parent
+    return back;
+
 }

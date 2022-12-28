@@ -37,7 +37,7 @@ pub enum BoardPosition {
 impl Default for BoardPosition {
     fn default() -> Self {
         Self::Centered {
-            offset: Default::default(),
+            offset: default(),
         }
     }
 }
@@ -52,7 +52,8 @@ pub struct BoardOptionsDefault {
 pub fn get_board_option_default() -> BoardOptionsDefault {
     BoardOptionsDefault {
         map_size: (7, 7),
-        tile_size: TileSize::Adaptive,
+        // tile_size: TileSize::Adaptive,
+        tile_size: TileSize::Fixed(46.),
         position: BoardPosition::Centered {
             offset: Vec3::new(0., 25., 0.),
         },
@@ -184,12 +185,12 @@ pub fn create_board(
         options: board_dimensions,
         sprite: Sprite{
             color: Color::rgb(0.5, 0.5, 0.5),
-            ..Default::default()
+            ..default()
         },
         global_transform: GlobalTransform::default(),
-        texture: Default::default(),
-        visibility: Default::default(),
-        computed_visibility: Default::default(),
+        texture: default(),
+        visibility: default(),
+        computed_visibility: default(),
         
     });
 
