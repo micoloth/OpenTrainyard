@@ -1,5 +1,8 @@
 <!DOCTYPE html><html lang="en"><head>
         <meta charset="utf-8">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-touch-fullscreen" content="yes">
+        <meta id="extViewportMeta" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
         <title>TrainYard</title> <!-- ToDo -->
         
         
@@ -38,9 +41,9 @@ body {
 }
 </style>
     
-<link rel="preload" href="/OpenTrainyard/trainyard-629e62fcedf3b038_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/OpenTrainyard/trainyard-629e62fcedf3b038.js"></head>
-    <body>
+<link rel="preload" href="/OpenTrainyard/trainyard-ec469b72397bbca1_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/OpenTrainyard/trainyard-ec469b72397bbca1.js"></head>
+    <body style="position: fixed; width:100%; height:100%; overflow: auto;">
         <script>// Insert hack to make sound autoplay on Chrome as soon as the user interacts with the tab:
 // https://developers.google.com/web/updates/2018/11/web-audio-autoplay#moving-forward
 
@@ -105,10 +108,18 @@ body {
 })();
 </script>
         <div class="game-container">
-            <canvas id="bevy">
+            <canvas id="bevy" style="
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            outline: none;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0);">
                 Javascript and support for canvas is required
             </canvas>
         </div>
     
 
-<script type="module">import init from '/OpenTrainyard/trainyard-629e62fcedf3b038.js';init('/OpenTrainyard/trainyard-629e62fcedf3b038_bg.wasm');</script></body></html>
+<script type="module">import init from '/OpenTrainyard/trainyard-ec469b72397bbca1.js';init('/OpenTrainyard/trainyard-ec469b72397bbca1_bg.wasm');</script></body></html>
