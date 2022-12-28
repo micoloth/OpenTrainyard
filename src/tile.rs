@@ -4,9 +4,8 @@ use crate::simulator::*;
 use crate::utils::Coordinates;
 
 use crate::board::*;
-use crate::loading::BoardAssetsMap;
+use crate::loading::{TileAssets, get_asset};
 
-use std::collections::HashMap;
 use partial_application::partial;
 
 
@@ -45,7 +44,7 @@ pub struct TileSpawnEvent {
 
 pub fn spawn_tile(
     mut commands: Commands,
-    board_assets_map: Res<BoardAssetsMap>,
+    board_assets_map: Res<TileAssets>,
     mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities, &mut BoardTileMap), With<Board>>,
     mut evt: EventReader<TileSpawnEvent>,
 ) {
@@ -66,10 +65,8 @@ pub fn spawn_tile(
                 commands.entity(old_entity).despawn_recursive();
             }
             
-            let asset_map = &board_assets_map.assets;
-            
             // let child_id=  make_tile(t, &mut commands, &board_assets_map.assets, size, coordinates);
-            let child_id = make_tile(t, &mut commands, &asset_map, size, coordinates);
+            let child_id = make_tile(t, &mut commands, &board_assets_map, size, coordinates);
             
             let mut board_entity = commands.entity(board_id);  // Get entity by id:
             board_entity.push_children(&[child_id]);// add the child to the parent
@@ -131,7 +128,7 @@ fn add_color_minitiles_children(
     child_cmd: &mut ChildBuilder,
     elems: VectorOfColorz,
     is_start: bool,
-    assets: &HashMap<String, Handle<Image>>,
+    assets: &TileAssets,
     big_tile_size: f32,
 ) {
     let scale = big_tile_size / 46.;
@@ -157,14 +154,15 @@ fn add_color_minitiles_children(
                     n,
                     colorz_to_long_str(elems.v[n_to_get].unwrap())
                 );
-                let child_asset = assets.get(&minitile).unwrap();
+                // let child_asset = assets.get(&minitile).unwrap();
+                let child_asset = get_asset(minitile, assets);
                 child_cmd.spawn_bundle(SpriteBundle {
                     sprite: Sprite {
                         custom_size: Some(Vec2::splat(small_tile_size as f32)),
                         ..Default::default()
                     },
                     transform: Transform::from_xyz(pos_x, pos_y, 1.),
-                    texture: (*child_asset).clone(),
+                    texture: child_asset,
                     ..Default::default()
                 });
             } else {
@@ -176,7 +174,7 @@ fn add_color_minitiles_children(
 
 fn get_transform_and_texture(
     t: Tile,
-    assets: &HashMap<String, Handle<Image>>,
+    assets: &TileAssets,
 ) -> (Handle<Image>, Transform) {
     let mut transform = Transform::from_xyz(0., 0., 1.);
     let texture_path: String;
@@ -314,18 +312,19 @@ fn get_transform_and_texture(
             elems: _,
         } => ("e_base.png".to_string(), transform),
     };
-    let texture = assets.get(&texture_path).unwrap().clone();
+    let texture = get_asset(texture_path, assets);
+
     return (texture, transform);
 }
 
 fn add_arrow_minitile_children(
     child_cmd: &mut ChildBuilder,
     dir: Side,
-    assets: &HashMap<String, Handle<Image>>,
+    assets: &TileAssets,
     big_tile_size: f32,
 ) {
     let scale = big_tile_size / 46.;
-    let arrow = assets.get("s_arrow_elem_rigth.png").unwrap();
+    let arrow = get_asset("s_arrow_elem_rigth.png".to_string(), assets);
     let pos_x: f32;
     let pos_y: f32;
     let mut t = Transform::from_xyz(0., 0., 1.);
@@ -354,7 +353,7 @@ fn add_arrow_minitile_children(
             ..Default::default()
         },
         transform: t,
-        texture: (*arrow).clone(),
+        texture: arrow,
         ..Default::default()
     });
 }
@@ -366,11 +365,11 @@ fn add_funnels_minitile_children(
     b_: bool,
     l_: bool,
     r_: bool,
-    assets: &HashMap<String, Handle<Image>>,
+    assets: &TileAssets,
     big_tile_size: f32,
 ) {
     let scale = big_tile_size / 46.;
-    let funnel = assets.get("e_funnel_elem_rigth.png").unwrap();
+    let funnel = get_asset("e_funnel_elem_rigth.png".to_string(), assets);
     let mut t = Transform::from_xyz(0., 0., 1.);
     let pos_x: f32;
     let pos_y: f32;
@@ -399,7 +398,7 @@ fn add_funnels_minitile_children(
             ..Default::default()
         },
         transform: t,
-        texture: (*funnel).clone(),
+        texture: funnel,
         ..Default::default()
     });
 }
@@ -407,7 +406,7 @@ fn add_funnels_minitile_children(
 fn make_tile(
     t: Tile,
     commands: &mut Commands,
-    assets: &HashMap<String, Handle<Image>>,
+    assets: &TileAssets,
     big_tile_size: f32,
     coordinates: Coordinates,
 ) -> Entity {
@@ -440,10 +439,7 @@ fn make_tile(
     } else if let Tile::PaintTile { track, c } = t {
         child.with_children(|parent| {
             let size = ((40 - 6) as f32) / 46. * big_tile_size;
-            let inner = assets
-                .get(&format!("p_{}.png", colorz_to_long_str(c)))
-                .unwrap()
-                .clone();
+            let inner = get_asset(format!("p_{}.png", colorz_to_long_str(c)), assets);
             parent.spawn_bundle(SpriteBundle {
                 texture: inner,
                 transform: Transform::from_xyz(0., 0., 1.),
