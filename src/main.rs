@@ -17,6 +17,7 @@ mod tile;
 mod train;
 mod board;
 mod logic;
+mod scrollbar;
 
 use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
