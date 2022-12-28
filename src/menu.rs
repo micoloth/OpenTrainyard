@@ -58,7 +58,7 @@ fn setup_menu(
 ) {
     commands.spawn_bundle(Camera2dBundle::default());
     make_button("Play".to_string(), &mut commands, &font_assets, &button_colors);
-    make_scrollbar(&mut commands, &textures);
+    make_scrollbar(&mut commands, &textures, 50., 250., 50., 25.);
 }
 
 
