@@ -52,7 +52,8 @@ pub struct BoardOptionsDefault {
 pub fn get_board_option_default() -> BoardOptionsDefault {
     BoardOptionsDefault {
         map_size: (7, 7),
-        tile_size: TileSize::Adaptive,
+        // tile_size: TileSize::Adaptive,
+        tile_size: TileSize::Fixed(46.),
         position: BoardPosition::Centered {
             offset: Vec3::new(0., 25., 0.),
         },

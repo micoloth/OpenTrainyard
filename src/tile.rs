@@ -157,10 +157,10 @@ fn add_color_minitiles_children(
                 // let child_asset = assets.get(&minitile).unwrap();
                 let child_asset = get_asset(minitile, assets);
                 child_cmd.spawn_bundle(SpriteBundle {
-                    sprite: Sprite {
-                        custom_size: Some(Vec2::splat(small_tile_size as f32)),
-                        ..default()
-                    },
+                    // sprite: Sprite {
+                    //     custom_size: Some(Vec2::splat(small_tile_size as f32)),
+                    //     ..default()
+                    // },
                     transform: Transform::from_xyz(pos_x, pos_y, 1.),
                     texture: child_asset,
                     ..default()
@@ -348,10 +348,6 @@ fn add_arrow_minitile_children(
     t.translation.x = pos_x;
     t.translation.y = pos_y;
     child_cmd.spawn_bundle(SpriteBundle {
-        sprite: Sprite {
-            custom_size: Some(Vec2::new(6., 46. - 26.)),
-            ..default()
-        },
         transform: t,
         texture: arrow,
         ..default()
@@ -393,10 +389,6 @@ fn add_funnels_minitile_children(
     t.translation.x = pos_x;
     t.translation.y = pos_y;
     child_cmd.spawn_bundle(SpriteBundle {
-        sprite: Sprite {
-            custom_size: Some(Vec2::new(7., 46.)),
-            ..default()
-        },
         transform: t,
         texture: funnel,
         ..default()
@@ -417,7 +409,6 @@ fn make_tile(
         coordinates, // Tile coordinates
         texture: texture,
         transform: transform.with_translation(Vec3::new(transl_x, transl_y, 2.)),
-        sprite: Sprite { custom_size: Some(Vec2::splat(big_tile_size)), ..default()},
         ..default()
     });
     if let Tile::StartTile { dir, elems } = t {
@@ -442,11 +433,6 @@ fn make_tile(
             parent.spawn_bundle(SpriteBundle {
                 texture: inner,
                 transform: Transform::from_xyz(0., 0., 1.),
-                sprite: Sprite {
-                    custom_size: Some(Vec2::splat(big_tile_size)),
-                    color: Color::WHITE,
-                    ..default()
-                },
                 ..default()
             });
         });
