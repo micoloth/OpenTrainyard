@@ -159,11 +159,11 @@ fn add_color_minitiles_children(
                 child_cmd.spawn_bundle(SpriteBundle {
                     sprite: Sprite {
                         custom_size: Some(Vec2::splat(small_tile_size as f32)),
-                        ..Default::default()
+                        ..default()
                     },
                     transform: Transform::from_xyz(pos_x, pos_y, 1.),
                     texture: child_asset,
-                    ..Default::default()
+                    ..default()
                 });
             } else {
                 break;
@@ -350,11 +350,11 @@ fn add_arrow_minitile_children(
     child_cmd.spawn_bundle(SpriteBundle {
         sprite: Sprite {
             custom_size: Some(Vec2::new(6., 46. - 26.)),
-            ..Default::default()
+            ..default()
         },
         transform: t,
         texture: arrow,
-        ..Default::default()
+        ..default()
     });
 }
 
@@ -395,11 +395,11 @@ fn add_funnels_minitile_children(
     child_cmd.spawn_bundle(SpriteBundle {
         sprite: Sprite {
             custom_size: Some(Vec2::new(7., 46.)),
-            ..Default::default()
+            ..default()
         },
         transform: t,
         texture: funnel,
-        ..Default::default()
+        ..default()
     });
 }
 
@@ -417,8 +417,8 @@ fn make_tile(
         coordinates, // Tile coordinates
         texture: texture,
         transform: transform.with_translation(Vec3::new(transl_x, transl_y, 2.)),
-        sprite: Sprite { custom_size: Some(Vec2::splat(big_tile_size)), ..Default::default()},
-        ..Default::default()
+        sprite: Sprite { custom_size: Some(Vec2::splat(big_tile_size)), ..default()},
+        ..default()
     });
     if let Tile::StartTile { dir, elems } = t {
         child
@@ -445,9 +445,9 @@ fn make_tile(
                 sprite: Sprite {
                     custom_size: Some(Vec2::splat(big_tile_size)),
                     color: Color::WHITE,
-                    ..Default::default()
+                    ..default()
                 },
-                ..Default::default()
+                ..default()
             });
         });
     }

@@ -28,12 +28,12 @@ impl Default for TrainBundle {
     fn default() -> Self {
         Self {
             train: Train { c: Colorz::BROWN_, pos: Pos { px: 0, py: 0, side: Side::T_, going_in: true, towards_side: Some(Side::B_) } },
-            sprite: Default::default(),
-            transform: Default::default(),
-            global_transform: Default::default(),
-            texture: Default::default(),
-            visibility: Default::default(),
-            computed_visibility: Default::default(),
+            sprite: default(),
+            transform: default(),
+            global_transform: default(),
+            texture: default(),
+            visibility: default(),
+            computed_visibility: default(),
         }
     }
 }
@@ -128,8 +128,8 @@ pub fn make_train(train: Train, commands: &mut Commands, train_assets: &TrainAss
         train: train,
         texture: get_train_image(train_assets, train.c),
         transform: get_train_transform(train, board_dimensions, tick_rateo),
-        // sprite: Sprite { custom_size: Some(Vec2::splat(board_dimensions.tile_size)), color: Color::WHITE, ..Default::default()},
-        ..Default::default()
+        // sprite: Sprite { custom_size: Some(Vec2::splat(board_dimensions.tile_size)), color: Color::WHITE, ..default()},
+        ..default()
     });
     return child.id();
 }

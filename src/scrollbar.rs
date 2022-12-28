@@ -42,7 +42,7 @@ pub fn getScrollBarHandleBundle(img: Handle<Image>, limits: ScrollBarLimits) -> 
     let mut sbh = ScrollBarHandleBundle{
         texture: UiImage(img),
         transform: Transform::from_translation(Vec3::new(0., 0., 3.)).with_scale(Vec3::splat(5.)),
-        ..Default::default()
+        ..default()
     };
 
     return sbh;
@@ -143,7 +143,7 @@ pub fn make_scrollbar(
                 ..default()
             },
         transform: Transform::from_translation(Vec3::new(0., -200., 3.)).with_scale(Vec3::splat(5.)),
-        ..Default::default()
+        ..default()
     }).id();
     let handle = commands.spawn_bundle(
         ScrollBarHandleBundle {
@@ -160,7 +160,7 @@ pub fn make_scrollbar(
             texture: UiImage(arrow),
             scrollBarLimits: ScrollBarLimits { max: 100., min: 0., current: 0., step: 1.},
             transform: Transform::from_translation(Vec3::new(0., -200., 3.)).with_scale(Vec3::splat(5.)),
-            ..Default::default()
+            ..default()
     }).id();
     commands.entity(back).push_children(&[handle]);// add the child to the parent
 

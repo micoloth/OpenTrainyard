@@ -113,7 +113,7 @@ fn main() {
     App::new()
         // .insert_resource(Msaa { samples: 1 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
-        .insert_resource(WindowDescriptor {width: 600.,height: 800.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()),..Default::default()})
+        .insert_resource(WindowDescriptor {width: 600.,height: 800.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()),..default()})
         .add_plugins(DefaultPlugins)
         .add_startup_system(set_window_icon)
         .add_plugin(LoadingPlugin)
