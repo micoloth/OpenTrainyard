@@ -127,30 +127,41 @@ pub fn make_scrollbar(
     assets: &TileAssets, 
 ) {
     let arrow = assets.s_arrow_elem_rigth.clone();
-    commands
-        .spawn_bundle(
-            ScrollBarHandleBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
-                    size: Size::new(Val::Px(120.0), Val::Px(50.0)),
-                    //     // margin: UiRect::all(Val::Auto),
-                    //     // justify_content: JustifyContent::Center,
-                    //     // align_items: AlignItems::Center,
-                    position: UiRect {
-                        top: Val::Px(50.0),
-                        left: Val::Px(5.0),
-                        ..default()
-                    },
+    let back = commands.spawn_bundle(
+        ImageBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                size: Size::new(Val::Px(120.0), Val::Px(50.0)),
+                //     // margin: UiRect::all(Val::Auto),
+                //     // justify_content: JustifyContent::Center,
+                //     // align_items: AlignItems::Center,
+                position: UiRect {
+                    top: Val::Px(50.0),
+                    left: Val::Px(5.0),
                     ..default()
                 },
-                texture: UiImage(arrow),
-                transform: Transform::from_translation(Vec3::new(0., -200., 3.)).with_scale(Vec3::splat(5.)),
-                ..Default::default()
-        })
-        // .with_children(|builder| {
-        //     builder.spawn_bundle(
-        //         getScrollBarHandleBundle(arrow, ScrollBarLimits { max: 100., min: 0., current: 0., step: 1.})
-        //     );
-        // })
-        ;
+                ..default()
+            },
+        transform: Transform::from_translation(Vec3::new(0., -200., 3.)).with_scale(Vec3::splat(5.)),
+        ..Default::default()
+    }).id();
+    let handle = commands.spawn_bundle(
+        ScrollBarHandleBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                size: Size::new(Val::Px(120.0), Val::Px(50.0)),
+                position: UiRect {
+                    top: Val::Px(50.0),
+                    left: Val::Px(5.0),
+                    ..default()
+                },
+                ..default()
+            },
+            texture: UiImage(arrow),
+            scrollBarLimits: ScrollBarLimits { max: 100., min: 0., current: 0., step: 1.},
+            transform: Transform::from_translation(Vec3::new(0., -200., 3.)).with_scale(Vec3::splat(5.)),
+            ..Default::default()
+    }).id();
+    commands.entity(back).push_children(&[handle]);// add the child to the parent
+
 }
