@@ -410,10 +410,9 @@ fn make_tile(
     big_tile_size: f32,
     coordinates: Coordinates,
 ) -> Entity {
-    let (transl_x, transl_y) = ((coordinates.x as f32 * big_tile_size) + (big_tile_size / 2.), ((6 - coordinates.y) as f32 * big_tile_size) + (big_tile_size / 2.));
-
-    let (texture, transform) = get_transform_and_texture(t, assets);
     // Translate the tile to the right position:
+    let (transl_x, transl_y) = ((coordinates.x as f32 * big_tile_size) + (big_tile_size / 2.), ((6 - coordinates.y) as f32 * big_tile_size) + (big_tile_size / 2.));
+    let (texture, transform) = get_transform_and_texture(t, assets);
     let mut child = commands.spawn_bundle(TileSpriteBundle {
         coordinates, // Tile coordinates
         texture: texture,

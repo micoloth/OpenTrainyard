@@ -164,7 +164,7 @@ pub fn create_board(
         }
     };
     // Println board_dimensions.position:
-    println!("board_dimensions.position: {:?}", board_dimensions.position);
+    // println!("board_dimensions.position: {:?}", board_dimensions.position);
 
     // We add the main resource of the game, the board
     commands.spawn_bundle(BoardBundle {

@@ -126,7 +126,7 @@ pub fn tile_hover_event(
                     }
                     else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos); }
                     else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos); }
-                    // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, board_tile_map.map[pos.y as usize][pos.x as usize]);
+                    // // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, board_tile_map.map[pos.y as usize][pos.x as usize]);
                 }
             }
             TileHoverEvent::Released => {
@@ -149,12 +149,12 @@ pub fn double_click_touch(
         if touches.just_pressed(finger.id()) {
             if let Some(double_click_instant) = double_click_time.instant {
                 if double_click_instant.elapsed().as_millis() < 400 && double_click_instant.elapsed().as_millis() > 30 {
-                    println!("DOUBLE CLICK");
+                    // println!("DOUBLE CLICK");
                     event_writer.send(DoubleClickEvent{pos: finger.position() });
                 }
             }
             *double_click_time = DoubleClickInstant{instant: Some(Instant::now())};
-            println!("SET CURRENT TIME: {:?}",Instant::now());
+            // println!("SET CURRENT TIME: {:?}",Instant::now());
         }
     }
 }
@@ -168,7 +168,7 @@ pub fn double_click_mouse(
     if mouse_input.just_pressed(MouseButton::Left) {
         if let Some(double_click_instant) = double_click_time.instant {
             if double_click_instant.elapsed().as_millis() < 400 && double_click_instant.elapsed().as_millis() > 30 {
-                println!("DOUBLE CLICK");
+                // println!("DOUBLE CLICK");
                 let pos = windows.get_primary().unwrap().cursor_position();
                 if let Some(pos) = pos {
                     event_writer.send(DoubleClickEvent{pos: pos});
@@ -176,7 +176,7 @@ pub fn double_click_mouse(
             }
         }
         *double_click_time = DoubleClickInstant{instant: Some(Instant::now())};
-        println!("SET CURRENT TIME: {:?}",Instant::now());
+        // println!("SET CURRENT TIME: {:?}",Instant::now());
     }
 }
 
@@ -192,13 +192,13 @@ pub fn double_click_event(
         let pos = ev.pos - window_size / 2.;
         for (board_dimensions, board_tile_map) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
             let pos = hovered_tile(board_dimensions, pos);
-            println!("  >>CLICKED {:?}", pos);
+            // println!("  >>CLICKED {:?}", pos);
             let pos = match pos { None => break, Some(b) => b, };
-            // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, board_tile_map.map[pos.y as usize][pos.x as usize]);
+            // // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, board_tile_map.map[pos.y as usize][pos.x as usize]);
             let tile = board_tile_map.map[pos.y as usize][pos.x as usize];
-            println!("  >>Old tile: {:?}", tile);
+            // println!("  >>Old tile: {:?}", tile);
             let newtile = get_new_tile_from_flipping(tile);
-            println!("  >>FLIPPED {:?}", newtile);
+            // println!("  >>FLIPPED {:?}", newtile);
             if let Some(tile_) = newtile {
                 spawn_event.send(TileSpawnEvent { x: pos.x as usize, y: pos.y as usize, new_tile: tile_ });
 
@@ -258,11 +258,11 @@ for trigger_event in evt.iter() {
         else if *trigger_event == LogicTickEvent::TickMiddle {
             (new_tilemap, new_trains) = check_center_colliding(new_trains, new_tilemap);
             (new_tilemap, new_trains) = do_center_coloring_things(new_trains, new_tilemap);
-            println!("");
-            println!("");
-            println!("");
-            println!("");
-            println!("");
+            // println!("");
+            // println!("");
+            // println!("");
+            // println!("");
+            // println!("");
         }
         else{
             panic!("Unknown LogicTickEvent: for now we dont use {:?}", trigger_event);
