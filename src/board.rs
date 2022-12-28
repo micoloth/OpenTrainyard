@@ -136,13 +136,12 @@ pub fn create_board(
     let tile_map: Vec<Vec<Tile>> = parse_map(map_s);
     let n_width_ = tile_map.len();
     let n_height_ = tile_map.len();
-    // let tile_size = match board_options.tile_size {
-    //     TileSize::Fixed(v) => v,
-    //     TileSize::Adaptive =>  (
-    //         windows.get_primary().unwrap().width() / n_width_ as f32).min(
-    //             windows.get_primary().unwrap().height() / n_height_ as f32) //.clamp(min, max)
-    // };
-    let tile_size = 50.0;
+    let tile_size = match board_options.tile_size {
+        TileSize::Fixed(v) => v,
+        TileSize::Adaptive =>  (
+            windows.get_primary().unwrap().width() / n_width_ as f32).min(
+                windows.get_primary().unwrap().height() / n_height_ as f32) * 0.92
+    };
     let board_position = match board_options.position {
         BoardPosition::Centered { offset } => {
             // offset
