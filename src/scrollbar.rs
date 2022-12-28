@@ -137,7 +137,7 @@ pub fn make_scrollbar(
                     //     // justify_content: JustifyContent::Center,
                     //     // align_items: AlignItems::Center,
                     position: UiRect {
-                        top: Val::Px(5.0),
+                        top: Val::Px(50.0),
                         left: Val::Px(5.0),
                         ..default()
                     },
