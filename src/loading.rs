@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use bevy_kira_audio::AudioSource;
 
+// use crate::all_puzzles_clean::PuzzlesData;
 pub struct LoadingPlugin;
 
 
@@ -50,6 +51,7 @@ pub struct TrainAssets {
     #[asset(path = "samples/s_elem_1_purple.png")] pub train_purple: Handle<Image>,
     #[asset(path = "samples/e_elem_1_brown.png")] pub train_brown: Handle<Image>,
 }
+
 
 
 #[derive(AssetCollection)]

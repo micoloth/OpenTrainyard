@@ -18,11 +18,13 @@ mod train;
 mod board;
 mod logic;
 mod scrollbar;
+mod all_puzzles_clean;
 
 use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 
+use crate::all_puzzles_clean::load_puzzles_data;
 
 use crate::train::*;
 use crate::tile::*;
@@ -116,6 +118,7 @@ fn main() {
         .insert_resource(WindowDescriptor {width: 360.,height: 550.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()),..default()})
         .add_plugins(DefaultPlugins)
         .add_startup_system(set_window_icon)
+        .insert_resource(load_puzzles_data())
         .add_plugin(LoadingPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(InternalAudioPlugin)

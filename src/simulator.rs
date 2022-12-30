@@ -579,7 +579,16 @@ pub fn parse_map(map_: Vec<String>) -> Vec<Vec<Tile>>{
         }
         m.push(row_vec);
     }
-    return m;
+    // TRANSPOSE the 2d array (switch rows and columns):
+    let mut m2: Vec<Vec<Tile>> = Vec::new();
+    for i in 0..m[0].len(){
+        let mut row_vec: Vec<Tile> = Vec::new();
+        for j in 0..m.len(){
+            row_vec.push(m[j][i].clone());
+        }
+        m2.push(row_vec);
+    }
+    return m2;
 }
 
 pub fn print_tile(t: &Tile) -> String{
