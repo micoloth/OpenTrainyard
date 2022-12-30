@@ -2,7 +2,9 @@
 
 use bevy::prelude::Component;
 
-
+// wrongs:
+// lt 
+// br 
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)] pub enum Colorz {RED_, BLUE_, YELLOW_, ORANGE_, GREEN_, PURPLE_, BROWN_}
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)] pub enum TrackOptions {TL, TB, TR, LB, LR, BR}
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)] pub enum Side {T_, B_, L_, R_}
@@ -106,11 +108,22 @@ pub fn get_track_option(t: Track) -> TrackOptions {
     SingleTrackTile{track: Track},
     EmptyTile,
     RockTile,
-    StartTile{dir: Side, elems: VectorOfColorz},
-    EndTile{t_: bool, b_: bool, l_: bool, r_: bool, elems: VectorOfColorz},
+    StartTile{dir: Side, elems: VectorOfColorz, orig_len: i8},
+    EndTile{t_: bool, b_: bool, l_: bool, r_: bool, elems: VectorOfColorz, orig_len: i8},
     PaintTile{track: Track, c: Colorz},
     SplitTile{side_in: Side},
 }
+// Add a default constructor for EndTile, that when receives a elems, also always sets the orig_len to elems.len():
+impl Tile {
+    pub fn new_end_tile(t_: bool, b_: bool, l_: bool, r_: bool, elems: VectorOfColorz) -> Tile {
+        Tile::EndTile{t_: t_, b_: b_, l_: l_, r_: r_, elems: elems, orig_len: elems.len() as i8}
+    }
+    pub fn new_start_tile(dir: Side, elems: VectorOfColorz) -> Tile {
+        Tile::StartTile{dir: dir, elems: elems, orig_len: elems.len() as i8}
+    }
+}
+
+
 pub fn split_out_sides(s: Side) -> (Side, Side, Side) {
     match s {
         Side::B_ => (Side::B_, Side::L_, Side::R_), Side::T_ => (Side::T_, Side::R_, Side::L_),
@@ -129,8 +142,8 @@ pub fn has(t: Tile, s: Side) -> bool {
     return match t {
         Tile::SingleTrackTile{track} => track_has(track, s),
         Tile::TrackTile{toptrack, bottrack} => track_has(toptrack, s) || track_has(bottrack, s),
-        Tile::EndTile{ t_:_t_, b_:_b_, l_:_l_, r_:_r_, elems: _} => match s {Side::T_ => _t_, Side::B_ => _b_, Side::L_ => _l_, Side::R_ => _r_,},
-        Tile::StartTile{dir, elems: _} => s == dir,
+        Tile::EndTile{ t_:_t_, b_:_b_, l_:_l_, r_:_r_, elems: _, orig_len: _} => match s {Side::T_ => _t_, Side::B_ => _b_, Side::L_ => _l_, Side::R_ => _r_,},
+        Tile::StartTile{dir, elems: _, orig_len: _} => s == dir,
         Tile::PaintTile{track, c: _} => track_has(track, s),
         Tile::EmptyTile => {panic!("Undefined Side for Emptytile {:?}", t)},
         Tile::RockTile => false,
@@ -282,7 +295,7 @@ pub fn helper_make_trains(trains: &Vec<Train>, field: &Vec<Vec<Tile>>) -> (Vec<T
     let mut trains = trains.clone();
     let mut field = field.clone();
     for x in 0..7{for y in 0..7{
-        if let Tile::StartTile{elems, dir} = &mut field[y][x]{
+        if let Tile::StartTile{elems, dir, orig_len:_} = &mut field[y][x]{
             if elems.len() > 0{
                 trains.push(Train{c: elems.v[0].unwrap(), pos: Pos::new(x, y, *dir, false)});
                 elems.remove(0);
@@ -295,7 +308,7 @@ pub fn helper_check_completed(field:&Vec<Vec<Tile>>) -> bool{
     let mut completed = true;
     for row in field{
         for f in row{
-            if let Tile::EndTile{t_: _, b_: _, l_: _, r_: _, elems} = f{
+            if let Tile::EndTile{t_: _, b_: _, l_: _, r_: _, elems, orig_len: _} = f{
                 if elems.len() > 0{
                     completed = false;
                 }
@@ -307,9 +320,9 @@ pub fn helper_check_completed(field:&Vec<Vec<Tile>>) -> bool{
 pub fn can_pass_through(t:&Tile, p:Side)-> bool{
     return match t{
         Tile::TrackTile{toptrack:_, bottrack:_} | Tile::SingleTrackTile{track:_} => {has(*t, p)},
-        Tile::PaintTile{c:_, track:_} | Tile::EndTile{t_:_, b_:_, l_:_, r_:_, elems:_} => {has(*t, p)},
+        Tile::PaintTile{c:_, track:_} | Tile::EndTile{t_:_, b_:_, l_:_, r_:_, elems:_, orig_len: _} => {has(*t, p)},
         Tile::SplitTile{side_in} => {p == *side_in},
-        Tile::StartTile{dir:_, elems:_} | Tile::EmptyTile | Tile::RockTile=> {false},
+        Tile::StartTile{dir:_, elems:_, orig_len: _} | Tile::EmptyTile | Tile::RockTile=> {false},
     } 
 }
 
@@ -328,7 +341,7 @@ pub fn add_beginnings(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Til
 
     // 1. add trains from starts
     let (new_trains, new_field) = helper_make_trains(&trains, &field);
-    println!("after 1 ntrains{:?}:", new_trains);
+    // println!("after 1 ntrains{:?}:", new_trains);
     return (new_field, new_trains);
 }
 pub fn flip_exchanges(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>){
@@ -361,16 +374,16 @@ pub fn check_merges(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>
         for (j, t2) in trains[i+1..].iter().enumerate(){
             // if (i+j+1) is in merged_trains continue:
             if are_merging(*t1, *t2){
-                // println!("\n>>Merging! {:?} {:?}", t1, t2);
+                // // println!("\n>>Merging! {:?} {:?}", t1, t2);
                 col = mix_colors(t1.c, t2.c);
-                println!("MERGED ???????");
+                // println!("MERGED ???????");
                 merged_trains.push(i+j+1);  // We will push t1 with col, and NOT push j when his turn will come
                 break;
             }
         }
         new_trains.push(Train{c: col, pos: t1.pos});
     }
-    println!("after 3 trains{:?}:", new_trains);
+    // println!("after 3 trains{:?}:", new_trains);
     return (field, new_trains);
 }
 
@@ -384,7 +397,7 @@ pub fn check_border_collisions(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Ve
     for (i, t1) in trains.iter().enumerate(){
         for (j, t2) in new_trains[i+1..].iter().enumerate(){
             if are_colliding_border_coloring(*t1, *t2){
-                // println!("\n>>Border colliding! {:?} {:?}", t1, t2);
+                // // println!("\n>>Border colliding! {:?} {:?}", t1, t2);
                 let newcol = mix_colors(t1.c, t2.c);
                 new_trains[i].c = newcol;
                 new_trains[i+j+1].c = newcol;
@@ -392,7 +405,7 @@ pub fn check_border_collisions(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Ve
             }
         }
     }
-    println!("after 3.5 trains{:?}:", new_trains);
+    // println!("after 3.5 trains{:?}:", new_trains);
     return (new_field, new_trains);
 
 }
@@ -406,12 +419,12 @@ pub fn check_arrived_or_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (b
     for (_, train) in trains.iter().enumerate(){
         let tile = &new_field[train.pos.py][train.pos.px];
         if !can_pass_through(tile, train.pos.side) {crashed=true; continue;}
-        if let Tile::EndTile{elems, t_:_t_, b_:_b_, l_:_l_, r_:_r_} = tile {
+        if let Tile::EndTile{elems, t_:_t_, b_:_b_, l_:_l_, r_:_r_, orig_len: _} = tile {
             if elems.v.contains(&Some(train.c)){
                 let mut newelems = elems.clone();
                 // Remove the FIRST instance of train.c in elems:
                 newelems.remove(elems.iter().position(|x| x == train.c).unwrap());
-                new_field[train.pos.py][train.pos.px] = Tile::EndTile{elems: newelems, t_: *_t_, b_: *_b_, l_: *_l_, r_: *_r_};
+                new_field[train.pos.py][train.pos.px] = Tile::new_end_tile(*_t_, *_b_, *_l_, *_r_, newelems);
             }
             else{
                 crashed = true;
@@ -423,8 +436,8 @@ pub fn check_arrived_or_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (b
     };
     let completed = helper_check_completed(&new_field);
 
-    // println!(">>>> {:?}", print_tile(&new_field[3][5]));
-    println!("after 4 trains{:?}; Crashed: {:?}, Completed: {:?}", new_trains, crashed, completed);
+    // // println!(">>>> {:?}", print_tile(&new_field[3][5]));
+    // println!("after 4 trains{:?}; Crashed: {:?}, Completed: {:?}", new_trains, crashed, completed);
     return (crashed, completed, new_field, new_trains);
 }
 
@@ -439,7 +452,7 @@ pub fn set_towards_side(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<T
                 new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(out_side_from_in(train.pos.side, tile).unwrap())}});
             },
             Tile::PaintTile{c, track:_} => {
-                new_trains.push(Train{c: *c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(out_side_from_in(train.pos.side, tile).unwrap())}});
+                new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(out_side_from_in(train.pos.side, tile).unwrap())}});
             },
             Tile::SplitTile{side_in:_} => {
                 new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(flip_side(train.pos.side))}});
@@ -458,7 +471,7 @@ pub fn check_center_colliding(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec
     for (i, t1) in trains.iter().enumerate(){
         for (j, t2) in trains[i+1..].iter().enumerate(){
             if are_colliding_center_coloring(*t1, *t2, &field) || are_colliding_center_coloring_different_tracks(*t1, *t2, &field){
-                // println!("\n>>Center colliding! {:?} {:?}", t1, t2);
+                // // println!("\n>>Center colliding! {:?} {:?}", t1, t2);
                 let newcol = mix_colors(t1.c, t2.c);
                 new_trains[i].c = newcol;
                 new_trains[i+j+1].c = newcol;
@@ -484,6 +497,7 @@ pub fn do_center_coloring_things(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (
             _ => { new_trains.push(*train); },
         }
     }
+    // println!("Triggering coloring now!!{:?}:", new_trains);
     return (field, new_trains);
 }
 
@@ -539,7 +553,7 @@ pub fn string_from_dir(dir: Side) -> String{match dir{ Side::T_ => "t_".to_strin
 pub fn pos_to_int(s:String, pos:usize)->i32{ let c: char = s.chars().nth(pos).unwrap(); let i: i32 = c.to_digit(10).unwrap() as i32; return i; }
 pub fn pos_to_trackoption(s: String, pos: usize) -> TrackOptions{ let c: char = s.chars().nth(pos).unwrap(); return from_idx_str_trackoptions(c); }
 pub fn pos_to_side(s: String, pos: usize) -> Side{ let c: char = s.chars().nth(pos).unwrap(); return match c { '1' => Side::T_, '2' => Side::B_, '3' => Side::L_, '4' => Side::R_, _ => panic!("Invalid direction int!"),}; }
-pub fn mk_end_tile((t_, b_, l_, r_): (bool, bool, bool, bool), colors: VectorOfColorz) -> Tile{ return Tile::EndTile{t_: t_, b_: b_, l_: l_, r_: r_, elems: colors}; }
+pub fn mk_end_tile((t_, b_, l_, r_): (bool, bool, bool, bool), colors: VectorOfColorz) -> Tile{ return Tile::new_end_tile(t_, b_, l_, r_, colors); }
 pub fn colorz_to_long_str(color: Colorz) -> String { match color { Colorz::RED_ => "red".to_string(), Colorz::BLUE_ => "blue".to_string(), Colorz::GREEN_ => "green".to_string(), Colorz::YELLOW_ => "yellow".to_string(), Colorz::ORANGE_ => "orange".to_string(), Colorz::PURPLE_ => "purple".to_string(), Colorz::BROWN_ => "brown".to_string(), } }
 
 
@@ -557,7 +571,7 @@ pub fn parse_tile(t: &str) -> Tile{
     if t == "00" {return Tile::EmptyTile;}
     else if t == "MM" {return Tile::RockTile;}
     else if t.chars().nth(0).unwrap() == 'E' {return mk_end_tile(dirs_of_str(&t[1..5]), colors_from_string(&t[6..t.len()]));}
-    else if t.chars().nth(0).unwrap() == 'S' {return Tile::StartTile{dir: dir_from_string(&t[1..2]), elems: colors_from_string(&t[3..t.len()])};}
+    else if t.chars().nth(0).unwrap() == 'S' {return Tile::new_start_tile(dir_from_string(&t[1..2]), colors_from_string(&t[3..t.len()]));}
     else if t.chars().nth(0).unwrap() == 'D' {return Tile::SplitTile{side_in: pos_to_side(t.to_string(), 1)};}
     else if t.chars().nth(0).unwrap() == 'b' {return Tile::PaintTile{track: get_track(pos_to_trackoption(t.to_string(), 1)), c: Colorz::BLUE_};}
     else if t.chars().nth(0).unwrap() == 'r' {return Tile::PaintTile{track: get_track(pos_to_trackoption(t.to_string(), 1)), c: Colorz::RED_};}
@@ -579,15 +593,24 @@ pub fn parse_map(map_: Vec<String>) -> Vec<Vec<Tile>>{
         }
         m.push(row_vec);
     }
-    return m;
+    // TRANSPOSE the 2d array (switch rows and columns):
+    let mut m2: Vec<Vec<Tile>> = Vec::new();
+    for i in 0..m[0].len(){
+        let mut row_vec: Vec<Tile> = Vec::new();
+        for j in 0..m.len(){
+            row_vec.push(m[j][i].clone());
+        }
+        m2.push(row_vec);
+    }
+    return m2;
 }
 
 pub fn print_tile(t: &Tile) -> String{
     match t{
         Tile::EmptyTile => return "00".to_string(),
         Tile::RockTile => return "MM".to_string(),
-        Tile::StartTile{dir, elems} => return format!("S{}{}", string_from_dir(*dir), elems.iter().map(|x| c_str_dict(x)).collect::<String>()),
-        Tile::EndTile{t_, b_, l_, r_, elems} => return format!("E{}_{}", str_of_dirs(*t_, *b_, *l_, *r_), elems.iter().map(|x| c_str_dict(x)).collect::<String>()),
+        Tile::StartTile{dir, elems, orig_len:_} => return format!("S{}{}", string_from_dir(*dir), elems.iter().map(|x| c_str_dict(x)).collect::<String>()),
+        Tile::EndTile{t_, b_, l_, r_, elems, orig_len:_} => return format!("E{}_{}", str_of_dirs(*t_, *b_, *l_, *r_), elems.iter().map(|x| c_str_dict(x)).collect::<String>()),
         Tile::SplitTile{side_in} => return format!("D{}", to_index_side(*side_in)),
         Tile::PaintTile{track, c} => return format!("{}{}", c_str_dict(*c), to_index_trackoptions(get_track_option(*track))),
         Tile::SingleTrackTile{track} => return format!("{}{}", "0", to_index_trackoptions(get_track_option(*track))),
@@ -611,6 +634,6 @@ pub fn print_map(map_: &Vec<Vec<Tile>>) -> Vec<String>{
 pub fn pretty_print_map(map_: &Vec<Vec<Tile>>){
     let reprmap = print_map(map_);
     let res = reprmap.join("\n");
-    println!("{}", res);
+    // println!("{}", res);
 }
 

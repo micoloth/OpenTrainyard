@@ -17,18 +17,18 @@ mod tile;
 mod train;
 mod board;
 mod logic;
-mod scrollbar;
+mod game_screen;
+mod menu_utils;
+mod all_puzzles_clean;
 
 use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
+use crate::menu_utils::button_color_handler;
 
+use crate::all_puzzles_clean::load_puzzles_data;
 
-use crate::train::*;
-use crate::tile::*;
-use crate::board::*;
-use crate::logic::*;
-
+use crate::game_screen::{MainGamePlugin, MenuMainGame};
 
 
 
@@ -49,12 +49,10 @@ pub enum ButtonAction {Clear,Generate}
 #[derive(Debug)] pub struct ButtonColors {pub normal: Color,pub hovered: Color,pub pressed: Color}
 #[derive(Debug, Clone, Eq, PartialEq, Hash)] pub enum AppState {InGame, Out}
 
-// Defines the amount of time that should elapse between each physics step.
-const TIME_STEP: f32 = 1.0 / 60.0;
 
 
 
-use bevy::time::FixedTimestep;  // 0.9: Thi is in Time, not in core
+
 
 
 // This example game uses States to separate logic
@@ -67,45 +65,15 @@ enum GameState {
     // During this State the actual game logic is executed
     Playing,
     // Here the menu is drawn and waiting for player interaction
-    Menu,
+    MenuTitle,
+    // Menu
 }
 
-
-pub struct MainGamePlugin;
-
-
-/// This plugin handles player related stuff like movement
-/// Player logic is only active during the State `GameState::Playing`
-impl Plugin for MainGamePlugin {
-    fn build(&self, app: &mut App) {
-        app
-            .insert_resource(get_board_option_default())
-            .insert_resource(get_ticks_in_a_tick_default())
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(spawn_tile))
-            .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(create_board),)
-            .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_board),)
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(logic_tick_event))
-            //////////// INTERACTIONS:
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(tile_hover_mouse))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(tile_hover_touch))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(tile_hover_event))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(double_click_mouse))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(double_click_touch))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(double_click_event))
-            .add_event::<TileSpawnEvent>()
-            .add_event::<LogicTickEvent>()
-            .add_event::<DoubleClickEvent>()
-            .add_event::<TileHoverEvent>()
-            /////////////// MOVE TRAINS:
-            .add_system_set(
-                SystemSet::on_update(GameState::Playing)
-                .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-                .with_system(move_trains)   
-            )
-            ;
-    }
+fn setup_camera(mut commands: Commands) {
+    // commands.spawn_bundle(OrthographicCameraBundle::new_2d());  // 2D orthographic camera
+    // commands.spawn_bundle(UiCameraBundle::default());  // UI Camera
+    commands.spawn_bundle(Camera2dBundle::default());
 }
-
 
 
 fn main() {
@@ -115,12 +83,16 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
         .insert_resource(WindowDescriptor {width: 360.,height: 550.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()),..default()})
         .add_plugins(DefaultPlugins)
+        .add_startup_system(setup_camera) // Startup system (cameras)
         .add_startup_system(set_window_icon)
+        .insert_resource(load_puzzles_data())
         .add_plugin(LoadingPlugin)
         .add_plugin(MenuPlugin)
+        .add_plugin(MenuMainGame)
         .add_plugin(InternalAudioPlugin)
         .add_plugin(MainGamePlugin)
         .add_state(GameState::Loading)
+        .add_system(button_color_handler)
         .run();
 }
 

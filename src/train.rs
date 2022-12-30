@@ -61,10 +61,12 @@ pub fn move_trains(
     if tick_status.current_tick >= tick_status.ticks {
         tick_status.current_tick = 0;
         tick_status.locked_waiting_for_tick_event = true;
+        tick_status.first_half = true;
         logic_tick_event.send(LogicTickEvent::TickEnd);
-    } else if tick_status.current_tick == ((tick_status.ticks as f32 / 2.) as u32) {
+    } else if tick_status.current_tick >= ((tick_status.ticks as f32 / 2.) as u32)  && tick_status.first_half {
         logic_tick_event.send(LogicTickEvent::TickMiddle);
         tick_status.locked_waiting_for_tick_event = true;
+        tick_status.first_half = false;
     }
 }
 
@@ -89,7 +91,7 @@ fn get_train_image(train_assets: &TrainAssets, color: Colorz) -> Handle<Image> {
 
 
 fn get_train_transform(t:Train, board: &BoardDimensions, tick_rateo: f32) -> Transform {
-    let mut transform = Transform::from_translation(Vec3::new(0.0, 0.0, 4.0));
+    let mut transform = Transform::from_translation(Vec3::new(0.0, 0.0, 3.0));
     let in_side: Side = t.pos.side;
     let out_side: Side = t.pos.towards_side.unwrap();
 

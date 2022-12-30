@@ -7,6 +7,7 @@ use crate::utils::Coordinates;
 
 use crate::tile::TileSpawnEvent;
 
+use crate::all_puzzles_clean::*;
 use crate::logic::TicksInATick;
 
 use std::collections::HashMap;
@@ -81,10 +82,23 @@ pub struct BoardTileMap {
 pub struct BoardEntities {
     pub tiles: HashMap<Coordinates, Entity>,
 }
+#[derive(Debug)]
+pub enum HoveringState {
+    // Used to track the hovering_state of the mouse hovering over a tile
+    Erasing,
+    Drawing,
+}
+// Implement default as Drawing:
+impl Default for HoveringState {
+    fn default() -> Self {
+        Self::Drawing
+    }
+}
 #[derive(Debug, Component)]
 pub struct BoardHoverable {
     pub hovered_pos_1: Option<Coordinates>,
     pub hovered_pos_2: Option<Coordinates>,
+    pub hovering_state: HoveringState,
 }
 #[derive(Debug, Component, Clone, Copy, Default)]
 pub struct BoardDimensions {
@@ -116,6 +130,15 @@ pub struct BoardBundle {
 /////////////////////////////////////////////////////////////////////////////////////
 
 
+#[derive(Debug, Clone)]
+pub struct PuzzleData {
+    pub name: String, 
+    pub city: String, 
+    pub parsed_map: String, 
+    pub type_: String, 
+    pub track_count: String, 
+}
+
 // System to generate the complete board
 pub fn create_board(
     mut commands: Commands,
@@ -123,18 +146,13 @@ pub fn create_board(
     windows: Res<Windows>,
     mut tick_status: ResMut<TicksInATick>,
     mut spawn_event: EventWriter<TileSpawnEvent>,
+    levels: Res<PuzzlesData>,
 ) {
-    
-    let map_s = vec![
-        "00 00 00 E0100_g 00 00 00".to_string(),
-        "00 00 00 02 00 00 00".to_string(),
-        "00 00 06 01 00 00 00".to_string(),
-        "Sr_b 05 53 45 05 05 E0010_g".to_string(),
-        "00 00 00 23 00 00 00".to_string(),
-        "00 00 00 St_y 00 00 00".to_string(),
-        "00 00 00 00 00 00 00".to_string(),
-        ];
-    let tile_map: Vec<Vec<Tile>> = parse_map(map_s);
+    // Get the puzzle data with name "Boomerang":
+    let map = levels.puzzles.iter().find(|p| p.name == "Boomerang").unwrap().parsed_map.clone();    
+    // Split map on '\n':
+    let map: Vec<String> = map.split('\n').map(|s| s.to_string()).collect();
+    let tile_map: Vec<Vec<Tile>> = parse_map(map);
     let n_width_ = tile_map.len();
     let n_height_ = tile_map.len();
     let tile_size = match board_options.tile_size {
@@ -181,6 +199,7 @@ pub fn create_board(
         hoverable: BoardHoverable {
             hovered_pos_1: None,
             hovered_pos_2: None,
+            hovering_state: HoveringState::Drawing,
         },
         options: board_dimensions,
         sprite: Sprite{

@@ -15,7 +15,6 @@ use partial_application::partial;
 
 #[derive(Bundle, Default)]
 pub struct TileSpriteBundle {
-    pub name: Name,               // Tile name
     pub coordinates: Coordinates, // Tile coordinates
 
     // Flattened SpriteBundle #[bundle] : SO NICE!!
@@ -127,12 +126,13 @@ fn rotate_tile_90(mut t: Transform, times: i16) -> Transform {
 fn add_color_minitiles_children(
     child_cmd: &mut ChildBuilder,
     elems: VectorOfColorz,
+    orig_len: i8,
     is_start: bool,
     assets: &TileAssets,
     big_tile_size: f32,
 ) {
-    let scale = big_tile_size / 46.;
-    let (n, poss, small_tile_size) = if elems.len() == 1 {
+    // let scale = big_tile_size / 46.;
+    let (n, poss, small_tile_size) = if orig_len == 1 {
         (1, get_poss_minitile_1(), get_dimension_minitile_1())
     } else if elems.len() <= 4 {
         (4, get_poss_minitile_4(), get_dimension_minitile_4())
@@ -145,8 +145,8 @@ fn add_color_minitiles_children(
         for (j, x) in poss.iter().enumerate() {
             let n_to_get = i * poss.len() + j;
             if n_to_get < elems.len() {
-                let pos_x = -(23. - (*x as f32) - (small_tile_size as f32) / 2.) * scale;
-                let pos_y = (23. - (*y as f32) - (small_tile_size as f32) / 2.) * scale;
+                let pos_x = -(23. - (*x as f32) - (small_tile_size as f32) / 2. +1.); // * scale;
+                let pos_y = (23. - (*y as f32) - (small_tile_size as f32) / 2. +1.); // * scale;
                 let prefix = if is_start { "s" } else { "e" };
                 let minitile = format!(
                     "{}_elem_{}_{}.png",
@@ -206,11 +206,11 @@ fn get_transform_and_texture(
                 ), // get_tile_track_lb4_over_tl1()
                 "15" => (
                     "br_over_tb.png".to_string(),
-                    flipmatrix_horizontal(rotate_tile_90(transform, 1)),
+                    flipmatrix_vertical(rotate_tile_90(transform, 1)),
                 ), // get_tile_track_tl1_over_lr5()
                 "51" => (
                     "tb_over_br.png".to_string(),
-                    flipmatrix_horizontal(rotate_tile_90(transform, 1)),
+                    flipmatrix_vertical(rotate_tile_90(transform, 1)),
                 ), // get_tile_track_lr5_over_tl1()
                 "16" => (
                     "track_funny_tr_bl.png".to_string(),
@@ -252,11 +252,11 @@ fn get_transform_and_texture(
                 "64" => ("tr_over_tl.png".to_string(), flipmatrix_vertical(transform)), // get_tile_track_br6_over_lb4()
                 "56" => (
                     "tb_over_br.png".to_string(),
-                    rotate_tile_90(flipmatrix_vertical(rotate_tile_90(transform, -1)), 2),
+                    flipmatrix_horizontal(rotate_tile_90(transform, 1)),
                 ), // get_tile_track_lr5_over_br6()
                 "65" => (
                     "br_over_tb.png".to_string(),
-                    rotate_tile_90(flipmatrix_vertical(rotate_tile_90(transform, -1)), 2),
+                    flipmatrix_horizontal(rotate_tile_90(transform, 1)),
                 ), // get_tile_track_br6_over_lr5()
                 _ => {
                     panic!("Unknown tile combination: {}", print_tile(&t))
@@ -295,22 +295,23 @@ fn get_transform_and_texture(
         Tile::EmptyTile => ("empty.png".to_string(), transform),
         Tile::RockTile => ("rock.png".to_string(), transform),
         Tile::SplitTile { side_in } => match &print_tile(&t)[..] {
-            "D1" => ("scissor_u.png".to_string(), transform),
-            "D2" => ("scissor_u.png".to_string(), rotate_tile_90(transform, 2)),
-            "D3" => ("scissor_u.png".to_string(), rotate_tile_90(transform, 1)),
-            "D4" => ("scissor_u.png".to_string(), rotate_tile_90(transform, -1)),
+            "D1" => ("scissor_u.png".to_string(), Transform::from_xyz(0., 0., 4.)),
+            "D2" => ("scissor_u.png".to_string(), rotate_tile_90(Transform::from_xyz(0., 0., 4.), 2)),
+            "D3" => ("scissor_u.png".to_string(), rotate_tile_90(Transform::from_xyz(0., 0., 4.), 1)),
+            "D4" => ("scissor_u.png".to_string(), rotate_tile_90(Transform::from_xyz(0., 0., 4.), -1)),
             _ => {
                 panic!("Unknown tile combination: {}", print_tile(&t))
             }
         },
-        Tile::StartTile { dir: _, elems: _ } => ("s_base.png".to_string(), transform),
+        Tile::StartTile { dir: _, elems: _, orig_len:_ } => ("s_base.png".to_string(), Transform::from_xyz(0., 0., 4.)),
         Tile::EndTile {
             t_: _,
             b_: _,
             l_: _,
             r_: _,
             elems: _,
-        } => ("e_base.png".to_string(), transform),
+            orig_len:_
+        } => ("e_base.png".to_string(), Transform::from_xyz(0., 0., 4.)),
     };
     let texture = get_asset(texture_path, assets);
 
@@ -323,26 +324,26 @@ fn add_arrow_minitile_children(
     assets: &TileAssets,
     big_tile_size: f32,
 ) {
-    let scale = big_tile_size / 46.;
+    // let scale = big_tile_size / 46.;
     let arrow = get_asset("s_arrow_elem_rigth.png".to_string(), assets);
     let pos_x: f32;
     let pos_y: f32;
-    let mut t = Transform::from_xyz(0., 0., 1.);
+    let mut t = Transform::from_xyz(0., 0., 0.);
     if dir == Side::R_ {
         t = flipmatrix_horizontal(t);
-        pos_x = -(23. - 6. - 6. / 2.) * scale;
-        pos_y = (23. - 23. - 6. / 2.) * scale;
+        pos_x = -(23. - 6. - 6. / 2.); // * scale;
+        pos_y = 0.;
     } else if dir == Side::T_ {
         t = rotate_tile(t, std::f32::consts::PI / 2.);
-        pos_x = -(23. - 23. - 6. / 2.) * scale;
-        pos_y = (23. - 6. - 6. / 2.) * scale;
+        pos_x = 0.;
+        pos_y = (23. - 6. + 6. / 2.); // * scale;
     } else if dir == Side::B_ {
         t = rotate_tile(t, -std::f32::consts::PI / 2.);
-        pos_x = -(23. - 23. - 6. / 2.) * scale;
-        pos_y = (23. - 46. - 6. / 2.) * scale;
+        pos_x = 0.;
+        pos_y = (23. - 46. + 6. / 2.); // * scale;
     } else {
-        pos_x = -(23. - 46. + 6. - 6. / 2.) * scale;
-        pos_y = (23. - 23. - 6. / 2.) * scale;
+        pos_x = -(23. - 46. + 6. - 6. / 2.); // * scale;
+        pos_y = 0.;
     }
     // Translate t to the right position:
     t.translation.x = pos_x;
@@ -371,19 +372,19 @@ fn add_funnels_minitile_children(
     let pos_y: f32;
     if r_ {
         pos_x = -(23. - 8. - 8. / 2.); // * scale;
-        pos_y = (23. - 23. - 8. / 2.); // * scale;
+        pos_y = 0.;
     } else if l_ {
         t = flipmatrix_horizontal(t);
         pos_x = -(23. - 8. - 8. / 2.); // * scale;
-        pos_y = (23. - 23. - 8. / 2.); // * scale;
+        pos_y = 0.;
     } else if t_ {
         t = rotate_tile(t, std::f32::consts::PI / 2.);
-        pos_x = -(23. - 23. - 8. / 2.); // * scale;
-        pos_y = (23. - 8. - 8. / 2.); // * scale;
+        pos_x = 0.;
+        pos_y = (23. - 8. + 8. / 2.); // * scale;
     } else {
         t = rotate_tile(t, -std::f32::consts::PI / 2.);
-        pos_x = -(23. - 23. - 8. / 2.); // * scale;
-        pos_y = (23. - 46. - 8. / 2.); // * scale;
+        pos_x = 0.;
+        pos_y = (23. - 46. + 8. / 2.); // * scale;
     }
     // Translate t to the right position:
     t.translation.x = pos_x;
@@ -411,17 +412,17 @@ fn make_tile(
         transform: transform.with_translation(Vec3::new(transl_x, transl_y, 2.)),
         ..default()
     });
-    if let Tile::StartTile { dir, elems } = t {
+    if let Tile::StartTile { dir, elems , orig_len} = t {
         child
             .with_children(
-                partial!(add_color_minitiles_children => _, elems, true, assets, big_tile_size),
+                partial!(add_color_minitiles_children => _, elems, orig_len, true, assets, big_tile_size),
             )
             .with_children(partial!(add_arrow_minitile_children => _, dir, assets, big_tile_size));
-    } else if let Tile::EndTile { t_, b_, l_, r_, elems,} = t
+    } else if let Tile::EndTile { t_, b_, l_, r_, elems, orig_len} = t
     {
         child
             .with_children(
-                partial!(add_color_minitiles_children => _, elems, false, assets, big_tile_size),
+                partial!(add_color_minitiles_children => _, elems, orig_len, false, assets, big_tile_size),
             )
             .with_children(
                 partial!(add_funnels_minitile_children => _, t_, b_, l_, r_, assets, big_tile_size),
@@ -432,7 +433,7 @@ fn make_tile(
             let inner = get_asset(format!("p_{}.png", colorz_to_long_str(c)), assets);
             parent.spawn_bundle(SpriteBundle {
                 texture: inner,
-                transform: Transform::from_xyz(0., 0., 1.),
+                transform: Transform::from_xyz(0., 0., 4.),
                 ..default()
             });
         });
