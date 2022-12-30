@@ -15,7 +15,6 @@ use partial_application::partial;
 
 #[derive(Bundle, Default)]
 pub struct TileSpriteBundle {
-    pub name: Name,               // Tile name
     pub coordinates: Coordinates, // Tile coordinates
 
     // Flattened SpriteBundle #[bundle] : SO NICE!!

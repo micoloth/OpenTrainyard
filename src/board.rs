@@ -82,10 +82,23 @@ pub struct BoardTileMap {
 pub struct BoardEntities {
     pub tiles: HashMap<Coordinates, Entity>,
 }
+#[derive(Debug)]
+pub enum HoveringState {
+    // Used to track the hovering_state of the mouse hovering over a tile
+    Erasing,
+    Drawing,
+}
+// Implement default as Drawing:
+impl Default for HoveringState {
+    fn default() -> Self {
+        Self::Drawing
+    }
+}
 #[derive(Debug, Component)]
 pub struct BoardHoverable {
     pub hovered_pos_1: Option<Coordinates>,
     pub hovered_pos_2: Option<Coordinates>,
+    pub hovering_state: HoveringState,
 }
 #[derive(Debug, Component, Clone, Copy, Default)]
 pub struct BoardDimensions {
@@ -186,6 +199,7 @@ pub fn create_board(
         hoverable: BoardHoverable {
             hovered_pos_1: None,
             hovered_pos_2: None,
+            hovering_state: HoveringState::Drawing,
         },
         options: board_dimensions,
         sprite: Sprite{

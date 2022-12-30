@@ -111,27 +111,39 @@ pub fn tile_hover_event(
                 for (board_dimensions, mut hoverable, mut board_tile_map) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
                     let pos = hovered_tile(board_dimensions, *pos);
                     let pos = match pos { None => continue, Some(b) => b, };
-                    if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
-                        let p_old = hoverable.hovered_pos_1.unwrap();
-                        let p_central = hoverable.hovered_pos_2.unwrap();
-                        let p_new = pos;
-                        hoverable.hovered_pos_1 = hoverable.hovered_pos_2;
-                        hoverable.hovered_pos_2 = Some(p_new);
-                        let track_option = get_track_option_from_3_coordinates(p_old, p_central, p_new);
-                        let track_option = match track_option { None => continue, Some(b) => b, };
-                        let new_tile = get_new_tile_from_track_option(board_tile_map.map[p_central.y as usize][p_central.x as usize], track_option);
-                        // Print it: 
-                        let oldtie = board_tile_map.map[p_central.y as usize][p_central.x as usize];
-                        println!("CURRENTLY click at {:?}, old tile: {:?} ({:?}), new tile: {:?} ({:?})", pos, oldtie, print_tile(&oldtie), new_tile, print_tile(&new_tile));
-                        board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
-                        spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
-                        // print p_central.y and p_central.x:
+                    match &hoverable.hovering_state {
+                        HoveringState::Drawing => {
+                            if hoverable.hovered_pos_1.is_some() && hoverable.hovered_pos_2.is_some() && hoverable.hovered_pos_2.unwrap() != pos {
+                                let p_old = hoverable.hovered_pos_1.unwrap();
+                                let p_central = hoverable.hovered_pos_2.unwrap();
+                                let p_new = pos;
+                                hoverable.hovered_pos_1 = hoverable.hovered_pos_2;
+                                hoverable.hovered_pos_2 = Some(p_new);
+                                let track_option = get_track_option_from_3_coordinates(p_old, p_central, p_new);
+                                let track_option = match track_option { None => continue, Some(b) => b, };
+                                let old_tile = board_tile_map.map[p_central.y as usize][p_central.x as usize];
+                                let new_tile = get_new_tile_from_track_option(board_tile_map.map[p_central.y as usize][p_central.x as usize], track_option);
+                                // Print it: 
+                                println!("CURRENTLY click at {:?}, old tile: {:?} ({:?}), new tile: {:?} ({:?})", pos, old_tile, print_tile(&old_tile), new_tile, print_tile(&new_tile));
+                                board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
+                                spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
+                                // print p_central.y and p_central.x:
+                            }
+                            else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos); }
+                            else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos); }
+                            // // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, board_tile_map.map[pos.y as usize][pos.x as usize]);
+                        },
+                        HoveringState::Erasing => {
+                            let p_new = pos;
+                            let old_tile = board_tile_map.map[p_new.y as usize][p_new.x as usize];
+                            let new_tile = Tile::EmptyTile;
+                            // Print it: 
+                            board_tile_map.map[p_new.y as usize][p_new.x as usize] = new_tile;
+                            spawn_event.send(TileSpawnEvent{x: p_new.x as usize, y: p_new.y as usize, new_tile});
+                        },
                     }
-                    else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos); }
-                    else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos); }
-                    // // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, board_tile_map.map[pos.y as usize][pos.x as usize]);
                 }
-            }
+            },
             TileHoverEvent::Released => {
                 for (_, mut hoverable,  _) in board_q.iter_mut() {
                     hoverable.hovered_pos_1 = None;
@@ -185,7 +197,7 @@ pub fn double_click_mouse(
 
 pub fn double_click_event(
     windows: Res<Windows>, 
-    mut board_q: Query<(&BoardDimensions, &BoardTileMap), With<Board>>, 
+    mut board_q: Query<(&BoardDimensions, &BoardTileMap, &BoardHoverable), With<Board>>, 
     mut event_reader: EventReader<DoubleClickEvent>,
     mut spawn_event: EventWriter<TileSpawnEvent>
 ) {
@@ -193,7 +205,8 @@ pub fn double_click_event(
         let window = windows.get_primary().expect("no primary window");
         let window_size = Vec2::new(window.width(), window.height());
         let pos = ev.pos - window_size / 2.;
-        for (board_dimensions, board_tile_map) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+        for (board_dimensions, board_tile_map, board_hoverable) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+            if let HoveringState::Erasing = board_hoverable.hovering_state {continue;}
             let pos = hovered_tile(board_dimensions, pos);
             // println!("  >>CLICKED {:?}", pos);
             let pos = match pos { None => break, Some(b) => b, };
