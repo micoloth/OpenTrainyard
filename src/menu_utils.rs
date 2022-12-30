@@ -29,14 +29,14 @@ fn default() -> Self {
 
 
 
-#[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarLimits { max: f32, min: f32, current: f32, step: f32,}
+#[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarLimits { pub max: f32, pub min: f32, pub current: f32, pub step: f32,}
 #[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarPosition { max_x: f32, min_x: f32, current_x: f32, step_x: f32,}
 #[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarStatus { dragging: bool }
 #[derive(Bundle, Clone, Debug, Default)]
 pub struct ScrollBarHandleBundle {
-    pub scrollBarLimits: ScrollBarLimits,
-    pub scrollBarPosition: ScrollBarPosition,
-    pub scrollBarStatus: ScrollBarStatus,
+    pub scroll_bar_limits: ScrollBarLimits,
+    pub scroll_bar_position: ScrollBarPosition,
+    pub scroll_bar_status: ScrollBarStatus,
 
     pub sprite: Sprite,
 
@@ -98,7 +98,8 @@ pub fn button_color_handler(
 
 
 pub fn scrollbar_input_handler(
-    button_colors: Res<ButtonColors>,
+    // Listen to mouse inputs:
+    mouse_button_input: Res<Input<MouseButton>>,
     mut interaction_query: Query<(&Interaction, &mut UiColor, &mut ScrollBarPosition, &mut ScrollBarLimits, &mut ScrollBarStatus),(Changed<Interaction>)>,
 ) {
     for (interaction, mut color, mut sbpos, mut sblimits, mut sbstatus) in interaction_query.iter_mut() {
@@ -107,35 +108,44 @@ pub fn scrollbar_input_handler(
             Interaction::Hovered => {}
             Interaction::None => {sbstatus.dragging = false;}
         }
+        // If mouse just release left button:
+        if mouse_button_input.just_released(MouseButton::Left) {
+            sbstatus.dragging = false;
+        }
     }
 }
 
 
 pub fn scrollbar_dragging_handler(
-    button_colors: Res<ButtonColors>,
     windows: Res<Windows>,
     mut interaction_query: Query<(&mut Transform, &mut GlobalTransform, &mut Style, &mut ScrollBarPosition, &mut ScrollBarLimits, &mut ScrollBarStatus)>,
+    mut dragged_event_writer: EventWriter<ScrollBarLimits>,
 ) {
     for (mut transform, mut gltr, mut style, mut sbpos, mut sblimits, mut sbstatus) in interaction_query.iter_mut() {
         if sbstatus.dragging {
             let window = windows.get_primary().expect("no primary window");
-            let window_size = Vec2::new(window.width(), window.height());
             if let Some(pos) = window.cursor_position() {
-                let handle_x = (sbpos.max_x - sbpos.min_x) * 0.07;
-
+                let handle_x = (sbpos.max_x - sbpos.min_x) * 0.12;
+                
                 let relposx = pos.x - sbpos.min_x - handle_x/2.;
                 let relposx = relposx.clamp(0., sbpos.max_x - sbpos.min_x - handle_x);
+                // let window_size = Vec2::new(window.width(), window.height());
                 // let position = pos - window_size / 2.;
                 let fraction = relposx / (sbpos.max_x - sbpos.min_x - handle_x);
-                println!("THANKSSS, {:?}", fraction);
-
-                // print current x position of the image from transform:
-                // transform.translation.x = pos_x;
-                // let mut old_pos:Rect<Val> = style.position;
-                // old_pos.left = Val::Px(pos_x as f32);
-                // old_pos.right = Val::Px((pos_x as f32) + 20.);
+                
+                // New value using the fraction with  ScrollBarLimits { pub max: f32, pub min: f32, pub current: f32, pub step: f32,}:
+                let newval = sblimits.min + (sblimits.max - sblimits.min) * fraction;
+                // Round newval to the nearest step:
+                let newval = (newval / sblimits.step).round() * sblimits.step;
+                // println!("THANKSSS, {:?}", newval);
+                // Update ScrollBarPosition:
                 sbpos.current_x = relposx;
                 style.position.left = Val::Px(relposx );
+                // launch event:
+                if newval != sblimits.current {
+                    sblimits.current = newval;
+                    dragged_event_writer.send(*sblimits);
+                }
 
             }
 
@@ -177,6 +187,8 @@ pub fn handle_border(
 pub fn make_scrollbar(
     mut commands: &mut Commands,
     assets: &TileAssets,
+    scroll_bar_limits: ScrollBarLimits,
+    button_colors: &ButtonColors,
     pleft: f32,
     pright: f32,
     ptop: f32,
@@ -188,12 +200,12 @@ pub fn make_scrollbar(
             style: Style {
                 position_type: PositionType::Absolute,
                 size: Size::new(Val::Px(pright - pleft), Val::Px(ptop-pbottom)),
-                //     // margin: UiRect::all(Val::Auto),
-                //     // justify_content: JustifyContent::Center,
-                //     // align_items: AlignItems::Center,
+                margin: UiRect::all(Val::Auto), 
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,  // I have to say, this was cool ....
                 position: UiRect {
-                    top: Val::Px(pleft),
-                    left: Val::Px(ptop),
+                    top: Val::Px(ptop),
+                    left: Val::Px(pleft),
                     ..default()
                 },
                 ..default()
@@ -201,22 +213,26 @@ pub fn make_scrollbar(
             color: Color::rgb(1.0, 1.0, 1.0).into(),
             ..default()
         }).id();
+    // get the fraction from (scroll_bar_limits.current - min) / (scroll_bar_limits.max- min)
+    // and apply it to ScrollBarPosition{ max_x: pright, min_x: pleft} to get the current_x:
+    let fraction = (scroll_bar_limits.current - scroll_bar_limits.min) / (scroll_bar_limits.max - scroll_bar_limits.min);
+    let current_x = fraction * (pright - pleft);
     let handle = commands.spawn_bundle(
         ScrollBarHandleBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                size: Size::new(Val::Percent(7.), Val::Percent(100.)),
+                size: Size::new(Val::Percent(12.), Val::Percent(100.)),
                 position: UiRect {
                     top: Val::Px(0.),
-                    left: Val::Px(0.),
+                    left: Val::Px(current_x),
                     ..default()
                 },
                 ..default()
             },
             // texture: UiImage(arrow),
             color: UiColor(Color::rgb(1., 1.0, 1.0)),
-            scrollBarLimits: ScrollBarLimits { max: 100., min: 0., current: 0., step: 1.},
-            scrollBarPosition: ScrollBarPosition{ max_x: pright, min_x: pleft, current_x: pright, step_x: 1.},
+            scroll_bar_limits: scroll_bar_limits,
+            scroll_bar_position: ScrollBarPosition{ max_x: pright, min_x: pleft, current_x: current_x, step_x: 1.},
             ..default()
     }).id();
     commands.entity(back).push_children(&[handle]);// add the child to the parent
@@ -277,7 +293,7 @@ pub fn make_button(
 
 
 fn make_border(
-    mut commands: &mut Commands,
+    commands: &mut Commands,
 ) {
     // Draw a UiImage that has only a border, no fill. The border is yellow. It should be AS BIG AS THE SCREEN.
     // Do it by creating 4 different narrow rectangles, at each side of the screen:

@@ -15,6 +15,9 @@ use crate::board::*;
 use crate::tile::TileSpawnEvent;
 use crate::train::make_train;
 
+use crate::menu_utils::ScrollBarLimits;
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 // COMPONENTS
@@ -25,13 +28,15 @@ pub struct TicksInATick {
     pub ticks: u32,
     pub is_in_game: bool,
     pub current_tick: u32,
+    pub first_half: bool,
     pub locked_waiting_for_tick_event: bool,
 }
 pub fn get_ticks_in_a_tick_default() -> TicksInATick {
     TicksInATick {
-        ticks: 200,
+        ticks: 100,
         is_in_game: false,
         current_tick: 0,
+        first_half: true,
         locked_waiting_for_tick_event: false,
     }
 }
@@ -69,6 +74,25 @@ pub enum TileHoverEvent {
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
+/// 
+
+
+pub fn change_tick_speed(
+    // Liste to events of type ScrollBarLimits:
+    mut scroll_bar_limits_event_reader: EventReader<ScrollBarLimits>,
+    mut tick_status: ResMut<TicksInATick>,
+){
+    // Iter events:
+    for scroll_bar_limits_event in scroll_bar_limits_event_reader.iter() {
+        // Find the fratction of the tick currently elapsed:
+        let fraction = tick_status.current_tick as f32 / tick_status.ticks as f32;
+        tick_status.ticks = ((1. / scroll_bar_limits_event.current) as u32).max(3);
+        // Set the current tick to the same fraction of the new tick count:
+        tick_status.current_tick = (tick_status.ticks as f32 * fraction) as u32;
+        println!("Tick speed changed to {}", tick_status.ticks);
+    }
+}
+
 
 pub fn tile_hover_touch(touches: Res<Touches>, windows: Res<Windows>, mut hover_event: EventWriter<TileHoverEvent>,) {
     for finger in touches.iter() {

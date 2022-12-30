@@ -12,10 +12,11 @@ use crate::train::*;
 use crate::tile::*;
 use crate::board::*;
 use crate::logic::*;
+use crate::logic::TicksInATick;
 use crate::menu_utils::*;
 
 // Defines the amount of time that should elapse between each physics step.
-const TIME_STEP: f32 = 1.0 / 60.0;
+const TIME_STEP: f32 = 1.0 / 120.0;
 
 /////////////////////////////////////////////////////////////////////////////////////
 // COMPONENTS
@@ -43,6 +44,7 @@ impl Plugin for MainGamePlugin {
                 SystemSet::on_update(GameState::Playing)
                 .with_system(spawn_tile)
                 .with_system(logic_tick_event)
+                .with_system(change_tick_speed)
             )
             //////////// INTERACTIONS:
             .add_system_set(
@@ -70,6 +72,7 @@ impl Plugin for MainGamePlugin {
             .add_event::<DoubleClickEvent>()
             .add_event::<TileHoverEvent>()
             .add_event::<BorderEvent>()
+            .add_event::<ScrollBarLimits>()
             ;
     }
 }
@@ -99,14 +102,19 @@ pub struct MainGameBotton;
 #[derive(Component)]
 pub struct EraseStateButton;
 
+#[derive(Component)]
+pub struct RunButton;
+
+#[derive(Component)]
+pub struct UndoButton;
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-// SYSTEMS
+// EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-struct TurnOnErasing;
+
 
 
 
@@ -128,16 +136,28 @@ fn setup_game_menu(
     let height = windows.get_primary().unwrap().height();
     // Boundaries (left right top bottom) of a Rectangle that occupies the LEFT HALF of the screen, minus a 20 pixel wide margin all around:
     let margin = 20.;
+    let heigh = 40.;
+    let percent_left_right = 0.35;
     let left = margin;
-    let right = width / 2.0 - margin;
+    let right = width * percent_left_right - margin/2.;
     // Make the button 40 px high FROM THE BOTTOM:
     let bottom = height - margin - 2.*40.;
-    let top = height - margin - 40.;
+    let top = height - margin - heigh;
 
-    let erase_id = make_button("Erase".to_string(), &mut commands, &font_assets, &button_colors, left, right, top, bottom);
+    let erase_id = make_button("Erase".to_string(), &mut commands, &font_assets, &button_colors, left, right, top - heigh - margin, bottom - heigh - margin);
     commands.entity(erase_id).insert(EraseStateButton).insert(MainGameBotton);
 
-    make_scrollbar(&mut commands, &textures, 50., 250., 50., 25.);
+    let undo_id = make_button("Undo".to_string(), &mut commands, &font_assets, &button_colors, left, right , top, bottom);
+    commands.entity(undo_id).insert(RunButton).insert(MainGameBotton);
+
+    let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, width * percent_left_right + margin/2., width - margin , top, bottom);
+    commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
+
+    let scrollbar_id = make_scrollbar(&mut commands, &textures, 
+        ScrollBarLimits { max: 80./120., min: 0.05/120., current: 3./120., step: 0.01 / 120.},
+        &button_colors,
+        width * percent_left_right + margin/2., width - margin , top - heigh - margin, bottom - heigh - margin);
+    commands.entity(scrollbar_id).insert(MainGameBotton);
 }
 
 

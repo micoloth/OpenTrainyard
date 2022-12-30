@@ -61,10 +61,12 @@ pub fn move_trains(
     if tick_status.current_tick >= tick_status.ticks {
         tick_status.current_tick = 0;
         tick_status.locked_waiting_for_tick_event = true;
+        tick_status.first_half = true;
         logic_tick_event.send(LogicTickEvent::TickEnd);
-    } else if tick_status.current_tick == ((tick_status.ticks as f32 / 2.) as u32) {
+    } else if tick_status.current_tick >= ((tick_status.ticks as f32 / 2.) as u32)  && tick_status.first_half {
         logic_tick_event.send(LogicTickEvent::TickMiddle);
         tick_status.locked_waiting_for_tick_event = true;
+        tick_status.first_half = false;
     }
 }
 
