@@ -89,7 +89,7 @@ fn get_train_image(train_assets: &TrainAssets, color: Colorz) -> Handle<Image> {
 
 
 fn get_train_transform(t:Train, board: &BoardDimensions, tick_rateo: f32) -> Transform {
-    let mut transform = Transform::from_translation(Vec3::new(0.0, 0.0, 4.0));
+    let mut transform = Transform::from_translation(Vec3::new(0.0, 0.0, 3.0));
     let in_side: Side = t.pos.side;
     let out_side: Side = t.pos.towards_side.unwrap();
 

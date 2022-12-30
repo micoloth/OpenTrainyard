@@ -45,6 +45,14 @@ impl Default for ButtonColors {
 #[derive(Component)]
 pub struct StartGameBotton;
 
+
+
+
+
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -134,14 +142,12 @@ fn make_button(text: String, mut commands: &mut Commands, font_assets: &FontAsse
 }
 
 
-// // fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, asset_shapes: Res<BoardAssetsMap>) {
-//     fn setup_ui(mut commands: &mut Commands, asset_server: &AssetServer, asset_shapes: &BoardAssetsMap) {
-//         let button_materials = ButtonColors {
-//             normal: Color::GRAY,
-//             hovered: Color::DARK_GRAY,
-//             pressed: Color::BLACK,
-//         };
-//         commands
+
+
+
+
+
+
 //             .spawn_bundle(NodeBundle {
 //                 style: Style {
 //                     size: Size::new(Val::Percent(100.), Val::Px(50.)),
@@ -153,37 +159,7 @@ fn make_button(text: String, mut commands: &mut Commands, font_assets: &FontAsse
 //                 color: Color::WHITE.into(),
 //                 ..default()
 //             })
-//             .insert(Name::new("UI"))
-//             .with_children(|parent| {
-//                 let font = asset_server.load("fonts/pixeled.ttf");
-//                 setup_single_menu(
-//                     parent,
-//                     "CLEAR",
-//                     button_materials.normal.into(),
-//                     font.clone(),
-//                     ButtonAction::Clear,
-//                 );
-//                 // setup_scrollbar(
-//                 //     parent,
-//                 //     "GENERATE",
-//                 //     button_materials.normal.into(),
-//                 //     font,
-//                 //     ButtonAction::Generate,
-//                 //     &asset_shapes.assets
-//                 // );
-//             });
-//         commands.insert_resource(button_materials);
-//     }
-    
-//     fn setup_single_menu(
-//         parent: &mut ChildBuilder,
-//         text: &str,
-//         color: UiColor,
-//         font: Handle<Font>,
-//         action: ButtonAction,
-//     ) {
-//         parent
-//             .spawn_bundle(ButtonBundle {
+
 //                 style: Style {
 //                     size: Size::new(Val::Percent(95.), Val::Auto),
 //                     margin: Rect::all(Val::Px(10.)),
@@ -195,28 +171,10 @@ fn make_button(text: String, mut commands: &mut Commands, font_assets: &FontAsse
 //                 },
 //                 color,
 //                 ..default()
-//             })
-//             .insert(action)
-//             .insert(Name::new(text.to_string()))
-//             .with_children(|builder| {
-//                 builder.spawn_bundle(TextBundle {
-//                     text: Text {
-//                         sections: vec![TextSection {
-//                             value: text.to_string(),
-//                             style: TextStyle {
-//                                 font,
-//                                 font_size: 30.,
-//                                 color: Color::WHITE,
-//                             },
-//                         }],
+
 //                         alignment: TextAlignment {
 //                             vertical: VerticalAlign::Center,
 //                             horizontal: HorizontalAlign::Center,
 //                         },
-//                     },
-//                     ..default()
-//                 });
-//             });
-//     }
     
     

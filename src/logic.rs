@@ -120,6 +120,9 @@ pub fn tile_hover_event(
                         let track_option = get_track_option_from_3_coordinates(p_old, p_central, p_new);
                         let track_option = match track_option { None => continue, Some(b) => b, };
                         let new_tile = get_new_tile_from_track_option(board_tile_map.map[p_central.y as usize][p_central.x as usize], track_option);
+                        // Print it: 
+                        let oldtie = board_tile_map.map[p_central.y as usize][p_central.x as usize];
+                        println!("CURRENTLY click at {:?}, old tile: {:?} ({:?}), new tile: {:?} ({:?})", pos, oldtie, print_tile(&oldtie), new_tile, print_tile(&new_tile));
                         board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
                         spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
                         // print p_central.y and p_central.x:
