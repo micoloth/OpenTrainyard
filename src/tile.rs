@@ -35,6 +35,7 @@ pub struct TileSpawnEvent {
     pub x: usize,
     pub y: usize,
     pub new_tile: Tile,
+    pub prev_tile: Option<Tile>,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

@@ -87,6 +87,7 @@ impl Plugin for MenuMainGame {
     fn build(&self, app: &mut App) {
         app.init_resource::<ButtonColors>()
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(setup_game_menu))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_undo_button))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_erase_button))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(scrollbar_input_handler))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(scrollbar_dragging_handler))
@@ -148,7 +149,7 @@ fn setup_game_menu(
     commands.entity(erase_id).insert(EraseStateButton).insert(MainGameBotton);
 
     let undo_id = make_button("Undo".to_string(), &mut commands, &font_assets, &button_colors, left, right , top, bottom);
-    commands.entity(undo_id).insert(RunButton).insert(MainGameBotton);
+    commands.entity(undo_id).insert(UndoButton).insert(MainGameBotton);
 
     let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, width * percent_left_right + margin/2., width - margin , top, bottom);
     commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
@@ -183,24 +184,54 @@ fn click_erase_button(
 ) {
     for (interaction, mut color) in &mut interaction_query {
         for (_, mut boardHoverable) in board_q.iter_mut() {
-        match *interaction {
-            Interaction::Clicked => {
-                 match boardHoverable.hovering_state {
-                    HoveringState::Erasing =>{
-                        boardHoverable.hovering_state = HoveringState::Drawing;
-                        border_event_writer.send(BorderEvent::Despawn);
-                    },
-                    HoveringState::Drawing => {
-                        boardHoverable.hovering_state = HoveringState::Erasing;
-                        border_event_writer.send(BorderEvent::Spawn);
-                    },
-                };
+            match *interaction {
+                Interaction::Clicked => {
+                    match boardHoverable.hovering_state {
+                        HoveringState::Erasing =>{
+                            boardHoverable.hovering_state = HoveringState::Drawing;
+                            border_event_writer.send(BorderEvent::Despawn);
+                        },
+                        HoveringState::Drawing => {
+                            boardHoverable.hovering_state = HoveringState::Erasing;
+                            border_event_writer.send(BorderEvent::Spawn);
+                        },
+                        _ => {}
+                    };
+                }
+                _ => {}
             }
-            _ => {}
         }
     }
 }
+
+fn click_undo_button(
+    mut commands: Commands,
+    mut interaction_query: Query<
+        (&Interaction, &mut UiColor),
+        (Changed<Interaction>, With<Button>, With<UndoButton>),
+        >,
+    mut board_q: Query<(Entity, &mut BoardHoverable), With<Board>>,
+    // Event writer for the BorderEvent:
+    mut spawn_event: EventWriter<TileSpawnEvent>,
+) {
+    for (interaction, mut color) in &mut interaction_query {
+        for (_, mut boardHoverable) in board_q.iter_mut() {
+            match *interaction {
+                Interaction::Clicked => {
+                    println!("TRIGGERED UNDO! {:?}", boardHoverable.history.history);
+                    let last_event = boardHoverable.history.history.pop();
+                    if let Some(TileSpawnEvent { x, y, new_tile, prev_tile }) = last_event {
+                        if let Some(prev_tile) = prev_tile {
+                            spawn_event.send(TileSpawnEvent { x, y, new_tile: prev_tile, prev_tile: None });
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
 }
+
 
 
 

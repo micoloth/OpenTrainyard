@@ -149,9 +149,12 @@ pub fn tile_hover_event(
                                 let new_tile = get_new_tile_from_track_option(board_tile_map.map[p_central.y as usize][p_central.x as usize], track_option);
                                 // Print it: 
                                 println!("CURRENTLY click at {:?}, old tile: {:?} ({:?}), new tile: {:?} ({:?})", pos, old_tile, print_tile(&old_tile), new_tile, print_tile(&new_tile));
-                                board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
-                                spawn_event.send(TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile});
-                                // print p_central.y and p_central.x:
+                                if new_tile != old_tile {
+                                    board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
+                                    let event = TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile, prev_tile: Some(old_tile)};
+                                    spawn_event.send(event.clone());
+                                    hoverable.history.push(event);
+                                }
                             }
                             else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos); }
                             else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos); }
@@ -161,10 +164,14 @@ pub fn tile_hover_event(
                             let p_new = pos;
                             let old_tile = board_tile_map.map[p_new.y as usize][p_new.x as usize];
                             let new_tile = Tile::EmptyTile;
-                            // Print it: 
-                            board_tile_map.map[p_new.y as usize][p_new.x as usize] = new_tile;
-                            spawn_event.send(TileSpawnEvent{x: p_new.x as usize, y: p_new.y as usize, new_tile});
+                            if new_tile != old_tile {
+                                board_tile_map.map[p_new.y as usize][p_new.x as usize] = new_tile;
+                                let event = TileSpawnEvent{x: p_new.x as usize, y: p_new.y as usize, new_tile, prev_tile: Some(old_tile)};
+                                spawn_event.send(event.clone());
+                                hoverable.history.push(event);
+                            }
                         },
+                        HoveringState::Running => {},
                     }
                 }
             },
@@ -221,7 +228,7 @@ pub fn double_click_mouse(
 
 pub fn double_click_event(
     windows: Res<Windows>, 
-    mut board_q: Query<(&BoardDimensions, &BoardTileMap, &BoardHoverable), With<Board>>, 
+    mut board_q: Query<(&BoardDimensions, &BoardTileMap, &mut BoardHoverable), With<Board>>, 
     mut event_reader: EventReader<DoubleClickEvent>,
     mut spawn_event: EventWriter<TileSpawnEvent>
 ) {
@@ -229,7 +236,7 @@ pub fn double_click_event(
         let window = windows.get_primary().expect("no primary window");
         let window_size = Vec2::new(window.width(), window.height());
         let pos = ev.pos - window_size / 2.;
-        for (board_dimensions, board_tile_map, board_hoverable) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+        for (board_dimensions, board_tile_map, mut board_hoverable) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
             if let HoveringState::Erasing = board_hoverable.hovering_state {continue;}
             let pos = hovered_tile(board_dimensions, pos);
             // println!("  >>CLICKED {:?}", pos);
@@ -240,7 +247,9 @@ pub fn double_click_event(
             let newtile = get_new_tile_from_flipping(tile);
             // println!("  >>FLIPPED {:?}", newtile);
             if let Some(tile_) = newtile {
-                spawn_event.send(TileSpawnEvent { x: pos.x as usize, y: pos.y as usize, new_tile: tile_ });
+                let event = TileSpawnEvent { x: pos.x as usize, y: pos.y as usize, new_tile: tile_, prev_tile: Some(tile) };
+                spawn_event.send(event.clone());
+                board_hoverable.history.push(event);
 
             }
         }
@@ -290,7 +299,7 @@ for trigger_event in evt.iter() {
             for (y, line) in new_tilemap.iter().enumerate() {
                 for (x, tile) in line.iter().enumerate() {
                     if tile != &board_tilemap.map[y][x] {
-                        spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile});
+                        spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile, prev_tile: Some(board_tilemap.map[y][x]) });
                     }
                 }
             }

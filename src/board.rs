@@ -87,6 +87,7 @@ pub enum HoveringState {
     // Used to track the hovering_state of the mouse hovering over a tile
     Erasing,
     Drawing,
+    Running,
 }
 // Implement default as Drawing:
 impl Default for HoveringState {
@@ -94,11 +95,27 @@ impl Default for HoveringState {
         Self::Drawing
     }
 }
+#[derive(Debug, Default)]
+pub struct History {
+    pub history: Vec<TileSpawnEvent>,
+}
+// Implement the Push function:
+// When receiving a TileSpawnEvent, we push it to the history, and REMOVE the oldest one if the history is OVER 50 items
+impl History {
+    pub fn push(&mut self, item: TileSpawnEvent) {
+        self.history.push(item);
+        if self.history.len() > 50 {
+            self.history.remove(0);
+        }
+    }
+}
+
 #[derive(Debug, Component)]
 pub struct BoardHoverable {
     pub hovered_pos_1: Option<Coordinates>,
     pub hovered_pos_2: Option<Coordinates>,
     pub hovering_state: HoveringState,
+    pub history: History
 }
 #[derive(Debug, Component, Clone, Copy, Default)]
 pub struct BoardDimensions {
@@ -110,7 +127,6 @@ pub struct BoardDimensions {
 #[derive(Bundle)]
 pub struct BoardBundle {
     pub board: Board,
-    pub name: Name,
     pub transform: Transform, // This component is required until https://github.com/bevyengine/bevy/pull/2331 is merged
     pub global_transform: GlobalTransform,
     pub tile_map: BoardTileMap,
@@ -187,7 +203,6 @@ pub fn create_board(
     // We add the main resource of the game, the board
     commands.spawn_bundle(BoardBundle {
         board: Board,
-        name: Name::new("Board"),
         transform: Transform::from_translation(board_dimensions.position), // This component is required until
         // global_transform: GlobalTransform::default(),
         tile_map: BoardTileMap {
@@ -200,6 +215,7 @@ pub fn create_board(
             hovered_pos_1: None,
             hovered_pos_2: None,
             hovering_state: HoveringState::Drawing,
+            history: History{ ..default()},
         },
         options: board_dimensions,
         sprite: Sprite{
@@ -220,6 +236,7 @@ pub fn create_board(
                 x,
                 y,
                 new_tile: *tile,
+                prev_tile: None
             });
         }
     }
