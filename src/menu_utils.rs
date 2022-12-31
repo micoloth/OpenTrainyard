@@ -104,7 +104,7 @@ pub fn scrollbar_input_handler(
 ) {
     for (interaction, mut color, mut sbpos, mut sblimits, mut sbstatus) in interaction_query.iter_mut() {
         match *interaction {
-            Interaction::Clicked => {println!("NICE!!"); sbstatus.dragging = true;}
+            Interaction::Clicked => {sbstatus.dragging = true;}
             Interaction::Hovered => {}
             Interaction::None => {sbstatus.dragging = false;}
         }

@@ -71,6 +71,13 @@ pub enum TileHoverEvent {
     Released
 }
 
+#[derive(Debug, Clone)]
+pub enum RunEvent{
+    Start,
+    Stop,
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -237,7 +244,7 @@ pub fn double_click_event(
         let window_size = Vec2::new(window.width(), window.height());
         let pos = ev.pos - window_size / 2.;
         for (board_dimensions, board_tile_map, mut board_hoverable) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
-            if let HoveringState::Erasing = board_hoverable.hovering_state {continue;}
+            if board_hoverable.hovering_state != HoveringState::Drawing {continue;}
             let pos = hovered_tile(board_dimensions, pos);
             // println!("  >>CLICKED {:?}", pos);
             let pos = match pos { None => break, Some(b) => b, };
@@ -255,6 +262,66 @@ pub fn double_click_event(
         }
     }
 }
+
+
+pub fn listen_to_game_run_events(
+    mut commands: Commands,
+    mut board_q: Query<(Entity, &BoardDimensions, &mut BoardTileMap,  &mut BoardHoverable), With<Board>>,
+    mut trains_q: Query<(Entity, &Train)>,
+    mut tick_status: ResMut<TicksInATick>,
+    mut evt: EventReader<RunEvent>,
+    mut spawn_event: EventWriter<TileSpawnEvent>
+) {
+    for trigger_event in evt.iter() {
+        match trigger_event {
+            RunEvent::Start => {
+                for (board_id, board_dimensions, mut board_tilemap, mut board_hoverable) in board_q.iter_mut() {
+                    // If hoversble state is already Running, continue:
+                    if let HoveringState::Running = board_hoverable.hovering_state {continue;}
+                    // Despawn all trains sprites: (ACTUALLY THERE SHOULD BE NONE)
+                    for (train_id, _) in trains_q.iter_mut() {
+                        commands.entity(train_id).despawn_recursive();
+                    }
+                    // Set solved_tilemap  to a clone of the current tilemap:
+                    board_tilemap.solved_map = Some(board_tilemap.map.clone());
+                    // Set the board to Running:
+                    board_hoverable.hovering_state = HoveringState::Running;
+
+                }
+            },
+            RunEvent::Stop => {
+                for (board_id, board_dimensions, mut board_tilemap, mut board_hoverable) in board_q.iter_mut() {
+                    // If hoversble state is already Erasing OR Drawing, continue:
+                    if let HoveringState::Erasing = board_hoverable.hovering_state {continue;}
+                    if let HoveringState::Drawing = board_hoverable.hovering_state {continue;}
+
+                    // Despawn all trains sprites: 
+                    for (train_id, _) in trains_q.iter_mut() {
+                        commands.entity(train_id).despawn_recursive();
+                    }
+                    // RESET the board to Solved_map if it exists:
+                    if let Some(solved_map) = board_tilemap.solved_map.clone() {
+                        for (y, line) in solved_map.iter().enumerate() {
+                            for (x, tile) in line.iter().enumerate() {
+                                if tile != &board_tilemap.map[y][x] {
+                                    spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile, prev_tile: Some(board_tilemap.map[y][x]) });
+                                }
+                            }
+                        }
+                    }
+                    // Set the board to Erasing:
+                    board_hoverable.hovering_state = HoveringState::Drawing;
+                }
+            },
+        }
+    }
+}
+
+
+
+
+
+
 
 
 pub fn logic_tick_event(

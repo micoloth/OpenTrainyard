@@ -45,6 +45,7 @@ impl Plugin for MainGamePlugin {
                 .with_system(spawn_tile)
                 .with_system(logic_tick_event)
                 .with_system(change_tick_speed)
+                .with_system(listen_to_game_run_events)
             )
             //////////// INTERACTIONS:
             .add_system_set(
@@ -70,6 +71,7 @@ impl Plugin for MainGamePlugin {
             .add_event::<TileSpawnEvent>()
             .add_event::<LogicTickEvent>()
             .add_event::<DoubleClickEvent>()
+            .add_event::<RunEvent>()
             .add_event::<TileHoverEvent>()
             .add_event::<BorderEvent>()
             .add_event::<ScrollBarLimits>()
@@ -89,6 +91,7 @@ impl Plugin for MenuMainGame {
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(setup_game_menu))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_undo_button))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_erase_button))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_run_button))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(scrollbar_input_handler))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(scrollbar_dragging_handler))
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_menu));
@@ -133,17 +136,7 @@ fn setup_game_menu(
     textures: Res<TileAssets>,
     windows: Res<Windows>,
 ) {
-    let width = windows.get_primary().unwrap().width();
-    let height = windows.get_primary().unwrap().height();
-    // Boundaries (left right top bottom) of a Rectangle that occupies the LEFT HALF of the screen, minus a 20 pixel wide margin all around:
-    let margin = 20.;
-    let heigh = 40.;
-    let percent_left_right = 0.35;
-    let left = margin;
-    let right = width * percent_left_right - margin/2.;
-    // Make the button 40 px high FROM THE BOTTOM:
-    let bottom = height - margin - 2.*40.;
-    let top = height - margin - heigh;
+    let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
 
     let erase_id = make_button("Erase".to_string(), &mut commands, &font_assets, &button_colors, left, right, top - heigh - margin, bottom - heigh - margin);
     commands.entity(erase_id).insert(EraseStateButton).insert(MainGameBotton);
@@ -232,6 +225,56 @@ fn click_undo_button(
     }
 }
 
+fn click_run_button(
+    mut commands: Commands,
+    mut interaction_query: Query<
+        (Entity, &Interaction, &mut UiColor),
+        (Changed<Interaction>, With<Button>, With<RunButton>),
+        >,
+    font_assets: Res<FontAssets>,
+    button_colors: Res<ButtonColors>,
+    mut board_q: Query<(Entity, &mut BoardHoverable), With<Board>>,
+    mut startrun_event: EventWriter<RunEvent>, // Event writer for the BorderEvent:
+    mut border_event_writer: EventWriter<BorderEvent>,
+    windows: Res<Windows>,
+) {
+    for (entity, interaction, mut color, ) in &mut interaction_query {
+        for (_, mut boardHoverable) in board_q.iter_mut() {
+            match *interaction {
+                Interaction::Clicked => {
+                    println!("TRIGGERED RUN! {:?}", boardHoverable.history.history);
+                    match boardHoverable.hovering_state {
+                        HoveringState::Erasing | HoveringState::Drawing =>{
+                            // Launch game start event:
+                            startrun_event.send(RunEvent::Start);
+                            border_event_writer.send(BorderEvent::Despawn);
+                            
+                            // Despawn the button:
+                            commands.entity(entity).despawn_recursive();
+                            // Rebuild:
+                            let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
+                            let run_id = make_button("Stop".to_string(), &mut commands, &font_assets, &button_colors, width * percent_left_right + margin/2., width - margin , top, bottom);
+                            commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
+                        
+                        },
+                        HoveringState::Running => {
+                            // Launch game stop event:
+                            startrun_event.send(RunEvent::Stop);
+                            // Despawn the button:
+                            commands.entity(entity).despawn_recursive();
+                            // Rebuild:
+                            let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
+                            let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, width * percent_left_right + margin/2., width - margin , top, bottom);
+                            commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
+                                                    
+                        },
+                    };
+                }
+                _ => {}
+            }
+        }
+    }
+}
 
 
 
@@ -240,41 +283,18 @@ fn click_undo_button(
 /////////////////////////////////////////////////////////////////////////////////////
 
 
+fn get_coordinates(windows: &Windows) -> (f32, f32, f32, f32, f32, f32, f32, f32) {
+    let width = windows.get_primary().unwrap().width();
+    let height = windows.get_primary().unwrap().height();
+    // Boundaries (left right top bottom) of a Rectangle that occupies the LEFT HALF of the screen, minus a 20 pixel wide margin all around:
+    let margin = 20.;
+    let heigh = 40.;
+    let percent_left_right = 0.35;
+    let left = margin;
+    let right = width * percent_left_right - margin/2.;
+    // Make the button 40 px high FROM THE BOTTOM:
+    let bottom = height - margin - 2.*40.;
+    let top = height - margin - heigh;
+    (width, margin, heigh, percent_left_right, left, right, bottom, top)
+}
 
-
-
-
-
-
-
-
-//             .spawn_bundle(NodeBundle {
-//                 style: Style {
-//                     size: Size::new(Val::Percent(100.), Val::Px(50.)),
-//                     align_items: AlignItems::Center,
-//                     justify_content: JustifyContent::Center,
-    
-//                     ..default()
-//                 },
-//                 color: Color::WHITE.into(),
-//                 ..default()
-//             })
-
-//                 style: Style {
-//                     size: Size::new(Val::Percent(95.), Val::Auto),
-//                     margin: Rect::all(Val::Px(10.)),
-//                     // horizontally center child text
-//                     justify_content: JustifyContent::Center,
-//                     // vertically center child text
-//                     align_items: AlignItems::Center,
-//                     ..default()
-//                 },
-//                 color,
-//                 ..default()
-
-//                         alignment: TextAlignment {
-//                             vertical: VerticalAlign::Center,
-//                             horizontal: HorizontalAlign::Center,
-//                         },
-    
-    

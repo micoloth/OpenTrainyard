@@ -77,12 +77,14 @@ pub struct Board;
 #[derive(Debug, Component)]
 pub struct BoardTileMap {
     pub map: Vec<Vec<Tile>>,
+    pub solved_map: Option<Vec<Vec<Tile>>>,
+    pub map_name: String,
 }
 #[derive(Debug, Component)]
 pub struct BoardEntities {
     pub tiles: HashMap<Coordinates, Entity>,
 }
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum HoveringState {
     // Used to track the hovering_state of the mouse hovering over a tile
     Erasing,
@@ -127,18 +129,23 @@ pub struct BoardDimensions {
 #[derive(Bundle)]
 pub struct BoardBundle {
     pub board: Board,
-    pub transform: Transform, // This component is required until https://github.com/bevyengine/bevy/pull/2331 is merged
-    pub global_transform: GlobalTransform,
     pub tile_map: BoardTileMap,
     pub entities: BoardEntities,
     pub hoverable: BoardHoverable,
     pub options: BoardDimensions,
     // Flattened SpriteBundle #[bundle] : SO NICE!!
+    pub transform: Transform, // This component is required until https://github.com/bevyengine/bevy/pull/2331 is merged
+    pub global_transform: GlobalTransform,
     pub sprite: Sprite,
     pub texture: Handle<Image>,
     pub visibility: Visibility, // User indication of whether an entity is visible
     pub computed_visibility: ComputedVisibility,
 }
+
+/////////////////////////////////////////////////////////////////////////////////////
+// EVENTS
+/////////////////////////////////////////////////////////////////////////////////////
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -165,7 +172,8 @@ pub fn create_board(
     levels: Res<PuzzlesData>,
 ) {
     // Get the puzzle data with name "Boomerang":
-    let map = levels.puzzles.iter().find(|p| p.name == "Boomerang").unwrap().parsed_map.clone();    
+    let map_name = "Boomerang";
+    let map = levels.puzzles.iter().find(|p| p.name == map_name).unwrap().parsed_map.clone();    
     // Split map on '\n':
     let map: Vec<String> = map.split('\n').map(|s| s.to_string()).collect();
     let tile_map: Vec<Vec<Tile>> = parse_map(map);
@@ -207,6 +215,8 @@ pub fn create_board(
         // global_transform: GlobalTransform::default(),
         tile_map: BoardTileMap {
             map: tile_map.clone(),
+            map_name: map_name.to_string(),
+            solved_map: None
         },
         entities: BoardEntities {
             tiles: HashMap::new(),
