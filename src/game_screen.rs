@@ -113,7 +113,9 @@ impl Plugin for MenuMainGame {
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_nextlevel_button))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(scrollbar_input_handler))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(scrollbar_dragging_handler))
-            .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_menu));
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(add_borders))
+            .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_menu))
+            ;
     }
 }
 
@@ -356,6 +358,33 @@ fn click_run_button(
                     };
                 }
                 _ => {}
+            }
+        }
+    }
+}
+
+
+// Listen to CHANGES in the GameScreenState:
+fn add_borders(
+    mut commands: Commands,
+    // use Option, not to panic if the resource doesn't exist yet
+    gmaescreenstate: Option<Res<GameScreenState>>,
+    // Query borders:
+    elems: Query<Entity, With<BorderElem>>,
+) {
+    if let Some(gmaescreenstate) = gmaescreenstate {
+        if gmaescreenstate.is_changed() {
+            println!("TRIGGEREDDDDDDD, {:?}", gmaescreenstate.name);
+            // Despawn all the borders:
+            for elem in elems.iter() {
+                if let Some(id) = commands.get_entity(elem) { id.despawn_recursive();}
+            }
+            // Make new ones:
+            if gmaescreenstate.state.crashed {
+                make_border(&mut commands,  Color::rgb(130./255., 9./255., 0.));
+            }
+            else if gmaescreenstate.state.won {
+                make_border(&mut commands,  Color::rgb(0., 130./255., 0.));
             }
         }
     }

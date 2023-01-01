@@ -170,7 +170,7 @@ pub fn handle_border(
         match event {
             BorderEvent::Spawn => {
                 // Spawn the border:
-                make_border(&mut commands);
+                make_border(&mut commands,  Color::rgb(1.0, 1.0, 0.0));
             }
             BorderEvent::Despawn => {
                 // Despawn the border:
@@ -296,8 +296,9 @@ pub fn make_button(
 
 
 
-fn make_border(
+pub fn make_border(
     commands: &mut Commands,
+    color: Color
 ) {
     // Draw a UiImage that has only a border, no fill. The border is yellow. It should be AS BIG AS THE SCREEN.
     // Do it by creating 4 different narrow rectangles, at each side of the screen:
@@ -316,7 +317,7 @@ fn make_border(
                 ..default()
             },
             // yellow color:
-            background_color: Color::rgb(1.0, 1.0, 0.0).into(),
+            background_color: color.into(),
             ..default()
         }).insert(BorderElem);
     // Right rectangle:
@@ -334,7 +335,7 @@ fn make_border(
                 ..default()
             },
             // yellow color:
-            background_color: Color::rgb(1.0, 1.0, 0.0).into(),
+            background_color: color.into(),
             ..default()
         }).insert(BorderElem);
     // Top rectangle:
@@ -352,7 +353,7 @@ fn make_border(
                 ..default()
             },
             // yellow color:
-            background_color: Color::rgb(1.0, 1.0, 0.0).into(),
+            background_color: color.into(),
             ..default()
         }).insert(BorderElem);
     // Bottom rectangle:
@@ -370,7 +371,7 @@ fn make_border(
                 ..default()
             },
             // yellow color:
-            background_color: Color::rgb(1.0, 1.0, 0.0).into(),
+            background_color:color.into(),
             ..default()
         }).insert(BorderElem);
 }

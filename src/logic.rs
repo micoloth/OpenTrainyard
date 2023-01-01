@@ -378,10 +378,10 @@ pub fn logic_tick_event(
             }
 
             // If there is a crash or a completion, set the state:
-            if crashed {
+            if crashed && !game_playing_state.state.crashed {  // This is bc res mut trigger is fired always
                 game_playing_state.state.crashed = true;
             }
-            if completed {
+            if completed && !game_playing_state.state.won {  // This is bc res mut trigger is fired always
                 game_playing_state.state.won = true;
             }
         }
