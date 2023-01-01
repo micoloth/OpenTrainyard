@@ -26,7 +26,7 @@ use crate::menu_utils::ScrollBarLimits;
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-#[derive(Debug)]
+#[derive(Debug, Resource)]
 pub struct TicksInATick {
     pub ticks: u32,
     pub current_tick: u32,

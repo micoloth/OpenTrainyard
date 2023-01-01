@@ -44,6 +44,7 @@ impl Default for BoardPosition {
 }
 
 // #[derive(Debug, Resource, Serialize, Deserialize)]
+#[derive(Resource)]
 pub struct BoardOptionsDefault {
     // We use serde to allow saving option presets and loading them at runtime
     pub map_size: (u16, u16),    // Tile map size
@@ -214,7 +215,7 @@ pub fn create_board(
             // println!("board_dimensions.position: {:?}", board_dimensions.position);
 
             // We add the main resource of the game, the board
-            commands.spawn_bundle(BoardBundle {
+            commands.spawn(BoardBundle {
                 board: Board,
                 transform: Transform::from_translation(board_dimensions.position), // This component is required until
                 // global_transform: GlobalTransform::default(),

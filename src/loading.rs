@@ -16,7 +16,7 @@ impl Plugin for LoadingPlugin {
         app.add_loading_state(
             LoadingState::new(GameState::Loading)
                 .with_collection::<FontAssets>()
-                .with_collection::<AudioAssets>()
+                // .with_collection::<AudioAssets>()
                 .with_collection::<TrainAssets>()
                 .with_collection::<TileAssets>()
                 .continue_to_state(GameState::MenuTitle),
@@ -28,20 +28,20 @@ impl Plugin for LoadingPlugin {
 // the following asset collections will be loaded during the State `GameState::Loading`
 // when done loading, they will be inserted as resources (see https://github.com/NiklasEi/bevy_asset_loader)
 
-#[derive(AssetCollection)]
+#[derive(AssetCollection, Resource)]
 pub struct FontAssets {
     #[asset(path = "fonts/FiraSans-Bold.ttf")]
     pub fira_sans: Handle<Font>,
 }
 
-#[derive(AssetCollection)]
-pub struct AudioAssets {
-    #[asset(path = "audio/flying.ogg")]
-    pub flying: Handle<AudioSource>,
-}
+// #[derive(AssetCollection)]
+// pub struct AudioAssets {
+//     #[asset(path = "audio/flying.ogg")]
+//     pub flying: Handle<AudioSource>,
+// }
 
 // Assets for the trains. Must be used as a resource.
-#[derive(Debug, Clone, Default, AssetCollection)]
+#[derive(Debug, Clone, Default, AssetCollection, Resource)]
 pub struct TrainAssets {
     #[asset(path = "samples/s_elem_1_blue.png")] pub train_blue: Handle<Image>,
     #[asset(path = "samples/s_elem_1_red.png")] pub train_red: Handle<Image>,
@@ -54,7 +54,7 @@ pub struct TrainAssets {
 
 
 
-#[derive(AssetCollection)]
+#[derive(AssetCollection, Resource)]
 pub struct TileAssets {
     #[asset(path = "samples/s_elem_1_blue.png")] pub s_elem_1_blue: Handle<Image>,
     #[asset(path = "samples/s_base.png")] pub s_base: Handle<Image>,

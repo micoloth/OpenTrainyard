@@ -13,7 +13,7 @@ impl Plugin for ActionsPlugin {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct Actions {
     pub player_movement: Option<Vec2>,
 }
@@ -36,6 +36,7 @@ impl Plugin for InternalAudioPlugin {
     }
 }
 
+#[derive(Default, Resource)]
 struct FlyingAudio(Handle<AudioInstance>);
 
 fn start_audio(mut commands: Commands, audio_assets: Res<AudioAssets>, audio: Res<Audio>) {

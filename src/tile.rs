@@ -157,7 +157,7 @@ fn add_color_minitiles_children(
                 );
                 // let child_asset = assets.get(&minitile).unwrap();
                 let child_asset = get_asset(minitile, assets);
-                child_cmd.spawn_bundle(SpriteBundle {
+                child_cmd.spawn(SpriteBundle {
                     // sprite: Sprite {
                     //     custom_size: Some(Vec2::splat(small_tile_size as f32)),
                     //     ..default()
@@ -349,7 +349,7 @@ fn add_arrow_minitile_children(
     // Translate t to the right position:
     t.translation.x = pos_x;
     t.translation.y = pos_y;
-    child_cmd.spawn_bundle(SpriteBundle {
+    child_cmd.spawn(SpriteBundle {
         transform: t,
         texture: arrow,
         ..default()
@@ -390,7 +390,7 @@ fn add_funnels_minitile_children(
     // Translate t to the right position:
     t.translation.x = pos_x;
     t.translation.y = pos_y;
-    child_cmd.spawn_bundle(SpriteBundle {
+    child_cmd.spawn(SpriteBundle {
         transform: t,
         texture: funnel,
         ..default()
@@ -407,7 +407,7 @@ fn make_tile(
     // Translate the tile to the right position:
     let (transl_x, transl_y) = ((coordinates.x as f32 * big_tile_size) + (big_tile_size / 2.), ((6 - coordinates.y) as f32 * big_tile_size) + (big_tile_size / 2.));
     let (texture, transform) = get_transform_and_texture(t, assets);
-    let mut child = commands.spawn_bundle(TileSpriteBundle {
+    let mut child = commands.spawn(TileSpriteBundle {
         coordinates, // Tile coordinates
         texture: texture,
         transform: transform.with_translation(Vec3::new(transl_x, transl_y, 2.)),
@@ -432,7 +432,7 @@ fn make_tile(
         child.with_children(|parent| {
             let size = ((40 - 6) as f32) / 46. * big_tile_size;
             let inner = get_asset(format!("p_{}.png", colorz_to_long_str(c)), assets);
-            parent.spawn_bundle(SpriteBundle {
+            parent.spawn(SpriteBundle {
                 texture: inner,
                 transform: Transform::from_xyz(0., 0., 4.),
                 ..default()

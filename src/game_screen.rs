@@ -37,7 +37,7 @@ impl Default for  GamePlayingState {
     }
 }
 
-#[derive(Debug, Component, Default)]
+#[derive(Debug, Component, Default, Resource)]
 pub struct GameScreenState {
     pub state: GamePlayingState,
     pub name: String,
@@ -216,7 +216,7 @@ fn init_gmae(
 
 fn click_nextlevel_button(
     mut commands: Commands,
-    mut interaction_query: Query<(&Interaction, &mut UiColor), (Changed<Interaction>, With<Button>, With<NextLevelButton>)>,
+    mut interaction_query: Query<(&Interaction, &mut BackgroundColor), (Changed<Interaction>, With<Button>, With<NextLevelButton>)>,
     mut game_screen_state: ResMut<GameScreenState>,
     // BoardEvent event writer:
     mut board_event_writer: EventWriter<BoardEvent>,
@@ -275,7 +275,7 @@ fn click_nextlevel_button(
 fn click_erase_button(
     mut commands: Commands,
     mut interaction_query: Query<
-        (&Interaction, &mut UiColor),
+        (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<EraseStateButton>),
         >,
     mut board_q: Query<(Entity, &mut BoardHoverable), With<Board>>,
@@ -307,7 +307,7 @@ fn click_erase_button(
 fn click_undo_button(
     mut commands: Commands,
     mut interaction_query: Query<
-        (&Interaction, &mut UiColor),
+        (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<UndoButton>),
         >,
     mut board_q: Query<(Entity, &mut BoardHoverable), With<Board>>,
@@ -335,7 +335,7 @@ fn click_undo_button(
 fn click_run_button(
     mut commands: Commands,
     mut interaction_query: Query<
-        (Entity, &Interaction, &mut UiColor),
+        (Entity, &Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<RunButton>),
         >,
     font_assets: Res<FontAssets>,

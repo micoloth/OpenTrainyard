@@ -1,4 +1,6 @@
 
+use bevy::prelude::*;
+
 #[derive(Debug, Clone)]
 pub struct PuzzleData {
     // pub local_filename_map: String, 
@@ -13,6 +15,7 @@ pub struct PuzzleData {
 }
 
 // struc that handles a vec of puzzles:
+#[derive(Resource)]
 pub struct PuzzlesData {
     pub puzzles: Vec<PuzzleData>,
 }

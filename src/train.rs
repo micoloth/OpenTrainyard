@@ -127,7 +127,7 @@ fn get_train_transform(t:Train, board: &BoardDimensions, tick_rateo: f32) -> Tra
 
 
 pub fn make_train(train: Train, commands: &mut Commands, train_assets: &TrainAssets, board_dimensions: &BoardDimensions, tick_rateo: f32) -> Entity {
-    let child = commands.spawn_bundle(TrainBundle {
+    let child = commands.spawn(TrainBundle {
         train: train,
         texture: get_train_image(train_assets, train.c),
         transform: get_train_transform(train, board_dimensions, tick_rateo),
