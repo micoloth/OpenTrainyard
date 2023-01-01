@@ -48,8 +48,8 @@ pub fn spawn_tile(
     mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities, &mut BoardTileMap), With<Board>>,
     mut evt: EventReader<TileSpawnEvent>,
 ) {
-    for trigger_event in evt.iter() {
-        for (board_id, board_dimensions, mut board_entities, mut board_tilemap) in board_q.iter_mut() {
+    for (board_id, board_dimensions, mut board_entities, mut board_tilemap) in board_q.iter_mut() {
+        for trigger_event in evt.iter() {
             let mut board_entity = commands.entity(board_id);  // Get entity by id:
             let size = board_dimensions.tile_size;
             let coordinates = Coordinates { x: trigger_event.x as u16, y: trigger_event.y as u16,};
@@ -332,7 +332,7 @@ fn add_arrow_minitile_children(
     let mut t = Transform::from_xyz(0., 0., 0.);
     if dir == Side::R_ {
         t = flipmatrix_horizontal(t);
-        pos_x = -(23. - 6. - 6. / 2.); // * scale;
+        pos_x = (23. - 6. / 2.); // * scale;
         pos_y = 0.;
     } else if dir == Side::T_ {
         t = rotate_tile(t, std::f32::consts::PI / 2.);
@@ -343,7 +343,7 @@ fn add_arrow_minitile_children(
         pos_x = 0.;
         pos_y = (23. - 46. + 6. / 2.); // * scale;
     } else {
-        pos_x = -(23. - 46. + 6. - 6. / 2.); // * scale;
+        pos_x = -(23. - 6. / 2.); // * scale;
         pos_y = 0.;
     }
     // Translate t to the right position:
@@ -372,11 +372,11 @@ fn add_funnels_minitile_children(
     let pos_x: f32;
     let pos_y: f32;
     if r_ {
-        pos_x = -(23. - 8. - 8. / 2.); // * scale;
+        pos_x = (23. - 8. / 2.); // * scale;
         pos_y = 0.;
     } else if l_ {
         t = flipmatrix_horizontal(t);
-        pos_x = -(23. - 8. - 8. / 2.); // * scale;
+        pos_x = -(23. - 8. / 2.); // * scale;
         pos_y = 0.;
     } else if t_ {
         t = rotate_tile(t, std::f32::consts::PI / 2.);

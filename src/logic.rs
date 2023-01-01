@@ -12,6 +12,8 @@ use bevy::utils::Instant;
 use crate::utils::Coordinates;
 use crate::board::*;
 
+use crate::game_screen::GameScreenState;
+
 use crate::tile::TileSpawnEvent;
 use crate::train::make_train;
 
@@ -24,9 +26,9 @@ use crate::menu_utils::ScrollBarLimits;
 /////////////////////////////////////////////////////////////////////////////////////
 
 
+#[derive(Debug)]
 pub struct TicksInATick {
     pub ticks: u32,
-    pub is_in_game: bool,
     pub current_tick: u32,
     pub first_half: bool,
     pub locked_waiting_for_tick_event: bool,
@@ -34,7 +36,6 @@ pub struct TicksInATick {
 pub fn get_ticks_in_a_tick_default() -> TicksInATick {
     TicksInATick {
         ticks: 100,
-        is_in_game: false,
         current_tick: 0,
         first_half: true,
         locked_waiting_for_tick_event: false,
@@ -155,7 +156,6 @@ pub fn tile_hover_event(
                                 let old_tile = board_tile_map.map[p_central.y as usize][p_central.x as usize];
                                 let new_tile = get_new_tile_from_track_option(board_tile_map.map[p_central.y as usize][p_central.x as usize], track_option);
                                 // Print it: 
-                                println!("CURRENTLY click at {:?}, old tile: {:?} ({:?}), new tile: {:?} ({:?})", pos, old_tile, print_tile(&old_tile), new_tile, print_tile(&new_tile));
                                 if new_tile != old_tile {
                                     board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
                                     let event = TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile, prev_tile: Some(old_tile)};
@@ -165,7 +165,6 @@ pub fn tile_hover_event(
                             }
                             else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos); }
                             else if hoverable.hovered_pos_2.is_none() && hoverable.hovered_pos_1.unwrap() != pos {hoverable.hovered_pos_2 = Some(pos); }
-                            // // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, board_tile_map.map[pos.y as usize][pos.x as usize]);
                         },
                         HoveringState::Erasing => {
                             let p_new = pos;
@@ -239,16 +238,15 @@ pub fn double_click_event(
     mut event_reader: EventReader<DoubleClickEvent>,
     mut spawn_event: EventWriter<TileSpawnEvent>
 ) {
-    for ev in event_reader.iter() {
-        let window = windows.get_primary().expect("no primary window");
-        let window_size = Vec2::new(window.width(), window.height());
-        let pos = ev.pos - window_size / 2.;
-        for (board_dimensions, board_tile_map, mut board_hoverable) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+    for (board_dimensions, board_tile_map, mut board_hoverable) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+        for ev in event_reader.iter() {
+            let window = windows.get_primary().expect("no primary window");
+            let window_size = Vec2::new(window.width(), window.height());
+            let pos = ev.pos - window_size / 2.;
             if board_hoverable.hovering_state != HoveringState::Drawing {continue;}
             let pos = hovered_tile(board_dimensions, pos);
             // println!("  >>CLICKED {:?}", pos);
             let pos = match pos { None => break, Some(b) => b, };
-            // // println!("CURRENTLY click at {:?}, old tile: {:?}", pos, board_tile_map.map[pos.y as usize][pos.x as usize]);
             let tile = board_tile_map.map[pos.y as usize][pos.x as usize];
             // println!("  >>Old tile: {:?}", tile);
             let newtile = get_new_tile_from_flipping(tile);
@@ -270,12 +268,15 @@ pub fn listen_to_game_run_events(
     mut trains_q: Query<(Entity, &Train)>,
     mut tick_status: ResMut<TicksInATick>,
     mut evt: EventReader<RunEvent>,
-    mut spawn_event: EventWriter<TileSpawnEvent>
+    mut spawn_event: EventWriter<TileSpawnEvent>,
+    //  LogicTickEvent Writer:
+    mut logic_tick_event_reader: EventWriter<LogicTickEvent>,
+
 ) {
-    for trigger_event in evt.iter() {
-        match trigger_event {
-            RunEvent::Start => {
-                for (board_id, board_dimensions, mut board_tilemap, mut board_hoverable) in board_q.iter_mut() {
+    for (board_id, board_dimensions, mut board_tilemap, mut board_hoverable) in board_q.iter_mut() {
+        for trigger_event in evt.iter() {
+            match trigger_event {
+                RunEvent::Start => {
                     // If hoversble state is already Running, continue:
                     if let HoveringState::Running = board_hoverable.hovering_state {continue;}
                     // Despawn all trains sprites: (ACTUALLY THERE SHOULD BE NONE)
@@ -284,13 +285,16 @@ pub fn listen_to_game_run_events(
                     }
                     // Set solved_tilemap  to a clone of the current tilemap:
                     board_tilemap.solved_map = Some(board_tilemap.map.clone());
+                    // Set tick state to 0:
+                    tick_status.current_tick = 0;
+                    tick_status.first_half = true;
+                    tick_status.locked_waiting_for_tick_event = true;
+                    // Go on and fire a LogicTickEvent immediatly:
+                    logic_tick_event_reader.send(LogicTickEvent::TickBegin);
                     // Set the board to Running:
                     board_hoverable.hovering_state = HoveringState::Running;
-
-                }
-            },
-            RunEvent::Stop => {
-                for (board_id, board_dimensions, mut board_tilemap, mut board_hoverable) in board_q.iter_mut() {
+                },
+                RunEvent::Stop => {
                     // If hoversble state is already Erasing OR Drawing, continue:
                     if let HoveringState::Erasing = board_hoverable.hovering_state {continue;}
                     if let HoveringState::Drawing = board_hoverable.hovering_state {continue;}
@@ -309,10 +313,10 @@ pub fn listen_to_game_run_events(
                             }
                         }
                     }
-                    // Set the board to Erasing:
+                    // Set the board to Drawing:
                     board_hoverable.hovering_state = HoveringState::Drawing;
-                }
-            },
+                },
+            }
         }
     }
 }
@@ -331,10 +335,12 @@ pub fn logic_tick_event(
     trains_q: Query<(Entity, &Train)>,
     mut tick_status: ResMut<TicksInATick>,
     mut evt: EventReader<LogicTickEvent>,
-    mut spawn_event: EventWriter<TileSpawnEvent>
+    mut spawn_event: EventWriter<TileSpawnEvent>,
+    //GameScreenState resource:
+    mut game_playing_state: ResMut<GameScreenState>,
 ) {
-for trigger_event in evt.iter() {
     for (board_id, board_dimensions, board_tilemap) in board_q.iter_mut() {
+        for trigger_event in evt.iter() {
         // if board is not None:
         
         // Despawn all trains sprites and save the train in current_trains: 
@@ -352,7 +358,7 @@ for trigger_event in evt.iter() {
         let mut new_trains: Vec<Train>;
         (new_tilemap, new_trains) = (board_tilemap.map.clone(), current_trains);
 
-        if *trigger_event == LogicTickEvent::TickEnd {
+        if *trigger_event == LogicTickEvent::TickEnd  || *trigger_event == LogicTickEvent::TickBegin {
             (new_tilemap, new_trains) = go_to_towards_side(new_trains, new_tilemap);
             (new_tilemap, new_trains) = add_beginnings(new_trains, new_tilemap);
             (new_tilemap, new_trains) = flip_exchanges(new_trains, new_tilemap);
@@ -369,6 +375,14 @@ for trigger_event in evt.iter() {
                         spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile, prev_tile: Some(board_tilemap.map[y][x]) });
                     }
                 }
+            }
+
+            // If there is a crash or a completion, set the state:
+            if crashed {
+                game_playing_state.state.crashed = true;
+            }
+            if completed {
+                game_playing_state.state.won = true;
             }
         }
         else if *trigger_event == LogicTickEvent::TickMiddle {

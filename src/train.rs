@@ -50,9 +50,8 @@ pub fn move_trains(
     mut tick_status: ResMut<TicksInATick>,
     mut logic_tick_event: EventWriter<LogicTickEvent>) {
         
-        
-    if tick_status.locked_waiting_for_tick_event || !tick_status.is_in_game {return;}
     for (board_dimensions, board_hoverable) in board_q.iter() {    // Really, there's just 1 board
+        if tick_status.locked_waiting_for_tick_event {return;}
         if board_hoverable.hovering_state != HoveringState::Running {return;}
         for (train, mut transform) in trains_q.iter_mut() {
             // If board_hoverable.hovering_state is NOT running, return:
