@@ -1,6 +1,7 @@
 use crate::loading::FontAssets;
 use crate::GameState;
 use bevy::prelude::*;
+use bevy::reflect::NamedField;
 
 use crate::menu_utils::*;
 
@@ -160,13 +161,13 @@ fn setup_game_menu(
 ) {
     let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
 
-    let erase_id = make_button("Erase".to_string(), &mut commands, &font_assets, &button_colors, left, right, top - heigh - margin, bottom - heigh - margin);
+    let erase_id = make_button("Erase".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right, top - heigh - margin, bottom - heigh - margin);
     commands.entity(erase_id).insert(EraseStateButton).insert(MainGameBotton);
 
-    let undo_id = make_button("Undo".to_string(), &mut commands, &font_assets, &button_colors, left, right , top, bottom);
+    let undo_id = make_button("Undo".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right , top, bottom);
     commands.entity(undo_id).insert(UndoButton).insert(MainGameBotton);
 
-    let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, width * percent_left_right + margin/2., width - margin , top, bottom);
+    let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom);
     commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
 
     let scrollbar_id = make_scrollbar(&mut commands, &textures, 
@@ -177,7 +178,7 @@ fn setup_game_menu(
 
     // Next level:
     let (left_, right_, bottom_, top_) = get_upper_coordinates(&windows);
-    let next_level_id = make_button("Next level".to_string(), &mut commands, &font_assets, &button_colors, left_, right_, top_, bottom_);
+    let next_level_id = make_button("Next level".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_);
     commands.entity(next_level_id).insert(MainGameBotton).insert(NextLevelButton);
 
 }
@@ -185,33 +186,32 @@ fn setup_game_menu(
 fn cleanup_menu(mut commands: Commands, buttons: Query<Entity, (With<Button>, With<MainGameBotton>)>) {
     // For button in query:
     for button in buttons.iter() { // It's never more than 1, but can very well be 0
-        commands.entity(button).despawn_recursive();
+        if let Some(id) = commands.get_entity(button) { id.despawn_recursive();};
     }
 }
 
 
 
+
 fn init_gmae(
     mut commands: Commands,
-    //Resource GameScreenState:
     mut game_screen_state: ResMut<GameScreenState>,
     // BoardEvent event writer:
     mut board_event_writer: EventWriter<BoardEvent>,
     // Query existing boards:
     board_q: Query<Entity, With<Board>>,
     levels: Res<PuzzlesData>,
+    mut border_event_writer: EventWriter<BorderEvent>,
+    // Query all elems with the LevelNameElem component:
+    level_name_query: Query<Entity, With<LevelNameElem>>,
+    // Windows:
+    windows: Res<Windows>,
+    // Fonts:
+    font_assets: Res<FontAssets>,
+    // Button colors:
+    button_colors: Res<ButtonColors>,
 ) {
-    // Delete board:
-    for board_id in board_q.iter() {
-        commands.entity(board_id).despawn_recursive();
-    }
-    let name = "Boomerang".to_string();
-    // Set the name of the game:
-    game_screen_state.name = name.clone();
-    // Send the event to create the board:
-    board_event_writer.send(BoardEvent::Make(name));
-    // Print the game name:
-    println!("LAUNCHED: {}", game_screen_state.name);
+    change_level("Boomerang".to_string(), &mut game_screen_state, &levels, &board_q, &mut commands, &mut border_event_writer, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
 }
 
 fn click_nextlevel_button(
@@ -236,38 +236,16 @@ fn click_nextlevel_button(
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                // if get_next_puzzle(game_screen_state.name, &levels) is a PuzzleData(name):
                 if let Some(next_puzzle) = get_next_puzzle(game_screen_state.name.clone(), &levels) {
-                    // Delete board:
-                    for board_id in board_q.iter() {
-                        commands.entity(board_id).despawn_recursive();
-                    }
-                    // Despawn the border:
-                    border_event_writer.send(BorderEvent::Despawn);
-                    // Set the name of the game:
-                    game_screen_state.name = next_puzzle.name;
-                    // Send the event to create the board:
-                    board_event_writer.send(BoardEvent::Make(game_screen_state.name.clone()));
-                    // Print the game name:
-                    println!("LAUNCHED: {}", game_screen_state.name.clone());
-                    // Despawn the level name:
-                    // for level_name_id in level_name_query.iter() {
-                        // if let Some(level_name_ec) = commands.get_entity(level_name_id) {
-                        //     level_name_ec.despawn_recursive();
-                        // }
-                    // }
-                    // Spawn the level name BUTTON:
-                    let (left_, right_, bottom_, top_) = get_upper_coordinates(&windows);
-                    let width = 50. / 2.;
-                    let next_level_id = make_button(game_screen_state.name.clone(), &mut commands, &font_assets, &button_colors, left_ - 20., right_ -20., top_, bottom_);
-                    commands.entity(next_level_id).insert(MainGameBotton).insert(NextLevelButton);
-                
+                    change_level(next_puzzle.name, &mut game_screen_state, &levels, &board_q, &mut commands, &mut border_event_writer, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
+
                 }
             }
             _ => {}
         }
     }
 }
+
 
 
 
@@ -357,10 +335,10 @@ fn click_run_button(
                             border_event_writer.send(BorderEvent::Despawn);
                             
                             // Despawn the button:
-                            commands.entity(entity).despawn_recursive();
+                            if let Some(id) = commands.get_entity(entity) { id.despawn_recursive();}
                             // Rebuild:
                             let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                            let run_id = make_button("Stop".to_string(), &mut commands, &font_assets, &button_colors, width * percent_left_right + margin/2., width - margin , top, bottom);
+                            let run_id = make_button("Stop".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom);
                             commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
                         
                         },
@@ -371,7 +349,7 @@ fn click_run_button(
                             commands.entity(entity).despawn_recursive();
                             // Rebuild:
                             let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                            let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, width * percent_left_right + margin/2., width - margin , top, bottom);
+                            let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom);
                             commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
                                                     
                         },
@@ -388,6 +366,45 @@ fn click_run_button(
 /////////////////////////////////////////////////////////////////////////////////////
 // HELPER FUNCTIONS
 /////////////////////////////////////////////////////////////////////////////////////
+
+
+fn change_level(
+        level_name: String, 
+        game_screen_state: &mut GameScreenState, 
+        levels: &PuzzlesData, 
+        board_q: &Query<Entity, With<Board>>, 
+        commands: &mut Commands, 
+        border_event_writer: &mut EventWriter<BorderEvent>, 
+        board_event_writer: &mut EventWriter<BoardEvent>, 
+        level_name_query: &Query<Entity,  With<LevelNameElem>>, 
+        windows: &Windows, 
+        font_assets: &FontAssets, 
+        button_colors: &ButtonColors) {
+    // Delete board:
+    for board_id in board_q.iter() {
+        if let Some(id) = commands.get_entity(board_id) { id.despawn_recursive();}
+    }
+    // Despawn the border:
+    border_event_writer.send(BorderEvent::Despawn);
+    // Set the name of the game:
+    game_screen_state.name = level_name;
+    // Send the event to create the board:
+    board_event_writer.send(BoardEvent::Make(game_screen_state.name.clone()));
+    // Print the game name:
+    println!("LAUNCHED: {}", game_screen_state.name.clone());
+    let map = levels.puzzles.iter().find(|p| p.name == *game_screen_state.name.clone()).unwrap().parsed_map.clone();    
+    println!(">> map:: {}", map);
+    // Despawn the level name:
+    for level_name_id in level_name_query.iter() {
+        if let Some(level_name_ec) = commands.get_entity(level_name_id) {level_name_ec.despawn_recursive();}
+    }
+    // Spawn the level name BUTTON:
+    let (left_, right_, bottom_, top_) = get_upper_coordinates(windows);
+    let width = 50. / 2.;
+    let name_id = make_button(game_screen_state.name.clone(), commands, font_assets, button_colors, 20., left_ - 110., right_ -110., top_, bottom_);
+    commands.entity(name_id).insert(MainGameBotton).insert(LevelNameElem);
+
+}
 
 
 fn get_coordinates(windows: &Windows) -> (f32, f32, f32, f32, f32, f32, f32, f32) {
@@ -419,3 +436,5 @@ fn get_upper_coordinates(windows: &Windows) -> (f32, f32, f32, f32) {
     let bottom = margin - heigh;
     return (left, right, bottom, top);
 }
+
+

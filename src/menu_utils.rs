@@ -175,7 +175,7 @@ pub fn handle_border(
             BorderEvent::Despawn => {
                 // Despawn the border:
                 for elem in elems.iter() {
-                    commands.entity(elem).despawn_recursive();
+                    if let Some(id) = commands.get_entity(elem) { id.despawn_recursive();}
                 }
             }
         }
@@ -250,6 +250,7 @@ pub fn make_button(
         mut commands: &mut Commands,
         font_assets: &FontAssets,
         button_colors: &ButtonColors,
+        font_size: f32, 
         pleft: f32,
         pright: f32,
         ptop: f32,
@@ -280,7 +281,7 @@ pub fn make_button(
                         value: text,
                         style: TextStyle {
                             font: font_assets.fira_sans.clone(),
-                            font_size: 40.0,
+                            font_size: font_size,
                             color: Color::rgb(0.9, 0.9, 0.9),
                         },
                     }],

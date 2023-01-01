@@ -281,7 +281,7 @@ pub fn listen_to_game_run_events(
                     if let HoveringState::Running = board_hoverable.hovering_state {continue;}
                     // Despawn all trains sprites: (ACTUALLY THERE SHOULD BE NONE)
                     for (train_id, _) in trains_q.iter_mut() {
-                        commands.entity(train_id).despawn_recursive();
+                        if let Some(id) = commands.get_entity(train_id) { id.despawn_recursive();}
                     }
                     // Set solved_tilemap  to a clone of the current tilemap:
                     board_tilemap.solved_map = Some(board_tilemap.map.clone());
@@ -301,7 +301,7 @@ pub fn listen_to_game_run_events(
 
                     // Despawn all trains sprites: 
                     for (train_id, _) in trains_q.iter_mut() {
-                        commands.entity(train_id).despawn_recursive();
+                        if let Some(id) = commands.get_entity(train_id) { id.despawn_recursive();}
                     }
                     // RESET the board to Solved_map if it exists:
                     if let Some(solved_map) = board_tilemap.solved_map.clone() {

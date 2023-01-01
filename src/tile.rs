@@ -241,7 +241,7 @@ fn get_transform_and_texture(
                 "53" => ("tb_over_br.png".to_string(), rotate_tile_90(transform, 1)), // get_tile_track_lr5_over_tr3()
                 "36" => (
                     "tr_over_tl.png".to_string(),
-                    flipmatrix_vertical(rotate_tile_90(transform, -1)),
+                    flipmatrix_vertical(rotate_tile_90(transform, 1)),
                 ), // get_tile_track_tr3_over_br6()
                 "63" => ("tr_over_tl.png".to_string(), rotate_tile_90(transform, -1)), // get_tile_track_br6_over_tr3()
                 "45" => ("br_over_tb.png".to_string(), rotate_tile_90(transform, -1)), // get_tile_track_lb4_over_lr5()
@@ -329,9 +329,8 @@ fn add_arrow_minitile_children(
     let arrow = get_asset("s_arrow_elem_rigth.png".to_string(), assets);
     let pos_x: f32;
     let pos_y: f32;
-    let mut t = Transform::from_xyz(0., 0., 0.);
+    let mut t = Transform::from_xyz(0., 0., 0.5);
     if dir == Side::R_ {
-        t = flipmatrix_horizontal(t);
         pos_x = (23. - 6. / 2.); // * scale;
         pos_y = 0.;
     } else if dir == Side::T_ {
@@ -343,6 +342,7 @@ fn add_arrow_minitile_children(
         pos_x = 0.;
         pos_y = (23. - 46. + 6. / 2.); // * scale;
     } else {
+        t = flipmatrix_horizontal(t);
         pos_x = -(23. - 6. / 2.); // * scale;
         pos_y = 0.;
     }
