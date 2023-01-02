@@ -66,8 +66,7 @@ fn setup_menu(
     let top = height / 2. - rect_height / 2. + offset_y;
     let bottom = height / 2. - rect_height * 1.5 + offset_y;
 
-    let startbutton_id = make_button("Play".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right, top, bottom);
-    commands.entity(startbutton_id).insert(StartGameBotton);
+    let startbutton_id = make_button("Play".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right, top, bottom, StartGameBotton, Option::<StartGameBotton>::None);
     // make_scrollbar(&mut commands, &textures, 50., 250., 50., 25.);
 }
 
@@ -95,7 +94,7 @@ fn click_play_button(
 fn cleanup_menu(mut commands: Commands, buttons: Query<Entity, With<Button>>) {
     // For button in query:
     for button in buttons.iter() { // It's never more than 1, but can very well be 0
-        commands.entity(button).despawn_recursive();
+        if let Some(id) = commands.get_entity(button) {id.despawn_recursive();}
     }
 }
 
