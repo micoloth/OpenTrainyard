@@ -329,6 +329,7 @@ pub fn logic_tick_event(
     //GameScreenState resource:
 ) {
     for (board_id, board_dimensions, board_tilemap, mut hovering_state) in board_q.iter_mut() {
+        if let None = commands.get_entity(board_id) {continue;}
         for trigger_event in evt.iter() {
         // if board is not None:
         
@@ -338,7 +339,7 @@ pub fn logic_tick_event(
             let mut board_entity = commands.entity(board_id);  // Get entity by id:
             current_trains.push(*train);
             board_entity.remove_children(&[train_entity]);
-            commands.entity(train_entity).despawn_recursive();
+            if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
         }
 
         let crashed;

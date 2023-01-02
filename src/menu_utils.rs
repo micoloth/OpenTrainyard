@@ -1,6 +1,7 @@
 
 use crate::loading::FontAssets;
 
+use bevy::ecs::system::EntityCommands;
 use bevy::ui::widget::ImageMode;
 use bevy::ui::FocusPolicy;
 use bevy::prelude::*;
@@ -168,6 +169,7 @@ pub fn make_scrollbar(
     pright: f32,
     ptop: f32,
     pbottom: f32,
+    type_: impl Bundle
 )-> Entity {
     // let arrow = assets.s_arrow_elem_rigth.clone();
     let back = commands.spawn(
@@ -187,7 +189,7 @@ pub fn make_scrollbar(
             },
             background_color: Color::rgb(1.0, 1.0, 1.0).into(),
             ..default()
-        }).id();
+        }).insert(type_).id();
     // get the fraction from (scroll_bar_limits.current - min) / (scroll_bar_limits.max- min)
     // and apply it to ScrollBarPosition{ max_x: pright, min_x: pleft} to get the current_x:
     let fraction = (scroll_bar_limits.current - scroll_bar_limits.min) / (scroll_bar_limits.max - scroll_bar_limits.min);
@@ -218,8 +220,8 @@ pub fn make_scrollbar(
 
 
 pub fn make_button(
-        text: String,
-        mut commands: &mut Commands,
+    text: String,
+    mut commands: &mut Commands,
         font_assets: &FontAssets,
         button_colors: &ButtonColors,
         font_size: f32, 
@@ -227,44 +229,51 @@ pub fn make_button(
         pright: f32,
         ptop: f32,
         pbottom: f32,
-    ) -> Entity {
-    commands
-        .spawn(ButtonBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                size: Size::new(Val::Px(pright - pleft), Val::Px(ptop-pbottom)),
-                margin: UiRect::all(Val::Auto), 
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,  // I have to say, this was cool ....
-                position: UiRect {
-                    top: Val::Px(ptop),
-                    left: Val::Px(pleft),
-                    ..default()
-                },
+        type1: impl Bundle,
+        type2: Option<impl Bundle>
+) -> Entity {
+    let mut ec = commands
+    .spawn(ButtonBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            size: Size::new(Val::Px(pright - pleft), Val::Px(ptop-pbottom)),
+            margin: UiRect::all(Val::Auto), 
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,  // I have to say, this was cool ....
+            position: UiRect {
+                top: Val::Px(ptop),
+                left: Val::Px(pleft),
                 ..default()
             },
-            background_color: button_colors.normal.into(),
             ..default()
-        })
-        .with_children(|parent| {
-            parent.spawn(TextBundle {
-                text: Text {
-                    sections: vec![TextSection {
-                        value: text,
-                        style: TextStyle {
-                            font: font_assets.fira_sans.clone(),
-                            font_size: font_size,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                        },
-                    }],
-                    alignment: default(),
-                },
-                ..default()
-            });
-        }).id()
+        },
+        background_color: button_colors.normal.into(),
+        ..default()
+    });
+    ec.with_children(|parent| {
+        parent.spawn(TextBundle {
+            text: Text {
+                sections: vec![TextSection {
+                    value: text,
+                    style: TextStyle {
+                        font: font_assets.fira_sans.clone(),
+                        font_size: font_size,
+                        color: Color::rgb(0.9, 0.9, 0.9),
+                    },
+                }],
+                alignment: default(),
+            },
+            ..default()
+        });
+    });
+    ec.insert(type1);
+    if let Some(type2) = type2 {
+        ec.insert(type2);
+    }
+    return ec.id();
 }
 
-
+    
 
 
 

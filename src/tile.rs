@@ -49,6 +49,7 @@ pub fn spawn_tile(
     mut evt: EventReader<TileSpawnEvent>,
 ) {
     for (board_id, board_dimensions, mut board_entities, mut board_tilemap) in board_q.iter_mut() {
+        if let None = commands.get_entity(board_id) {continue;}
         for trigger_event in evt.iter() {
             let mut board_entity = commands.entity(board_id);  // Get entity by id:
             let size = board_dimensions.tile_size;
@@ -62,8 +63,8 @@ pub fn spawn_tile(
             if let Some(old_entity) = old_entity {
                 board_entity.remove_children(&[old_entity]);
                 board_entities.tiles.remove(&coordinates);
-                commands.entity(old_entity).despawn_recursive();
-            }
+                if let Some(t) = commands.get_entity(old_entity) {t.despawn_recursive();}
+        }
             
             // let child_id=  make_tile(t, &mut commands, &board_assets_map.assets, size, coordinates);
             let child_id = make_tile(t, &mut commands, &board_assets_map, size, coordinates);

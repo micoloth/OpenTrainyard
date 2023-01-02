@@ -149,26 +149,17 @@ fn setup_game_menu(
 ) {
     let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
 
-    let erase_id = make_button("Erase".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right, top - heigh - margin, bottom - heigh - margin);
-    commands.entity(erase_id).insert(EraseStateButton).insert(MainGameBotton);
-
-    let undo_id = make_button("Undo".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right , top, bottom);
-    commands.entity(undo_id).insert(UndoButton).insert(MainGameBotton);
-
-    let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom);
-    commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
-
+    let erase_id = make_button("Erase".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right, top - heigh - margin, bottom - heigh - margin, EraseStateButton, Some(MainGameBotton));
+    let undo_id = make_button("Undo".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right , top, bottom, UndoButton, Some(MainGameBotton));
+    let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
     let scrollbar_id = make_scrollbar(&mut commands, &textures, 
         ScrollBarLimits { max: 80./120., min: 0.05/120., current: 3./120., step: 0.01 / 120.},
         &button_colors,
-        width * percent_left_right + margin/2., width - margin , top - heigh - margin, bottom - heigh - margin);
-    commands.entity(scrollbar_id).insert(MainGameBotton);
-
+        width * percent_left_right + margin/2., width - margin , top - heigh - margin, bottom - heigh - margin,
+        MainGameBotton);
     // Next level:
     let (left_, right_, bottom_, top_) = get_upper_coordinates(&windows);
-    let next_level_id = make_button("Next level".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_);
-    commands.entity(next_level_id).insert(MainGameBotton).insert(NextLevelButton);
-
+    let next_level_id = make_button("Next level".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(NextLevelButton));
 }
 
 fn cleanup_menu(mut commands: Commands, buttons: Query<Entity, (With<Button>, With<MainGameBotton>)>) {
@@ -333,9 +324,8 @@ pub fn style_run_button(
                 }
                 // Rebuild:
                 let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                let run_id = make_button("Stop".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom);
-                commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
-                        
+                let run_id = make_button("Stop".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
+                    
             },
             _ => {
                 // Despawn the button:
@@ -344,8 +334,7 @@ pub fn style_run_button(
                 }
                 // Rebuild:
                 let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom);
-                commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
+                let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
             }
         }
     }
@@ -417,8 +406,7 @@ fn change_level(
     }
     // Spawn the level name BUTTON:
     let (left_, right_, bottom_, top_) = get_upper_coordinates(windows);
-    let name_id = make_button(game_screen_state.name.clone(), commands, font_assets, button_colors, 20., left_ - 110., right_ -110., top_, bottom_);
-    commands.entity(name_id).insert(MainGameBotton).insert(LevelNameElem);
+    let name_id = make_button(game_screen_state.name.clone(), commands, font_assets, button_colors, 20., left_ - 110., right_ -110., top_, bottom_, MainGameBotton, Some(LevelNameElem));
 
 }
 
