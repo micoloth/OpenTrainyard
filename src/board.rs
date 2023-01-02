@@ -78,7 +78,7 @@ pub struct Board;
 #[derive(Debug, Component)]
 pub struct BoardTileMap {
     pub map: Vec<Vec<Tile>>,
-    pub solved_map: Option<Vec<Vec<Tile>>>,
+    pub submitted_map: Option<Vec<Vec<Tile>>>,
     pub map_name: String,
 }
 #[derive(Debug, Component)]
@@ -86,14 +86,21 @@ pub struct BoardEntities {
     pub tiles: HashMap<Coordinates, Entity>,
 }
 #[derive(Debug, PartialEq, Eq)]
-pub enum HoveringState {
+pub enum RunningState {
+    // Used to track the hovering_state of the mouse hovering over a tile
+    Started,
+    Won,
+    Crashed,
+}
+#[derive(Debug, PartialEq, Eq, Component)]
+pub enum BoardGameState {
     // Used to track the hovering_state of the mouse hovering over a tile
     Erasing,
     Drawing,
-    Running,
+    Running(RunningState),
 }
 // Implement default as Drawing:
-impl Default for HoveringState {
+impl Default for BoardGameState {
     fn default() -> Self {
         Self::Drawing
     }
@@ -116,7 +123,6 @@ impl History {
 pub struct BoardHoverable {
     pub hovered_pos_1: Option<Coordinates>,
     pub hovered_pos_2: Option<Coordinates>,
-    pub hovering_state: HoveringState,
     pub history: History
 }
 #[derive(Debug, Component, Clone, Copy, Default)]
@@ -133,6 +139,7 @@ pub struct BoardBundle {
     pub entities: BoardEntities,
     pub hoverable: BoardHoverable,
     pub options: BoardDimensions,
+    pub hovering_state: BoardGameState,
     // Flattened SpriteBundle #[bundle] : SO NICE!!
     pub transform: Transform, // This component is required until https://github.com/bevyengine/bevy/pull/2331 is merged
     pub global_transform: GlobalTransform,
@@ -222,7 +229,7 @@ pub fn create_board(
                 tile_map: BoardTileMap {
                     map: tile_map.clone(),
                     map_name: map_name.to_string(),
-                    solved_map: None
+                    submitted_map: None
                 },
                 entities: BoardEntities {
                     tiles: HashMap::new(),
@@ -230,7 +237,6 @@ pub fn create_board(
                 hoverable: BoardHoverable {
                     hovered_pos_1: None,
                     hovered_pos_2: None,
-                    hovering_state: HoveringState::Drawing,
                     history: History{ ..default()},
                 },
                 options: board_dimensions,
@@ -238,6 +244,7 @@ pub fn create_board(
                     color: Color::rgb(0.5, 0.5, 0.5),
                     ..default()
                 },
+                hovering_state: BoardGameState::Drawing,
                 global_transform: GlobalTransform::default(),
                 texture: default(),
                 visibility: default(),
@@ -273,7 +280,7 @@ pub fn cleanup_board(
             BoardEvent::Delete => {
                 // Delete all boards:
                 for board_id in board_q.iter() {
-                    commands.entity(board_id).despawn_recursive();
+                    if let Some(id) = commands.get_entity(board_id) { id.despawn_recursive();}
                 }
             },
             _ => {}

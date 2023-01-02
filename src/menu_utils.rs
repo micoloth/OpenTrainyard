@@ -67,11 +67,7 @@ pub struct BorderElem;
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug)]
-pub enum BorderEvent{
-    Spawn,
-    Despawn,
-}
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -157,30 +153,6 @@ pub fn scrollbar_dragging_handler(
 }
 
 
-
-// Cleanup all the elems with Border component:
-pub fn handle_border(
-    mut commands: Commands, 
-    elems: Query<Entity, With<BorderElem>>,
-    // Listen to the event:
-    mut events: EventReader<BorderEvent>,
-) {
-    // Iterate events:
-    for event in events.iter() {
-        match event {
-            BorderEvent::Spawn => {
-                // Spawn the border:
-                make_border(&mut commands,  Color::rgb(1.0, 1.0, 0.0));
-            }
-            BorderEvent::Despawn => {
-                // Despawn the border:
-                for elem in elems.iter() {
-                    if let Some(id) = commands.get_entity(elem) { id.despawn_recursive();}
-                }
-            }
-        }
-    }
-}
 
 /////////////////////////////////////////////////////////////////////////////////////
 // HELPER FUNCTIONS

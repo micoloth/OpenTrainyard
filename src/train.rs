@@ -46,15 +46,15 @@ impl Default for TrainBundle {
 pub fn move_trains(
     mut trains_q: Query<(&mut Train, &mut Transform)>, 
     // windows: Res<Windows>,
-    board_q: Query<(&BoardDimensions, &BoardHoverable), With<Board>>,
+    board_q: Query<(&BoardDimensions, &BoardHoverable, &BoardGameState), With<Board>>,
     mut tick_status: ResMut<TicksInATick>,
     mut logic_tick_event: EventWriter<LogicTickEvent>) {
         
-    for (board_dimensions, board_hoverable) in board_q.iter() {    // Really, there's just 1 board
+    for (board_dimensions, board_hoverable, hovering_state) in board_q.iter() {    // Really, there's just 1 board
         if tick_status.locked_waiting_for_tick_event {return;}
-        if board_hoverable.hovering_state != HoveringState::Running {return;}
+        // If board_hoverable.hovering_state is NOT running, return:
+        match hovering_state { BoardGameState::Running(_) => {}, _ => {return;}}
         for (train, mut transform) in trains_q.iter_mut() {
-            // If board_hoverable.hovering_state is NOT running, return:
             *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_status.ticks as f32));
         }
     }

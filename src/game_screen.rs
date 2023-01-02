@@ -26,21 +26,8 @@ const TIME_STEP: f32 = 1.0 / 120.0;
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-#[derive(Debug)]
-pub struct GamePlayingState {
-    pub won: bool,
-    pub crashed: bool,
-}
-// Deafult both to false:
-impl Default for  GamePlayingState {
-    fn default() -> Self {
-        Self {won: false,crashed: false,}
-    }
-}
-
 #[derive(Debug, Component, Default, Resource)]
 pub struct GameScreenState {
-    pub state: GamePlayingState,
     pub name: String,
     pub solved_map: String,
 
@@ -68,7 +55,7 @@ impl Plugin for MainGamePlugin {
                 .with_system(create_board)
                 .with_system(logic_tick_event)
                 .with_system(change_tick_speed)
-                .with_system(listen_to_game_run_events)
+                .with_system(listen_to_game_state_changes)
                 //////////// INTERACTIONS:
                 .with_system(tile_hover_mouse)
                 .with_system(tile_hover_touch)
@@ -77,7 +64,8 @@ impl Plugin for MainGamePlugin {
                 .with_system(double_click_touch)
                 .with_system(double_click_event)
                 //////////// OTHERS/COSMETICS:
-                .with_system(handle_border)
+                .with_system(add_borders)
+                .with_system(style_run_button)
             )
             /////////////// MOVE TRAINS:
             .add_system_set(
@@ -88,9 +76,7 @@ impl Plugin for MainGamePlugin {
             .add_event::<TileSpawnEvent>()
             .add_event::<LogicTickEvent>()
             .add_event::<DoubleClickEvent>()
-            .add_event::<RunEvent>()
             .add_event::<TileHoverEvent>()
-            .add_event::<BorderEvent>()
             .add_event::<ScrollBarLimits>()
             .add_event::<BoardEvent>()
             ;
@@ -203,7 +189,6 @@ fn init_gmae(
     // Query existing boards:
     board_q: Query<Entity, With<Board>>,
     levels: Res<PuzzlesData>,
-    mut border_event_writer: EventWriter<BorderEvent>,
     // Query all elems with the LevelNameElem component:
     level_name_query: Query<Entity, With<LevelNameElem>>,
     // Windows:
@@ -213,7 +198,7 @@ fn init_gmae(
     // Button colors:
     button_colors: Res<ButtonColors>,
 ) {
-    change_level("Boomerang".to_string(), &mut game_screen_state, &levels, &board_q, &mut commands, &mut border_event_writer, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
+    change_level("Boomerang".to_string(), &mut game_screen_state, &levels, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
 }
 
 fn click_nextlevel_button(
@@ -225,7 +210,6 @@ fn click_nextlevel_button(
     // Query existing boards:
     board_q: Query<Entity, With<Board>>,
     levels: Res<PuzzlesData>,
-    mut border_event_writer: EventWriter<BorderEvent>,
     // Query all elems with the LevelNameElem component:
     level_name_query: Query<Entity, With<LevelNameElem>>,
     // Windows:
@@ -239,7 +223,7 @@ fn click_nextlevel_button(
         match *interaction {
             Interaction::Clicked => {
                 if let Some(next_puzzle) = get_next_puzzle(game_screen_state.name.clone(), &levels) {
-                    change_level(next_puzzle.name, &mut game_screen_state, &levels, &board_q, &mut commands, &mut border_event_writer, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
+                    change_level(next_puzzle.name, &mut game_screen_state, &levels, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
 
                 }
             }
@@ -253,27 +237,22 @@ fn click_nextlevel_button(
 
 // Button action: Listen to EraseStateButton and print Erased to console when clicked:
 fn click_erase_button(
-    mut commands: Commands,
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<EraseStateButton>),
         >,
-    mut board_q: Query<(Entity, &mut BoardHoverable), With<Board>>,
-    // Event writer for the BorderEvent:
-    mut border_event_writer: EventWriter<BorderEvent>,
+    mut board_q: Query<(Entity, &mut BoardHoverable, &mut BoardGameState), With<Board>>,
 ) {
-    for (interaction, mut color) in &mut interaction_query {
-        for (_, mut boardHoverable) in board_q.iter_mut() {
+    for (interaction, _) in &mut interaction_query {
+        for (_, _, mut hovering_state) in board_q.iter_mut() {
             match *interaction {
                 Interaction::Clicked => {
-                    match boardHoverable.hovering_state {
-                        HoveringState::Erasing =>{
-                            boardHoverable.hovering_state = HoveringState::Drawing;
-                            border_event_writer.send(BorderEvent::Despawn);
+                    match *hovering_state {
+                        BoardGameState::Erasing =>{
+                            *hovering_state = BoardGameState::Drawing;
                         },
-                        HoveringState::Drawing => {
-                            boardHoverable.hovering_state = HoveringState::Erasing;
-                            border_event_writer.send(BorderEvent::Spawn);
+                        BoardGameState::Drawing => {
+                            *hovering_state = BoardGameState::Erasing;
                         },
                         _ => {}
                     };
@@ -285,75 +264,48 @@ fn click_erase_button(
 }
 
 fn click_undo_button(
-    mut commands: Commands,
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<UndoButton>),
         >,
-    mut board_q: Query<(Entity, &mut BoardHoverable), With<Board>>,
-    // Event writer for the BorderEvent:
     mut spawn_event: EventWriter<TileSpawnEvent>,
+    mut board_q: Query<(Entity, &mut BoardHoverable, &BoardGameState), With<Board>>,
 ) {
     for (interaction, mut color) in &mut interaction_query {
-        for (_, mut boardHoverable) in board_q.iter_mut() {
-            match *interaction {
-                Interaction::Clicked => {
-                    println!("TRIGGERED UNDO! {:?}", boardHoverable.history.history);
-                    let last_event = boardHoverable.history.history.pop();
+        match *interaction {
+            Interaction::Clicked => {
+                for (_, mut board_hoverable, hovering_state) in board_q.iter_mut() {
+                    // if hovering_state is Running, continue:
+                    if let BoardGameState::Running(_) = *hovering_state {continue;}
+                    println!("TRIGGERED UNDO! {:?}", board_hoverable.history.history);
+                    let last_event = board_hoverable.history.history.pop();
                     if let Some(TileSpawnEvent { x, y, new_tile, prev_tile }) = last_event {
                         if let Some(prev_tile) = prev_tile {
                             spawn_event.send(TileSpawnEvent { x, y, new_tile: prev_tile, prev_tile: None });
                         }
                     }
                 }
-                _ => {}
             }
+            _ => {}
         }
     }
 }
 
 fn click_run_button(
-    mut commands: Commands,
-    mut interaction_query: Query<
-        (Entity, &Interaction, &mut BackgroundColor),
-        (Changed<Interaction>, With<Button>, With<RunButton>),
-        >,
-    font_assets: Res<FontAssets>,
-    button_colors: Res<ButtonColors>,
-    mut board_q: Query<(Entity, &mut BoardHoverable), With<Board>>,
-    mut startrun_event: EventWriter<RunEvent>, // Event writer for the BorderEvent:
-    mut border_event_writer: EventWriter<BorderEvent>,
-    windows: Res<Windows>,
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<RunButton>),>,
+    mut board_q: Query<(Entity, &mut BoardHoverable, &mut BoardGameState), With<Board>>,
 ) {
-    for (entity, interaction, mut color, ) in &mut interaction_query {
-        for (_, mut boardHoverable) in board_q.iter_mut() {
+    for interaction in &mut interaction_query {
+        for (_, _, mut hovering_state) in board_q.iter_mut() {
             match *interaction {
                 Interaction::Clicked => {
                     println!("TRIGGERED RUN!");
-                    match boardHoverable.hovering_state {
-                        HoveringState::Erasing | HoveringState::Drawing =>{
-                            // Launch game start event:
-                            startrun_event.send(RunEvent::Start);
-                            border_event_writer.send(BorderEvent::Despawn);
-                            
-                            // Despawn the button:
-                            if let Some(id) = commands.get_entity(entity) { id.despawn_recursive();}
-                            // Rebuild:
-                            let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                            let run_id = make_button("Stop".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom);
-                            commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
-                        
+                    match *hovering_state {
+                        BoardGameState::Erasing | BoardGameState::Drawing =>{
+                            *hovering_state = BoardGameState::Running(RunningState::Started);
                         },
-                        HoveringState::Running => {
-                            // Launch game stop event:
-                            startrun_event.send(RunEvent::Stop);
-                            // Despawn the button:
-                            commands.entity(entity).despawn_recursive();
-                            // Rebuild:
-                            let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                            let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom);
-                            commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
-                                                    
+                        BoardGameState::Running(_) => {
+                            *hovering_state = BoardGameState::Drawing;
                         },
                     };
                 }
@@ -363,30 +315,69 @@ fn click_run_button(
     }
 }
 
+pub fn style_run_button(
+    mut commands: Commands,
+    //Listen to the RunButton and the HoveringState:
+    mut interaction_query: Query<Entity, (With<Button>, With<RunButton>)>,
+    mut board_q: Query<&BoardGameState, (With<Board>, Changed<BoardGameState>)>,
+    font_assets: Res<FontAssets>,
+    button_colors: Res<ButtonColors>,
+    windows: Res<Windows>,
+) {
+    for hovering_state in board_q.iter() {
+        match *hovering_state {
+            BoardGameState::Running(_) => {
+                // Despawn the button:
+                for entity in interaction_query.iter_mut() {
+                    if let Some(id) = commands.get_entity(entity) { id.despawn_recursive();}
+                }
+                // Rebuild:
+                let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
+                let run_id = make_button("Stop".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom);
+                commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
+                        
+            },
+            _ => {
+                // Despawn the button:
+                for entity in interaction_query.iter_mut() {
+                    if let Some(id) = commands.get_entity(entity) { id.despawn_recursive();}
+                }
+                // Rebuild:
+                let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
+                let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom);
+                commands.entity(run_id).insert(RunButton).insert(MainGameBotton);
+            }
+        }
+    }
+}
 
 // Listen to CHANGES in the GameScreenState:
 fn add_borders(
     mut commands: Commands,
     // use Option, not to panic if the resource doesn't exist yet
-    gmaescreenstate: Option<Res<GameScreenState>>,
+    board_q: Query<&BoardGameState, (With<Board>, Changed<BoardGameState>)>,
     // Query borders:
     elems: Query<Entity, With<BorderElem>>,
 ) {
-    if let Some(gmaescreenstate) = gmaescreenstate {
-        if gmaescreenstate.is_changed() {
-            println!("TRIGGEREDDDDDDD, {:?}", gmaescreenstate.name);
-            // Despawn all the borders:
-            for elem in elems.iter() {
-                if let Some(id) = commands.get_entity(elem) { id.despawn_recursive();}
-            }
-            // Make new ones:
-            if gmaescreenstate.state.crashed {
-                make_border(&mut commands,  Color::rgb(130./255., 9./255., 0.));
-            }
-            else if gmaescreenstate.state.won {
-                make_border(&mut commands,  Color::rgb(0., 130./255., 0.));
-            }
+    for hovering_state in board_q.iter() {
+        println!("TRIGGEREDDDDDDD, {:?}", hovering_state);
+        // Despawn all the borders:
+        for elem in elems.iter() {
+            if let Some(id) = commands.get_entity(elem) { id.despawn_recursive();}
         }
+        // Make new ones:
+        match *hovering_state {
+            BoardGameState::Running(RunningState::Crashed) => {
+                make_border(&mut commands,  Color::rgb(130./255., 9./255., 0.));
+            },
+            BoardGameState::Running(RunningState::Won) => {
+                make_border(&mut commands,  Color::rgb(0., 130./255., 0.));
+            },
+            BoardGameState::Erasing =>
+                make_border(&mut commands,  Color::rgb(1., 1., 0.)),
+
+            _ => {}
+        };           
     }
 }
 
@@ -403,7 +394,6 @@ fn change_level(
         levels: &PuzzlesData, 
         board_q: &Query<Entity, With<Board>>, 
         commands: &mut Commands, 
-        border_event_writer: &mut EventWriter<BorderEvent>, 
         board_event_writer: &mut EventWriter<BoardEvent>, 
         level_name_query: &Query<Entity,  With<LevelNameElem>>, 
         windows: &Windows, 
@@ -413,8 +403,6 @@ fn change_level(
     for board_id in board_q.iter() {
         if let Some(id) = commands.get_entity(board_id) { id.despawn_recursive();}
     }
-    // Despawn the border:
-    border_event_writer.send(BorderEvent::Despawn);
     // Set the name of the game:
     game_screen_state.name = level_name;
     // Send the event to create the board:
@@ -429,7 +417,6 @@ fn change_level(
     }
     // Spawn the level name BUTTON:
     let (left_, right_, bottom_, top_) = get_upper_coordinates(windows);
-    let width = 50. / 2.;
     let name_id = make_button(game_screen_state.name.clone(), commands, font_assets, button_colors, 20., left_ - 110., right_ -110., top_, bottom_);
     commands.entity(name_id).insert(MainGameBotton).insert(LevelNameElem);
 
