@@ -1,12 +1,17 @@
 <!DOCTYPE html><html lang="en"><head>
         <meta charset="utf-8">
         <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-title" content="My App">
+        <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-touch-fullscreen" content="yes">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta id="extViewportMeta" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
         <title>TrainYard</title> <!-- ToDo -->
         
         
         
+        <link rel="manifest" href="manifest.json">
         <link rel="icon" href="icon.ico">
         <style type="text/css">body, html {
     width: 100%;
@@ -41,8 +46,8 @@ body {
 }
 </style>
     
-<link rel="preload" href="/OpenTrainyard/trainyard-f74e56db3dc9b320_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/OpenTrainyard/trainyard-f74e56db3dc9b320.js"></head>
+<link rel="preload" href="/OpenTrainyard/trainyard-debf7e1bf71dcdf0_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/OpenTrainyard/trainyard-debf7e1bf71dcdf0.js"></head>
     <body style="position: fixed; width:100%; height:100%; overflow: hidden;">
         <script>// Insert hack to make sound autoplay on Chrome as soon as the user interacts with the tab:
 // https://developers.google.com/web/updates/2018/11/web-audio-autoplay#moving-forward
@@ -109,6 +114,7 @@ body {
 </script>
         <div class="game-container">
             <canvas id="bevy" style="
+            touch-action: none;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             -khtml-user-select: none;
@@ -122,4 +128,4 @@ body {
         </div>
     
 
-<script type="module">import init from '/OpenTrainyard/trainyard-f74e56db3dc9b320.js';init('/OpenTrainyard/trainyard-f74e56db3dc9b320_bg.wasm');</script></body></html>
+<script type="module">import init from '/OpenTrainyard/trainyard-debf7e1bf71dcdf0.js';init('/OpenTrainyard/trainyard-debf7e1bf71dcdf0_bg.wasm');</script></body></html>
