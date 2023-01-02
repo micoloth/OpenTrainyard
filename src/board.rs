@@ -44,6 +44,7 @@ impl Default for BoardPosition {
 }
 
 // #[derive(Debug, Resource, Serialize, Deserialize)]
+#[derive(Resource)]
 pub struct BoardOptionsDefault {
     // We use serde to allow saving option presets and loading them at runtime
     pub map_size: (u16, u16),    // Tile map size
@@ -77,28 +78,52 @@ pub struct Board;
 #[derive(Debug, Component)]
 pub struct BoardTileMap {
     pub map: Vec<Vec<Tile>>,
+    pub submitted_map: Option<Vec<Vec<Tile>>>,
+    pub map_name: String,
 }
 #[derive(Debug, Component)]
 pub struct BoardEntities {
     pub tiles: HashMap<Coordinates, Entity>,
 }
-#[derive(Debug)]
-pub enum HoveringState {
+#[derive(Debug, PartialEq, Eq)]
+pub enum RunningState {
+    // Used to track the hovering_state of the mouse hovering over a tile
+    Started,
+    Won,
+    Crashed,
+}
+#[derive(Debug, PartialEq, Eq, Component)]
+pub enum BoardGameState {
     // Used to track the hovering_state of the mouse hovering over a tile
     Erasing,
     Drawing,
+    Running(RunningState),
 }
 // Implement default as Drawing:
-impl Default for HoveringState {
+impl Default for BoardGameState {
     fn default() -> Self {
         Self::Drawing
+    }
+}
+#[derive(Debug, Default)]
+pub struct History {
+    pub history: Vec<TileSpawnEvent>,
+}
+// Implement the Push function:
+// When receiving a TileSpawnEvent, we push it to the history, and REMOVE the oldest one if the history is OVER 50 items
+impl History {
+    pub fn push(&mut self, item: TileSpawnEvent) {
+        self.history.push(item);
+        if self.history.len() > 50 {
+            self.history.remove(0);
+        }
     }
 }
 #[derive(Debug, Component)]
 pub struct BoardHoverable {
     pub hovered_pos_1: Option<Coordinates>,
     pub hovered_pos_2: Option<Coordinates>,
-    pub hovering_state: HoveringState,
+    pub history: History
 }
 #[derive(Debug, Component, Clone, Copy, Default)]
 pub struct BoardDimensions {
@@ -110,20 +135,30 @@ pub struct BoardDimensions {
 #[derive(Bundle)]
 pub struct BoardBundle {
     pub board: Board,
-    pub name: Name,
-    pub transform: Transform, // This component is required until https://github.com/bevyengine/bevy/pull/2331 is merged
-    pub global_transform: GlobalTransform,
     pub tile_map: BoardTileMap,
     pub entities: BoardEntities,
     pub hoverable: BoardHoverable,
     pub options: BoardDimensions,
+    pub hovering_state: BoardGameState,
     // Flattened SpriteBundle #[bundle] : SO NICE!!
+    pub transform: Transform, // This component is required until https://github.com/bevyengine/bevy/pull/2331 is merged
+    pub global_transform: GlobalTransform,
     pub sprite: Sprite,
     pub texture: Handle<Image>,
     pub visibility: Visibility, // User indication of whether an entity is visible
     pub computed_visibility: ComputedVisibility,
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////
+// EVENTS
+/////////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Debug)]
+pub enum BoardEvent {
+    Make(String),
+    Delete,
+}
 
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
@@ -144,91 +179,111 @@ pub fn create_board(
     mut commands: Commands,
     board_options: Res<BoardOptionsDefault>,
     windows: Res<Windows>,
-    mut tick_status: ResMut<TicksInATick>,
     mut spawn_event: EventWriter<TileSpawnEvent>,
     levels: Res<PuzzlesData>,
+    mut board_event_reader: EventReader<BoardEvent>,
 ) {
-    // Get the puzzle data with name "Boomerang":
-    let map = levels.puzzles.iter().find(|p| p.name == "Boomerang").unwrap().parsed_map.clone();    
-    // Split map on '\n':
-    let map: Vec<String> = map.split('\n').map(|s| s.to_string()).collect();
-    let tile_map: Vec<Vec<Tile>> = parse_map(map);
-    let n_width_ = tile_map.len();
-    let n_height_ = tile_map.len();
-    let tile_size = match board_options.tile_size {
-        TileSize::Fixed(v) => v,
-        TileSize::Adaptive =>  (
-            windows.get_primary().unwrap().width() / n_width_ as f32).min(
-                windows.get_primary().unwrap().height() / n_height_ as f32) * 0.92
-    };
-    let board_position = match board_options.position {
-        BoardPosition::Centered { offset } => {
-            // offset
-            Vec3::new(-(n_width_ as f32 * tile_size / 2.), -(n_height_ as f32 * tile_size / 2.), 0.) + offset
-        }
-        BoardPosition::Custom(p) => p,
-    };
-    // log::info!("board size: {}", board_size);
+    for event in board_event_reader.iter() {
+        match event {
+            BoardEvent::Make(map_name) => {
+            let map = levels.puzzles.iter().find(|p| p.name == *map_name).unwrap().parsed_map.clone();    
+            // Split map on '\n':
+            let map: Vec<String> = map.split('\n').map(|s| s.to_string()).collect();
+            let tile_map: Vec<Vec<Tile>> = parse_map(map);
+            let n_width_ = tile_map.len();
+            let n_height_ = tile_map.len();
+            let tile_size = match board_options.tile_size {
+                TileSize::Fixed(v) => v,
+                TileSize::Adaptive =>  (
+                    windows.get_primary().unwrap().width() / n_width_ as f32).min(
+                        windows.get_primary().unwrap().height() / n_height_ as f32) * 0.92
+            };
+            let board_position = match board_options.position {
+                BoardPosition::Centered { offset } => {
+                    // offset
+                    Vec3::new(-(n_width_ as f32 * tile_size / 2.), -(n_height_ as f32 * tile_size / 2.), 0.) + offset
+                }
+                BoardPosition::Custom(p) => p,
+            };
+            // log::info!("board size: {}", board_size);
 
-    // Init BoardDimensions component
-    let board_dimensions = BoardDimensions {
-        tile_size,
-        position: board_position,
-        rect: Rect{
-            top: board_position.y,
-            bottom: board_position.y + n_height_ as f32 * tile_size,
-            left: board_position.x,
-            right: board_position.x + n_width_ as f32 * tile_size,
-        }
-    };
-    // Println board_dimensions.position:
-    // println!("board_dimensions.position: {:?}", board_dimensions.position);
+            // Init BoardDimensions component
+            let board_dimensions = BoardDimensions {
+                tile_size,
+                position: board_position,
+                rect: Rect{
+                    top: board_position.y,
+                    bottom: board_position.y + n_height_ as f32 * tile_size,
+                    left: board_position.x,
+                    right: board_position.x + n_width_ as f32 * tile_size,
+                }
+            };
+            // Println board_dimensions.position:
+            // println!("board_dimensions.position: {:?}", board_dimensions.position);
 
-    // We add the main resource of the game, the board
-    commands.spawn_bundle(BoardBundle {
-        board: Board,
-        name: Name::new("Board"),
-        transform: Transform::from_translation(board_dimensions.position), // This component is required until
-        // global_transform: GlobalTransform::default(),
-        tile_map: BoardTileMap {
-            map: tile_map.clone(),
-        },
-        entities: BoardEntities {
-            tiles: HashMap::new(),
-        },
-        hoverable: BoardHoverable {
-            hovered_pos_1: None,
-            hovered_pos_2: None,
-            hovering_state: HoveringState::Drawing,
-        },
-        options: board_dimensions,
-        sprite: Sprite{
-            color: Color::rgb(0.5, 0.5, 0.5),
-            ..default()
-        },
-        global_transform: GlobalTransform::default(),
-        texture: default(),
-        visibility: default(),
-        computed_visibility: default(),
-        
-    });
-
-    // Launch event to spawn each tile
-    for (y, line) in tile_map.iter().enumerate() {
-        for (x, tile) in line.iter().enumerate() {
-            spawn_event.send(TileSpawnEvent {
-                x,
-                y,
-                new_tile: *tile,
+            // We add the main resource of the game, the board
+            commands.spawn(BoardBundle {
+                board: Board,
+                transform: Transform::from_translation(board_dimensions.position), // This component is required until
+                // global_transform: GlobalTransform::default(),
+                tile_map: BoardTileMap {
+                    map: tile_map.clone(),
+                    map_name: map_name.to_string(),
+                    submitted_map: None
+                },
+                entities: BoardEntities {
+                    tiles: HashMap::new(),
+                },
+                hoverable: BoardHoverable {
+                    hovered_pos_1: None,
+                    hovered_pos_2: None,
+                    history: History{ ..default()},
+                },
+                options: board_dimensions,
+                sprite: Sprite{
+                    color: Color::rgb(0.5, 0.5, 0.5),
+                    ..default()
+                },
+                hovering_state: BoardGameState::Drawing,
+                global_transform: GlobalTransform::default(),
+                texture: default(),
+                visibility: default(),
+                computed_visibility: default(),
             });
-        }
-    }
 
-    tick_status.is_in_game = true;
-    tick_status.current_tick = 1000;
+            
+            // Launch event to spawn each tile
+            for (y, line) in tile_map.iter().enumerate() {
+                for (x, tile) in line.iter().enumerate() {
+                    spawn_event.send(TileSpawnEvent {
+                        x,
+                        y,
+                        new_tile: *tile,
+                        prev_tile: None
+                    });
+                }
+            }
+        },
+        _ => {}
+    }
+}
 }
 
-pub fn cleanup_board(mut commands: Commands, board_q: Query<Entity, With<Board>>) {
-    let board_id = board_q.single();
-    commands.entity(board_id).despawn_recursive();
+pub fn cleanup_board(
+    mut commands: Commands, 
+    board_q: Query<Entity, With<Board>>,
+    // Read event:
+    mut board_event_reader: EventReader<BoardEvent>,
+) {
+    for event in board_event_reader.iter() {
+        match event {
+            BoardEvent::Delete => {
+                // Delete all boards:
+                for board_id in board_q.iter() {
+                    if let Some(id) = commands.get_entity(board_id) { id.despawn_recursive();}
+                }
+            },
+            _ => {}
+        }
+    }
 }

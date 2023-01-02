@@ -9,7 +9,7 @@ use bevy::DefaultPlugins;
 use std::io::Cursor;
 use winit::window::Icon;
 
-mod audio;
+// mod audio;
 mod loading;
 mod menu;
 mod utils;
@@ -21,7 +21,7 @@ mod game_screen;
 mod menu_utils;
 mod all_puzzles_clean;
 
-use crate::audio::InternalAudioPlugin;
+// use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 use crate::menu_utils::button_color_handler;
@@ -70,9 +70,9 @@ enum GameState {
 }
 
 fn setup_camera(mut commands: Commands) {
-    // commands.spawn_bundle(OrthographicCameraBundle::new_2d());  // 2D orthographic camera
-    // commands.spawn_bundle(UiCameraBundle::default());  // UI Camera
-    commands.spawn_bundle(Camera2dBundle::default());
+    // commands.spawn(OrthographicCameraBundle::new_2d());  // 2D orthographic camera
+    // commands.spawn(UiCameraBundle::default());  // UI Camera
+    commands.spawn(Camera2dBundle::default());
 }
 
 
@@ -81,15 +81,17 @@ fn main() {
     App::new()
         // .insert_resource(Msaa { samples: 1 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
-        .insert_resource(WindowDescriptor {width: 360.,height: 550.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()),..default()})
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            window: WindowDescriptor {width: 360.,height: 550.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()), ..default()},
+            ..default()
+          }))
         .add_startup_system(setup_camera) // Startup system (cameras)
         .add_startup_system(set_window_icon)
         .insert_resource(load_puzzles_data())
         .add_plugin(LoadingPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(MenuMainGame)
-        .add_plugin(InternalAudioPlugin)
+        // .add_plugin(InternalAudioPlugin)
         .add_plugin(MainGamePlugin)
         .add_state(GameState::Loading)
         .add_system(button_color_handler)

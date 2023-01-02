@@ -66,7 +66,7 @@ fn setup_menu(
     let top = height / 2. - rect_height / 2. + offset_y;
     let bottom = height / 2. - rect_height * 1.5 + offset_y;
 
-    let startbutton_id = make_button("Play".to_string(), &mut commands, &font_assets, &button_colors, left, right, top, bottom);
+    let startbutton_id = make_button("Play".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right, top, bottom);
     commands.entity(startbutton_id).insert(StartGameBotton);
     // make_scrollbar(&mut commands, &textures, 50., 250., 50., 25.);
 }
@@ -78,7 +78,7 @@ fn click_play_button(
     button_colors: Res<ButtonColors>,
     mut state: ResMut<State<GameState>>,
     mut interaction_query: Query<
-        (&Interaction, &mut UiColor),
+        (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<StartGameBotton>),
     >,
 ) {

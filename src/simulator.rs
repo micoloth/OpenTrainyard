@@ -419,12 +419,12 @@ pub fn check_arrived_or_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (b
     for (_, train) in trains.iter().enumerate(){
         let tile = &new_field[train.pos.py][train.pos.px];
         if !can_pass_through(tile, train.pos.side) {crashed=true; continue;}
-        if let Tile::EndTile{elems, t_:_t_, b_:_b_, l_:_l_, r_:_r_, orig_len: _} = tile {
+        if let Tile::EndTile{elems, t_:_t_, b_:_b_, l_:_l_, r_:_r_, orig_len: orig_len} = tile {
             if elems.v.contains(&Some(train.c)){
                 let mut newelems = elems.clone();
                 // Remove the FIRST instance of train.c in elems:
                 newelems.remove(elems.iter().position(|x| x == train.c).unwrap());
-                new_field[train.pos.py][train.pos.px] = Tile::new_end_tile(*_t_, *_b_, *_l_, *_r_, newelems);
+                new_field[train.pos.py][train.pos.px] = Tile::EndTile{t_: *_t_, b_: *_b_, l_: *_l_, r_: *_r_, elems: newelems, orig_len: *orig_len};
             }
             else{
                 crashed = true;

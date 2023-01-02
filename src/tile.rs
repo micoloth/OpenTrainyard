@@ -35,6 +35,7 @@ pub struct TileSpawnEvent {
     pub x: usize,
     pub y: usize,
     pub new_tile: Tile,
+    pub prev_tile: Option<Tile>,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -47,8 +48,8 @@ pub fn spawn_tile(
     mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities, &mut BoardTileMap), With<Board>>,
     mut evt: EventReader<TileSpawnEvent>,
 ) {
-    for trigger_event in evt.iter() {
-        for (board_id, board_dimensions, mut board_entities, mut board_tilemap) in board_q.iter_mut() {
+    for (board_id, board_dimensions, mut board_entities, mut board_tilemap) in board_q.iter_mut() {
+        for trigger_event in evt.iter() {
             let mut board_entity = commands.entity(board_id);  // Get entity by id:
             let size = board_dimensions.tile_size;
             let coordinates = Coordinates { x: trigger_event.x as u16, y: trigger_event.y as u16,};
@@ -156,7 +157,7 @@ fn add_color_minitiles_children(
                 );
                 // let child_asset = assets.get(&minitile).unwrap();
                 let child_asset = get_asset(minitile, assets);
-                child_cmd.spawn_bundle(SpriteBundle {
+                child_cmd.spawn(SpriteBundle {
                     // sprite: Sprite {
                     //     custom_size: Some(Vec2::splat(small_tile_size as f32)),
                     //     ..default()
@@ -240,7 +241,7 @@ fn get_transform_and_texture(
                 "53" => ("tb_over_br.png".to_string(), rotate_tile_90(transform, 1)), // get_tile_track_lr5_over_tr3()
                 "36" => (
                     "tr_over_tl.png".to_string(),
-                    flipmatrix_vertical(rotate_tile_90(transform, -1)),
+                    flipmatrix_vertical(rotate_tile_90(transform, 1)),
                 ), // get_tile_track_tr3_over_br6()
                 "63" => ("tr_over_tl.png".to_string(), rotate_tile_90(transform, -1)), // get_tile_track_br6_over_tr3()
                 "45" => ("br_over_tb.png".to_string(), rotate_tile_90(transform, -1)), // get_tile_track_lb4_over_lr5()
@@ -328,10 +329,9 @@ fn add_arrow_minitile_children(
     let arrow = get_asset("s_arrow_elem_rigth.png".to_string(), assets);
     let pos_x: f32;
     let pos_y: f32;
-    let mut t = Transform::from_xyz(0., 0., 0.);
+    let mut t = Transform::from_xyz(0., 0., 0.5);
     if dir == Side::R_ {
-        t = flipmatrix_horizontal(t);
-        pos_x = -(23. - 6. - 6. / 2.); // * scale;
+        pos_x = (23. - 6. / 2.); // * scale;
         pos_y = 0.;
     } else if dir == Side::T_ {
         t = rotate_tile(t, std::f32::consts::PI / 2.);
@@ -342,13 +342,14 @@ fn add_arrow_minitile_children(
         pos_x = 0.;
         pos_y = (23. - 46. + 6. / 2.); // * scale;
     } else {
-        pos_x = -(23. - 46. + 6. - 6. / 2.); // * scale;
+        t = flipmatrix_horizontal(t);
+        pos_x = -(23. - 6. / 2.); // * scale;
         pos_y = 0.;
     }
     // Translate t to the right position:
     t.translation.x = pos_x;
     t.translation.y = pos_y;
-    child_cmd.spawn_bundle(SpriteBundle {
+    child_cmd.spawn(SpriteBundle {
         transform: t,
         texture: arrow,
         ..default()
@@ -371,11 +372,11 @@ fn add_funnels_minitile_children(
     let pos_x: f32;
     let pos_y: f32;
     if r_ {
-        pos_x = -(23. - 8. - 8. / 2.); // * scale;
+        pos_x = (23. - 8. / 2.); // * scale;
         pos_y = 0.;
     } else if l_ {
         t = flipmatrix_horizontal(t);
-        pos_x = -(23. - 8. - 8. / 2.); // * scale;
+        pos_x = -(23. - 8. / 2.); // * scale;
         pos_y = 0.;
     } else if t_ {
         t = rotate_tile(t, std::f32::consts::PI / 2.);
@@ -389,7 +390,7 @@ fn add_funnels_minitile_children(
     // Translate t to the right position:
     t.translation.x = pos_x;
     t.translation.y = pos_y;
-    child_cmd.spawn_bundle(SpriteBundle {
+    child_cmd.spawn(SpriteBundle {
         transform: t,
         texture: funnel,
         ..default()
@@ -406,7 +407,7 @@ fn make_tile(
     // Translate the tile to the right position:
     let (transl_x, transl_y) = ((coordinates.x as f32 * big_tile_size) + (big_tile_size / 2.), ((6 - coordinates.y) as f32 * big_tile_size) + (big_tile_size / 2.));
     let (texture, transform) = get_transform_and_texture(t, assets);
-    let mut child = commands.spawn_bundle(TileSpriteBundle {
+    let mut child = commands.spawn(TileSpriteBundle {
         coordinates, // Tile coordinates
         texture: texture,
         transform: transform.with_translation(Vec3::new(transl_x, transl_y, 2.)),
@@ -431,7 +432,7 @@ fn make_tile(
         child.with_children(|parent| {
             let size = ((40 - 6) as f32) / 46. * big_tile_size;
             let inner = get_asset(format!("p_{}.png", colorz_to_long_str(c)), assets);
-            parent.spawn_bundle(SpriteBundle {
+            parent.spawn(SpriteBundle {
                 texture: inner,
                 transform: Transform::from_xyz(0., 0., 4.),
                 ..default()

@@ -11,10 +11,11 @@ use crate::loading::TileAssets;
 // COMPONENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
+#[derive(Resource)]
 pub struct ButtonColors {
-pub normal: UiColor,
-pub hovered: UiColor,
-pub pressed: UiColor
+pub normal: Color,
+pub hovered: Color,
+pub pressed: Color
 }
 
 impl Default for ButtonColors {
@@ -32,6 +33,7 @@ fn default() -> Self {
 #[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarLimits { pub max: f32, pub min: f32, pub current: f32, pub step: f32,}
 #[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarPosition { max_x: f32, min_x: f32, current_x: f32, step_x: f32,}
 #[derive(Debug, Component, Clone, PartialEq, Copy, Default)] pub struct ScrollBarStatus { dragging: bool }
+
 #[derive(Bundle, Clone, Debug, Default)]
 pub struct ScrollBarHandleBundle {
     pub scroll_bar_limits: ScrollBarLimits,
@@ -46,7 +48,7 @@ pub struct ScrollBarHandleBundle {
     pub style: Style,
     pub interaction: Interaction,
     pub focus_policy: FocusPolicy,
-    pub color: UiColor,
+    pub background_color: BackgroundColor,
     pub texture: UiImage,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
@@ -54,6 +56,7 @@ pub struct ScrollBarHandleBundle {
     pub computed_visibility: ComputedVisibility,
     pub calculated_size: CalculatedSize,
     pub image_mode: ImageMode,
+    pub z_index: ZIndex,
 }
 
 #[derive(Component)]
@@ -64,11 +67,7 @@ pub struct BorderElem;
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug)]
-pub enum BorderEvent{
-    Spawn,
-    Despawn,
-}
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +78,7 @@ pub enum BorderEvent{
 
 pub fn button_color_handler(
     button_colors: Res<ButtonColors>,
-    mut interaction_query: Query<(&Interaction, &mut UiColor),(Changed<Interaction>, With<Button>)>,
+    mut interaction_query: Query<(&Interaction, &mut BackgroundColor),(Changed<Interaction>, With<Button>)>,
 ) {
     for (interaction, mut color) in interaction_query.iter_mut() {
         match *interaction {
@@ -100,11 +99,11 @@ pub fn button_color_handler(
 pub fn scrollbar_input_handler(
     // Listen to mouse inputs:
     mouse_button_input: Res<Input<MouseButton>>,
-    mut interaction_query: Query<(&Interaction, &mut UiColor, &mut ScrollBarPosition, &mut ScrollBarLimits, &mut ScrollBarStatus),(Changed<Interaction>)>,
+    mut interaction_query: Query<(&Interaction, &mut BackgroundColor, &mut ScrollBarPosition, &mut ScrollBarLimits, &mut ScrollBarStatus),(Changed<Interaction>)>,
 ) {
     for (interaction, mut color, mut sbpos, mut sblimits, mut sbstatus) in interaction_query.iter_mut() {
         match *interaction {
-            Interaction::Clicked => {println!("NICE!!"); sbstatus.dragging = true;}
+            Interaction::Clicked => {sbstatus.dragging = true;}
             Interaction::Hovered => {}
             Interaction::None => {sbstatus.dragging = false;}
         }
@@ -155,30 +154,6 @@ pub fn scrollbar_dragging_handler(
 
 
 
-// Cleanup all the elems with Border component:
-pub fn handle_border(
-    mut commands: Commands, 
-    elems: Query<Entity, With<BorderElem>>,
-    // Listen to the event:
-    mut events: EventReader<BorderEvent>,
-) {
-    // Iterate events:
-    for event in events.iter() {
-        match event {
-            BorderEvent::Spawn => {
-                // Spawn the border:
-                make_border(&mut commands);
-            }
-            BorderEvent::Despawn => {
-                // Despawn the border:
-                for elem in elems.iter() {
-                    commands.entity(elem).despawn_recursive();
-                }
-            }
-        }
-    }
-}
-
 /////////////////////////////////////////////////////////////////////////////////////
 // HELPER FUNCTIONS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -195,7 +170,7 @@ pub fn make_scrollbar(
     pbottom: f32,
 )-> Entity {
     // let arrow = assets.s_arrow_elem_rigth.clone();
-    let back = commands.spawn_bundle(
+    let back = commands.spawn(
         ImageBundle {
             style: Style {
                 position_type: PositionType::Absolute,
@@ -210,14 +185,14 @@ pub fn make_scrollbar(
                 },
                 ..default()
             },
-            color: Color::rgb(1.0, 1.0, 1.0).into(),
+            background_color: Color::rgb(1.0, 1.0, 1.0).into(),
             ..default()
         }).id();
     // get the fraction from (scroll_bar_limits.current - min) / (scroll_bar_limits.max- min)
     // and apply it to ScrollBarPosition{ max_x: pright, min_x: pleft} to get the current_x:
     let fraction = (scroll_bar_limits.current - scroll_bar_limits.min) / (scroll_bar_limits.max - scroll_bar_limits.min);
     let current_x = fraction * (pright - pleft);
-    let handle = commands.spawn_bundle(
+    let handle = commands.spawn(
         ScrollBarHandleBundle {
             style: Style {
                 position_type: PositionType::Absolute,
@@ -230,7 +205,7 @@ pub fn make_scrollbar(
                 ..default()
             },
             // texture: UiImage(arrow),
-            color: UiColor(Color::rgb(1., 1.0, 1.0)),
+            background_color: BackgroundColor(Color::rgb(1., 1.0, 1.0)),
             scroll_bar_limits: scroll_bar_limits,
             scroll_bar_position: ScrollBarPosition{ max_x: pright, min_x: pleft, current_x: current_x, step_x: 1.},
             ..default()
@@ -247,13 +222,14 @@ pub fn make_button(
         mut commands: &mut Commands,
         font_assets: &FontAssets,
         button_colors: &ButtonColors,
+        font_size: f32, 
         pleft: f32,
         pright: f32,
         ptop: f32,
         pbottom: f32,
     ) -> Entity {
     commands
-        .spawn_bundle(ButtonBundle {
+        .spawn(ButtonBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 size: Size::new(Val::Px(pright - pleft), Val::Px(ptop-pbottom)),
@@ -267,17 +243,17 @@ pub fn make_button(
                 },
                 ..default()
             },
-            color: button_colors.normal,
+            background_color: button_colors.normal.into(),
             ..default()
         })
         .with_children(|parent| {
-            parent.spawn_bundle(TextBundle {
+            parent.spawn(TextBundle {
                 text: Text {
                     sections: vec![TextSection {
                         value: text,
                         style: TextStyle {
                             font: font_assets.fira_sans.clone(),
-                            font_size: 40.0,
+                            font_size: font_size,
                             color: Color::rgb(0.9, 0.9, 0.9),
                         },
                     }],
@@ -292,13 +268,14 @@ pub fn make_button(
 
 
 
-fn make_border(
+pub fn make_border(
     commands: &mut Commands,
+    color: Color
 ) {
     // Draw a UiImage that has only a border, no fill. The border is yellow. It should be AS BIG AS THE SCREEN.
     // Do it by creating 4 different narrow rectangles, at each side of the screen:
     // Left rectangle:
-    commands.spawn_bundle(
+    commands.spawn(
         ImageBundle {
             style: Style {
                 position_type: PositionType::Absolute,
@@ -312,11 +289,11 @@ fn make_border(
                 ..default()
             },
             // yellow color:
-            color: Color::rgb(1.0, 1.0, 0.0).into(),
+            background_color: color.into(),
             ..default()
         }).insert(BorderElem);
     // Right rectangle:
-    commands.spawn_bundle(
+    commands.spawn(
         ImageBundle {
             style: Style {
                 position_type: PositionType::Absolute,
@@ -330,11 +307,11 @@ fn make_border(
                 ..default()
             },
             // yellow color:
-            color: Color::rgb(1.0, 1.0, 0.0).into(),
+            background_color: color.into(),
             ..default()
         }).insert(BorderElem);
     // Top rectangle:
-    commands.spawn_bundle(
+    commands.spawn(
         ImageBundle {
             style: Style {
                 position_type: PositionType::Absolute,
@@ -348,11 +325,11 @@ fn make_border(
                 ..default()
             },
             // yellow color:
-            color: Color::rgb(1.0, 1.0, 0.0).into(),
+            background_color: color.into(),
             ..default()
         }).insert(BorderElem);
     // Bottom rectangle:
-    commands.spawn_bundle(
+    commands.spawn(
         ImageBundle {
             style: Style {
                 position_type: PositionType::Absolute,
@@ -366,7 +343,7 @@ fn make_border(
                 ..default()
             },
             // yellow color:
-            color: Color::rgb(1.0, 1.0, 0.0).into(),
+            background_color:color.into(),
             ..default()
         }).insert(BorderElem);
 }
