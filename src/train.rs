@@ -7,6 +7,7 @@ use crate::board::*;
 use crate::logic::*;
 use crate::loading::TrainAssets;
 
+
 ////////////////////////////////////////////////////////////////////////////////////
 // COMPONENTS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -46,28 +47,31 @@ impl Default for TrainBundle {
 pub fn move_trains(
     mut trains_q: Query<(&mut Train, &mut Transform)>, 
     // windows: Res<Windows>,
-    board_q: Query<(&BoardDimensions, &BoardHoverable, &BoardGameState), With<Board>>,
-    mut tick_status: ResMut<TicksInATick>,
-    mut logic_tick_event: EventWriter<LogicTickEvent>) {
+    mut board_q: Query<(&mut BoardTileMap, &BoardDimensions, &BoardGameState, &mut BoardTickStatus), With<Board>>,
+    tick_params: ResMut<TicksInATick>,
+    mut logic_tick_event: EventWriter<RedrawTrainsEvent>) {
         
-    for (board_dimensions, board_hoverable, hovering_state) in board_q.iter() {    // Really, there's just 1 board
-        if tick_status.locked_waiting_for_tick_event {return;}
-        // If board_hoverable.hovering_state is NOT running, return:
-        match hovering_state { BoardGameState::Running(_) => {}, _ => {return;}}
-        for (train, mut transform) in trains_q.iter_mut() {
-            *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_status.ticks as f32));
+    for (mut board_tilemap, board_dimensions, game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
+        // If board_hoverable.game_state is NOT running, continue:
+        match game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
+        tick_status.current_tick += 1;
+        if tick_status.current_tick >= tick_params.ticks {
+            tick_status.current_tick = 0;
+            tick_status.first_half = true;
+            let (new_tilemap, new_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, *game_state);
+            board_tilemap.map = new_tilemap.clone();
+            board_tilemap.current_trains = new_trains.clone();
+            logic_tick_event.send(RedrawTrainsEvent {tiles: new_tilemap, trains: new_trains});
+        } else if tick_status.current_tick >= ((tick_params.ticks as f32 / 2.) as u32)  && tick_status.first_half {
+            let (new_tilemap, new_trains) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle, *game_state);
+            board_tilemap.map = new_tilemap.clone();
+            board_tilemap.current_trains = new_trains.clone();
+            logic_tick_event.send(RedrawTrainsEvent {tiles: new_tilemap, trains: new_trains});
+            tick_status.first_half = false;
         }
-    }
-    tick_status.current_tick += 1;
-    if tick_status.current_tick >= tick_status.ticks {
-        tick_status.current_tick = 0;
-        tick_status.locked_waiting_for_tick_event = true;
-        tick_status.first_half = true;
-        logic_tick_event.send(LogicTickEvent::TickEnd);
-    } else if tick_status.current_tick >= ((tick_status.ticks as f32 / 2.) as u32)  && tick_status.first_half {
-        logic_tick_event.send(LogicTickEvent::TickMiddle);
-        tick_status.locked_waiting_for_tick_event = true;
-        tick_status.first_half = false;
+        for (train, mut transform) in trains_q.iter_mut() {
+            *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_params.ticks as f32));
+        }
     }
 }
 

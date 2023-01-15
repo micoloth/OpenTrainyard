@@ -7,6 +7,8 @@ use crate::utils::Coordinates;
 
 use crate::tile::TileSpawnEvent;
 
+use crate::simulator::Train;
+
 use crate::all_puzzles_clean::*;
 use crate::logic::TicksInATick;
 
@@ -80,6 +82,7 @@ pub struct BoardTileMap {
     pub map: Vec<Vec<Tile>>,
     pub submitted_map: Option<Vec<Vec<Tile>>>,
     pub map_name: String,
+    pub current_trains: Vec<Train>
 }
 #[derive(Debug, Component)]
 pub struct BoardEntities {
@@ -125,6 +128,20 @@ pub struct BoardHoverable {
     pub hovered_pos_2: Option<Coordinates>,
     pub history: History
 }
+#[derive(Debug, Component)]
+pub struct BoardTickStatus {
+    pub current_tick: u32,
+    pub first_half: bool,
+}
+// impl default:
+impl Default for BoardTickStatus {
+    fn default() -> Self {
+        Self {
+            current_tick: 0,
+            first_half: true,
+        }
+    }
+}
 #[derive(Debug, Component, Clone, Copy, Default)]
 pub struct BoardDimensions {
     // We use serde to allow saving option presets and loading them at runtime
@@ -140,6 +157,7 @@ pub struct BoardBundle {
     pub hoverable: BoardHoverable,
     pub options: BoardDimensions,
     pub hovering_state: BoardGameState,
+    pub board_tick_status: BoardTickStatus,
     // Flattened SpriteBundle #[bundle] : SO NICE!!
     pub transform: Transform, // This component is required until https://github.com/bevyengine/bevy/pull/2331 is merged
     pub global_transform: GlobalTransform,
@@ -229,7 +247,8 @@ pub fn create_board(
                 tile_map: BoardTileMap {
                     map: tile_map.clone(),
                     map_name: map_name.to_string(),
-                    submitted_map: None
+                    submitted_map: None,
+                    current_trains: Vec::new(),
                 },
                 entities: BoardEntities {
                     tiles: HashMap::new(),
@@ -249,6 +268,7 @@ pub fn create_board(
                 texture: default(),
                 visibility: default(),
                 computed_visibility: default(),
+                board_tick_status: default(),
             });
 
             

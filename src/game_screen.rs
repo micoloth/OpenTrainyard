@@ -53,7 +53,7 @@ impl Plugin for MainGamePlugin {
                 SystemSet::on_update(GameState::Playing)
                 .with_system(spawn_tile)
                 .with_system(create_board)
-                .with_system(logic_tick_event)
+                .with_system(logic_tick_redraw)
                 .with_system(change_tick_speed)
                 .with_system(listen_to_game_state_changes)
                 //////////// INTERACTIONS:
@@ -74,7 +74,7 @@ impl Plugin for MainGamePlugin {
                 .with_system(move_trains)   
             )
             .add_event::<TileSpawnEvent>()
-            .add_event::<LogicTickEvent>()
+            .add_event::<RedrawTrainsEvent>()
             .add_event::<DoubleClickEvent>()
             .add_event::<TileHoverEvent>()
             .add_event::<ScrollBarLimits>()
