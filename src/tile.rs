@@ -56,8 +56,6 @@ pub fn spawn_tile(
             let coordinates = Coordinates { x: trigger_event.x as u16, y: trigger_event.y as u16,};
             let t = trigger_event.new_tile;
 
-            board_tilemap.map[coordinates.y as usize][coordinates.x as usize] = t;
-            
             // get entity by coordinates using hashmap
             let old_entity: Option<Entity> = board_entities.tiles.get(&coordinates).cloned();
             if let Some(old_entity) = old_entity {

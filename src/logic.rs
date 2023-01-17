@@ -55,11 +55,6 @@ pub enum TickMoment {
     TickEnd,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RedrawTrainsEvent {
-    pub tiles: Vec<Vec<Tile>>,
-    pub trains: Vec<Train>,
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DoubleClickEvent {
@@ -156,6 +151,7 @@ pub fn tile_hover_event(
                                 if new_tile != old_tile {
                                     board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
                                     let event = TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile, prev_tile: Some(old_tile)};
+                                    board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
                                     spawn_event.send(event.clone());
                                     hoverable.history.push(event);
                                 }
@@ -174,6 +170,7 @@ pub fn tile_hover_event(
                             if new_tile != old_tile {
                                 board_tile_map.map[p_new.y as usize][p_new.x as usize] = new_tile;
                                 let event = TileSpawnEvent{x: p_new.x as usize, y: p_new.y as usize, new_tile, prev_tile: Some(old_tile)};
+                                board_tile_map.map[p_new.y as usize][p_new.x as usize] = new_tile;
                                 spawn_event.send(event.clone());
                                 hoverable.history.push(event);
                             }
@@ -235,11 +232,11 @@ pub fn double_click_mouse(
 
 pub fn double_click_event(
     windows: Res<Windows>, 
-    mut board_q: Query<(&BoardDimensions, &BoardTileMap, &mut BoardHoverable, &BoardGameState), With<Board>>, 
+    mut board_q: Query<(&BoardDimensions, &mut BoardTileMap, &mut BoardHoverable, &BoardGameState), With<Board>>, 
     mut event_reader: EventReader<DoubleClickEvent>,
     mut spawn_event: EventWriter<TileSpawnEvent>
 ) {
-    for (board_dimensions, board_tile_map, mut board_hoverable, hovering_state) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
+    for (board_dimensions, mut board_tile_map, mut board_hoverable, hovering_state) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
         for ev in event_reader.iter() {
             let window = windows.get_primary().expect("no primary window");
             let window_size = Vec2::new(window.width(), window.height());
@@ -254,6 +251,7 @@ pub fn double_click_event(
             // println!("  >>FLIPPED {:?}", newtile);
             if let Some(tile_) = newtile {
                 let event = TileSpawnEvent { x: pos.x as usize, y: pos.y as usize, new_tile: tile_, prev_tile: Some(tile) };
+                board_tile_map.map[pos.y as usize][pos.x as usize] = tile_;
                 spawn_event.send(event.clone());
                 board_hoverable.history.push(event);
 
@@ -267,41 +265,29 @@ pub fn listen_to_game_state_changes(
     mut commands: Commands,
     mut board_q: Query<(Entity, &BoardDimensions, &mut BoardTileMap,  &mut BoardHoverable, &BoardGameState, &mut BoardTickStatus), (With<Board>, Changed<BoardGameState>)>,
     mut trains_q: Query<(Entity, &Train)>,
-    mut spawn_event: EventWriter<TileSpawnEvent>,
+    mut spawn_event: EventWriter<RedrawEvent>,
 
 ) {
     for (board_id, board_dimensions, mut board_tilemap, mut board_hoverable, hovering_state, mut tick_status) in board_q.iter_mut() {
         match *hovering_state {
             BoardGameState::Running(RunningState::Started) => {
-                // Despawn all trains sprites: (ACTUALLY THERE SHOULD BE NONE)
-                for (train_id, _) in trains_q.iter_mut() {
-                    if let Some(id) = commands.get_entity(train_id) { id.despawn_recursive();}
-                }
-                // Set solved_tilemap  to a clone of the current tilemap:
-                board_tilemap.submitted_map = Some(board_tilemap.map.clone());
-                // Set tick state to 0:
-                tick_status.current_tick = 10000000000;
+                board_tilemap.current_trains = Vec::new();
+                board_tilemap.submitted_map = board_tilemap.map.clone();
+                tick_status.current_tick = 10000000;
                 tick_status.first_half = true;
+                // Send redraw event:
+                // spawn_event.send(RedrawEvent {tiles: board_tilemap.map.clone(), trains: board_tilemap.current_trains.clone()});
+                // Set solved_tilemap  to a clone of the current tilemap:
+                // Set tick state to 0:
             },
             BoardGameState::Drawing => {
-                // Despawn all trains sprites: 
-                for (train_id, _) in trains_q.iter_mut() {
-                    if let Some(id) = commands.get_entity(train_id) { id.despawn_recursive();}
-                }
+                board_tilemap.current_trains = Vec::new();
                 // RESET the board to Solved_map if it exists:
-                if let Some(solved_map) = board_tilemap.submitted_map.clone() {
-                    for (y, line) in solved_map.iter().enumerate() {
-                        for (x, tile) in line.iter().enumerate() {
-                            if tile != &board_tilemap.map[y][x] {
-                                spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile, prev_tile: Some(board_tilemap.map[y][x]) });
-                            }
-                        }
-                    }
-                }
-                board_tilemap.submitted_map = None;
+                println!(">>>>>Current trains: {:?}", board_tilemap.current_trains.len());
+                board_tilemap.map = board_tilemap.submitted_map.clone();
+                spawn_event.send(RedrawEvent {tiles: board_tilemap.map.clone(), trains: board_tilemap.current_trains.clone()});
             },
             BoardGameState::Erasing => {
-                board_tilemap.submitted_map = None;
             },
             _ => {}
         }
@@ -316,49 +302,6 @@ pub fn listen_to_game_state_changes(
 
 
 
-pub fn logic_tick_redraw(
-    mut commands: Commands,
-    train_assets: Res<TrainAssets>,
-    mut board_q: Query<(Entity, &BoardDimensions, &BoardTileMap, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
-    trains_q: Query<(Entity, &Train)>,
-    mut tick_params: ResMut<TicksInATick>,
-    mut evt: EventReader<RedrawTrainsEvent>,
-    mut spawn_event: EventWriter<TileSpawnEvent>,
-    //GameScreenState resource:
-) {
-    for trigger_event in evt.iter() {
-        for (board_id, board_dimensions, board_tilemap, mut hovering_state, mut tick_status) in board_q.iter_mut() {
-            // Despawn all trains sprites and save the train in current_trains: 
-            match *hovering_state { BoardGameState::Running(_) => {}, _ => {continue;}}
-
-            // Remove all train sprites:
-            for (train_entity, train) in trains_q.iter() {
-                let mut board_entity = commands.entity(board_id);  // Get entity by id:
-                board_entity.remove_children(&[train_entity]);
-                if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
-            }
-            
-            // spawnn all trains:
-            for train in trigger_event.trains {
-                let child_id = make_train(train, &mut commands, &train_assets, &board_dimensions, tick_status.current_tick as f32 / tick_params.ticks as f32);
-                let mut board_entity = commands.entity(board_id);  // Get entity by id:
-                board_entity.push_children(&[child_id]);// add the child to the parent
-            };
-
-            // pretty_print_map(&new_tilemap);
-            // Send an event to spawn all changed tiles:
-            for (y, line) in trigger_event.trains.enumerate() {
-                for (x, tile) in line.iter().enumerate() {
-                    if tile != &board_tilemap.map[y][x] {
-                        spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile, prev_tile: Some(board_tilemap.map[y][x]) });
-                    }
-                }
-            }
-        }
-    }
-}
-
-
 pub fn logic_tick_core(board_tilemap: &BoardTileMap, trigger_event: TickMoment, mut hovering_state: BoardGameState) -> (Vec<Vec<Tile>>, Vec<Train>){ 
 
     let crashed;
@@ -366,7 +309,10 @@ pub fn logic_tick_core(board_tilemap: &BoardTileMap, trigger_event: TickMoment, 
     let mut new_tilemap: Vec<Vec<Tile>>;
     let mut new_trains: Vec<Train>;
     
-    (new_tilemap, new_trains) = (board_tilemap.map.clone(), board_tilemap.current_trains);
+    //Print current trains:
+    println!("Current trains: {:?}", board_tilemap.current_trains.len());
+    
+    (new_tilemap, new_trains) = (board_tilemap.map.clone(), board_tilemap.current_trains.clone());
     
     if trigger_event == TickMoment::TickEnd  || trigger_event == TickMoment::TickBegin {
         (new_tilemap, new_trains) = go_to_towards_side(new_trains, new_tilemap);
@@ -390,7 +336,11 @@ pub fn logic_tick_core(board_tilemap: &BoardTileMap, trigger_event: TickMoment, 
         (new_tilemap, new_trains) = do_center_coloring_things(new_trains, new_tilemap);
     }
     else{
-        panic!("Unknown RedrawTrainsEvent: for now we dont use {:?}", trigger_event);
+        panic!("Unknown RedrawEvent: for now we dont use {:?}", trigger_event);
+    }
+    // If len of new_trains is 0 print it:
+    if new_trains.len() == 0 {
+        println!(">>How can POSSIBLY be there no trains...");
     }
     return (new_tilemap, new_trains)
 

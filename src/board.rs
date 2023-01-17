@@ -13,6 +13,11 @@ use crate::all_puzzles_clean::*;
 use crate::logic::TicksInATick;
 
 use std::collections::HashMap;
+
+use crate::loading::TrainAssets;
+use crate::train::make_train;
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // COMPONENTS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +85,7 @@ pub struct Board;
 #[derive(Debug, Component)]
 pub struct BoardTileMap {
     pub map: Vec<Vec<Tile>>,
-    pub submitted_map: Option<Vec<Vec<Tile>>>,
+    pub submitted_map: Vec<Vec<Tile>>,
     pub map_name: String,
     pub current_trains: Vec<Train>
 }
@@ -88,14 +93,14 @@ pub struct BoardTileMap {
 pub struct BoardEntities {
     pub tiles: HashMap<Coordinates, Entity>,
 }
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum RunningState {
     // Used to track the hovering_state of the mouse hovering over a tile
     Started,
     Won,
     Crashed,
 }
-#[derive(Debug, PartialEq, Eq, Component)]
+#[derive(Debug, PartialEq, Eq, Component, Copy, Clone)]
 pub enum BoardGameState {
     // Used to track the hovering_state of the mouse hovering over a tile
     Erasing,
@@ -178,6 +183,14 @@ pub enum BoardEvent {
     Delete,
 }
 
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RedrawEvent {
+    pub tiles: Vec<Vec<Tile>>,
+    pub trains: Vec<Train>,
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -197,7 +210,7 @@ pub fn create_board(
     mut commands: Commands,
     board_options: Res<BoardOptionsDefault>,
     windows: Res<Windows>,
-    mut spawn_event: EventWriter<TileSpawnEvent>,
+    mut spawn_event: EventWriter<RedrawEvent>,
     levels: Res<PuzzlesData>,
     mut board_event_reader: EventReader<BoardEvent>,
 ) {
@@ -247,7 +260,7 @@ pub fn create_board(
                 tile_map: BoardTileMap {
                     map: tile_map.clone(),
                     map_name: map_name.to_string(),
-                    submitted_map: None,
+                    submitted_map: tile_map.clone(),
                     current_trains: Vec::new(),
                 },
                 entities: BoardEntities {
@@ -273,16 +286,10 @@ pub fn create_board(
 
             
             // Launch event to spawn each tile
-            for (y, line) in tile_map.iter().enumerate() {
-                for (x, tile) in line.iter().enumerate() {
-                    spawn_event.send(TileSpawnEvent {
-                        x,
-                        y,
-                        new_tile: *tile,
-                        prev_tile: None
-                    });
-                }
-            }
+            spawn_event.send(RedrawEvent {
+                tiles: tile_map,
+                trains: Vec::new(),
+            });
         },
         _ => {}
     }
@@ -304,6 +311,55 @@ pub fn cleanup_board(
                 }
             },
             _ => {}
+        }
+    }
+}
+
+
+
+
+pub fn logic_tick_redraw(
+    mut commands: Commands,
+    train_assets: Res<TrainAssets>,
+    mut board_q: Query<(Entity, &BoardDimensions, &mut BoardTileMap, &mut BoardGameState, &mut BoardTickStatus, BoardEntities), With<Board>>,
+    trains_q: Query<(Entity, &Train)>,
+    mut tick_params: ResMut<TicksInATick>,
+    mut evt: EventReader<RedrawEvent>,
+    mut spawn_event: EventWriter<TileSpawnEvent>,
+    //GameScreenState resource:
+) {
+    for trigger_event in evt.iter() {
+        for (board_id, board_dimensions, mut board_tilemap, mut hovering_state, mut tick_status) in board_q.iter_mut() {
+            // Despawn all trains sprites and save the train in current_trains: 
+            
+            println!("REDRAWING TRAINS: {:?} at tick {:?}", trigger_event.trains.len(), tick_status.current_tick);
+            
+            // Remove all train sprites:
+            for (train_entity, train) in trains_q.iter() {
+                let mut board_entity = commands.entity(board_id);  // Get entity by id:
+                board_entity.remove_children(&[train_entity]);
+                if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
+            }
+            
+            match *hovering_state { BoardGameState::Running(_) => {}, _ => {continue;}}
+
+            // spawnn all trains:
+            for train in trigger_event.trains.iter() {
+                let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, tick_status.current_tick as f32 / tick_params.ticks as f32);
+                let mut board_entity = commands.entity(board_id);  // Get entity by id:
+                board_entity.push_children(&[child_id]);// add the child to the parent
+            };
+
+            // pretty_print_map(&new_tilemap);
+            // Send an event to spawn all changed tiles:
+            for (y, line) in trigger_event.tiles.iter().enumerate() {
+                for (x, tile) in line.iter().enumerate() {
+                    if tile !=  {
+                        spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile, prev_tile: Some(board_tilemap.map[y][x]) });
+                        board_tilemap.map[y as usize][x as usize] = *tile;
+                    }
+                }
+            }
         }
     }
 }

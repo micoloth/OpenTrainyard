@@ -74,7 +74,7 @@ impl Plugin for MainGamePlugin {
                 .with_system(move_trains)   
             )
             .add_event::<TileSpawnEvent>()
-            .add_event::<RedrawTrainsEvent>()
+            .add_event::<RedrawEvent>()
             .add_event::<DoubleClickEvent>()
             .add_event::<TileHoverEvent>()
             .add_event::<ScrollBarLimits>()
@@ -260,12 +260,12 @@ fn click_undo_button(
         (Changed<Interaction>, With<Button>, With<UndoButton>),
         >,
     mut spawn_event: EventWriter<TileSpawnEvent>,
-    mut board_q: Query<(Entity, &mut BoardHoverable, &BoardGameState), With<Board>>,
+    mut board_q: Query<(Entity, &mut BoardHoverable, &BoardGameState, &mut BoardTileMap), With<Board>>,
 ) {
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                for (_, mut board_hoverable, hovering_state) in board_q.iter_mut() {
+                for (_, mut board_hoverable, hovering_state, mut board_tile_map) in board_q.iter_mut() {
                     // if hovering_state is Running, continue:
                     if let BoardGameState::Running(_) = *hovering_state {continue;}
                     println!("TRIGGERED UNDO! {:?}", board_hoverable.history.history);
@@ -273,6 +273,7 @@ fn click_undo_button(
                     if let Some(TileSpawnEvent { x, y, new_tile, prev_tile }) = last_event {
                         if let Some(prev_tile) = prev_tile {
                             spawn_event.send(TileSpawnEvent { x, y, new_tile: prev_tile, prev_tile: None });
+                            board_tile_map.map[y as usize][x as usize] = prev_tile;
                         }
                     }
                 }
