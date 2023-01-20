@@ -13,9 +13,10 @@ use partial_application::partial;
 // COMPONENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Bundle, Default)]
+#[derive(Bundle)]
 pub struct TileSpriteBundle {
     pub coordinates: Coordinates, // Tile coordinates
+    pub tile: Tile, // Tile type
 
     // Flattened SpriteBundle #[bundle] : SO NICE!!
     pub sprite: Sprite,
@@ -31,12 +32,15 @@ pub struct TileSpriteBundle {
 /////////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Debug, Clone)]
-pub struct TileSpawnEvent {
+pub struct TileSpawnData {  // It was called Event!
     pub x: usize,
     pub y: usize,
     pub new_tile: Tile,
     pub prev_tile: Option<Tile>,
 }
+// mut evt: EventReader<TileSpawnEvent>,
+// mut spawn_event: EventWriter<TileSpawnEvent>,
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
@@ -45,34 +49,29 @@ pub struct TileSpawnEvent {
 pub fn spawn_tile(
     mut commands: Commands,
     board_assets_map: Res<TileAssets>,
-    mut board_q: Query<(Entity, &BoardDimensions, &mut BoardEntities, &mut BoardTileMap), With<Board>>,
-    mut evt: EventReader<TileSpawnEvent>,
+    mut board_q: Query<(Entity, &BoardDimensions, &BoardTileMap, &Children), (With<Board>, Changed<BoardTileMap>)>,
+    tile_q: Query<(Entity, &Coordinates, &mut Tile)>,
 ) {
-    for (board_id, board_dimensions, mut board_entities, mut board_tilemap) in board_q.iter_mut() {
-        if let None = commands.get_entity(board_id) {continue;}
-        for trigger_event in evt.iter() {
-            let mut board_entity = commands.entity(board_id);  // Get entity by id:
-            let size = board_dimensions.tile_size;
-            let coordinates = Coordinates { x: trigger_event.x as u16, y: trigger_event.y as u16,};
-            let t = trigger_event.new_tile;
-
-            board_tilemap.map[coordinates.y as usize][coordinates.x as usize] = t;
-            
-            // get entity by coordinates using hashmap
-            let old_entity: Option<Entity> = board_entities.tiles.get(&coordinates).cloned();
-            if let Some(old_entity) = old_entity {
-                board_entity.remove_children(&[old_entity]);
-                board_entities.tiles.remove(&coordinates);
-                if let Some(t) = commands.get_entity(old_entity) {t.despawn_recursive();}
-        }
-            
-            // let child_id=  make_tile(t, &mut commands, &board_assets_map.assets, size, coordinates);
-            let child_id = make_tile(t, &mut commands, &board_assets_map, size, coordinates);
-            
-            let mut board_entity = commands.entity(board_id);  // Get entity by id:
-            board_entity.push_children(&[child_id]);// add the child to the parent
-            board_entities.tiles.insert(coordinates, child_id); // add the child to the hashmap:
-            
+    for (board_id, board_dimensions, board_tilemap, children) in board_q.iter_mut() {
+        // `children` is a collection of Entity IDs
+        for &child in children.iter() {
+            // get the health of each child unit
+            if let Ok((tile_entity, coordinates, tile)) = tile_q.get(child)
+            {
+                if board_tilemap.map[coordinates.y as usize][coordinates.x as usize] != *tile {
+                    // Remove parent/child relationship:
+                    commands.entity(board_id).remove_children(&[tile_entity]);
+                    // despawn tile entity:
+                    commands.entity(tile_entity).despawn_recursive();
+                    // Create new tile:
+                    let size = board_dimensions.tile_size;
+                    let coordinates = Coordinates { x: coordinates.x as u16, y: coordinates.y as u16,};
+                    let newtile = board_tilemap.map[coordinates.y as usize][coordinates.x as usize];
+                    let child_id = make_tile(newtile, &mut commands, &board_assets_map, size, coordinates);
+                    // Append to parent/child relationship:
+                    commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
+                }
+            }
         }
     }
 }
@@ -398,7 +397,7 @@ fn add_funnels_minitile_children(
     });
 }
 
-fn make_tile(
+pub fn make_tile(
     t: Tile,
     commands: &mut Commands,
     assets: &TileAssets,
@@ -412,7 +411,11 @@ fn make_tile(
         coordinates, // Tile coordinates
         texture: texture,
         transform: transform.with_translation(Vec3::new(transl_x, transl_y, 2.)),
-        ..default()
+        tile: t,
+        sprite: default(),
+        global_transform: default(),
+        visibility: default(),
+        computed_visibility: default(),
     });
     if let Tile::StartTile { dir, elems , orig_len} = t {
         child

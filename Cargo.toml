@@ -28,6 +28,7 @@ bevy_kira_audio = { version = "0.13" }
 bevy_asset_loader = { version = "0.14.1" }
 rand = { version = "0.8.3" }
 partial_application = "0.2.1"
+# iyes_loopless = {version = "0.9.1", default-features = false, features = ["bevy-compat", "fixedtimestep", "states"] }
 
 # keep the following in sync with Bevy's dependencies
 winit = { version = "0.27.4", default-features = false }

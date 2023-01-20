@@ -103,7 +103,7 @@ pub fn get_track_option(t: Track) -> TrackOptions {
     else if (t == Track{t_: false, b_: true, l_: false, r_: true}) {TrackOptions::BR}
     else {panic!("Whaat {:?}", t)}
 }
-#[derive(Debug, Clone, PartialEq, Eq, Copy)] pub enum Tile {
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Component)] pub enum Tile {
     TrackTile{toptrack: Track, bottrack: Track},
     SingleTrackTile{track: Track},
     EmptyTile,

@@ -5,12 +5,17 @@ use bevy::prelude::*;
 use crate::simulator::{Tile, parse_map};
 use crate::utils::Coordinates;
 
-use crate::tile::TileSpawnEvent;
+use crate::tile::{TileSpawnData, make_tile};
+
+use crate::simulator::Train;
 
 use crate::all_puzzles_clean::*;
 use crate::logic::TicksInATick;
 
-use std::collections::HashMap;
+use crate::loading::{TrainAssets, TileAssets};
+use crate::train::make_train;
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // COMPONENTS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -78,21 +83,18 @@ pub struct Board;
 #[derive(Debug, Component)]
 pub struct BoardTileMap {
     pub map: Vec<Vec<Tile>>,
-    pub submitted_map: Option<Vec<Vec<Tile>>>,
+    pub submitted_map: Vec<Vec<Tile>>,
     pub map_name: String,
+    pub current_trains: Vec<Train>
 }
-#[derive(Debug, Component)]
-pub struct BoardEntities {
-    pub tiles: HashMap<Coordinates, Entity>,
-}
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum RunningState {
     // Used to track the hovering_state of the mouse hovering over a tile
     Started,
     Won,
     Crashed,
 }
-#[derive(Debug, PartialEq, Eq, Component)]
+#[derive(Debug, PartialEq, Eq, Component, Copy, Clone)]
 pub enum BoardGameState {
     // Used to track the hovering_state of the mouse hovering over a tile
     Erasing,
@@ -107,12 +109,12 @@ impl Default for BoardGameState {
 }
 #[derive(Debug, Default)]
 pub struct History {
-    pub history: Vec<TileSpawnEvent>,
+    pub history: Vec<TileSpawnData>,
 }
 // Implement the Push function:
-// When receiving a TileSpawnEvent, we push it to the history, and REMOVE the oldest one if the history is OVER 50 items
+// When receiving a TileSpawnData, we push it to the history, and REMOVE the oldest one if the history is OVER 50 items
 impl History {
-    pub fn push(&mut self, item: TileSpawnEvent) {
+    pub fn push(&mut self, item: TileSpawnData) {
         self.history.push(item);
         if self.history.len() > 50 {
             self.history.remove(0);
@@ -125,6 +127,29 @@ pub struct BoardHoverable {
     pub hovered_pos_2: Option<Coordinates>,
     pub history: History
 }
+
+// Enum First half, second half or None:
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+pub enum Section {
+    First,
+    Second,
+    NotEvenBegun,  
+}
+
+#[derive(Debug, Component)]
+pub struct BoardTickStatus {
+    pub current_tick: u32,
+    pub first_half: Section,
+}
+// impl default:
+impl Default for BoardTickStatus {
+    fn default() -> Self {
+        Self {
+            current_tick: 0,
+            first_half: Section::NotEvenBegun,
+        }
+    }
+}
 #[derive(Debug, Component, Clone, Copy, Default)]
 pub struct BoardDimensions {
     // We use serde to allow saving option presets and loading them at runtime
@@ -136,10 +161,11 @@ pub struct BoardDimensions {
 pub struct BoardBundle {
     pub board: Board,
     pub tile_map: BoardTileMap,
-    pub entities: BoardEntities,
+    // pub entities: BoardEntities,
     pub hoverable: BoardHoverable,
     pub options: BoardDimensions,
     pub hovering_state: BoardGameState,
+    pub board_tick_status: BoardTickStatus,
     // Flattened SpriteBundle #[bundle] : SO NICE!!
     pub transform: Transform, // This component is required until https://github.com/bevyengine/bevy/pull/2331 is merged
     pub global_transform: GlobalTransform,
@@ -160,6 +186,16 @@ pub enum BoardEvent {
     Delete,
 }
 
+
+// ChangeGameStateEvent:
+#[derive(Debug, Clone)]
+pub struct ChangeGameStateEvent {
+    pub new_state: BoardGameState,
+    pub old_state: BoardGameState,
+}
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -177,9 +213,9 @@ pub struct PuzzleData {
 // System to generate the complete board
 pub fn create_board(
     mut commands: Commands,
+    board_assets_map: Res<TileAssets>,
     board_options: Res<BoardOptionsDefault>,
     windows: Res<Windows>,
-    mut spawn_event: EventWriter<TileSpawnEvent>,
     levels: Res<PuzzlesData>,
     mut board_event_reader: EventReader<BoardEvent>,
 ) {
@@ -222,17 +258,15 @@ pub fn create_board(
             // println!("board_dimensions.position: {:?}", board_dimensions.position);
 
             // We add the main resource of the game, the board
-            commands.spawn(BoardBundle {
+            let board_entity = commands.spawn(BoardBundle {
                 board: Board,
                 transform: Transform::from_translation(board_dimensions.position), // This component is required until
                 // global_transform: GlobalTransform::default(),
                 tile_map: BoardTileMap {
                     map: tile_map.clone(),
                     map_name: map_name.to_string(),
-                    submitted_map: None
-                },
-                entities: BoardEntities {
-                    tiles: HashMap::new(),
+                    submitted_map: tile_map.clone(),
+                    current_trains: Vec::new(),
                 },
                 hoverable: BoardHoverable {
                     hovered_pos_1: None,
@@ -249,18 +283,17 @@ pub fn create_board(
                 texture: default(),
                 visibility: default(),
                 computed_visibility: default(),
-            });
+                board_tick_status: default(),
+            }).id();
 
             
-            // Launch event to spawn each tile
+            // Send an event to spawn all tiles:
             for (y, line) in tile_map.iter().enumerate() {
                 for (x, tile) in line.iter().enumerate() {
-                    spawn_event.send(TileSpawnEvent {
-                        x,
-                        y,
-                        new_tile: *tile,
-                        prev_tile: None
-                    });
+                    let coordinates = Coordinates { x: x as u16, y: y as u16,};
+                    let child_id = make_tile(*tile, &mut commands, &board_assets_map, board_dimensions.tile_size, coordinates);
+                    
+                    commands.entity(board_entity).push_children(&[child_id]);// add the child to the parent
                 }
             }
         },
@@ -280,10 +313,19 @@ pub fn cleanup_board(
             BoardEvent::Delete => {
                 // Delete all boards:
                 for board_id in board_q.iter() {
-                    if let Some(id) = commands.get_entity(board_id) { id.despawn_recursive();}
+                    if let Some(entity) = commands.get_entity(board_id) { 
+                        entity.despawn_recursive();
+                    }
                 }
             },
             _ => {}
         }
     }
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// HELPER FUNCTIONS
+/////////////////////////////////////////////////////////////////////////////////////
+
+

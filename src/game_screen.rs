@@ -52,8 +52,9 @@ impl Plugin for MainGamePlugin {
                 //////////// MAIN LOGIC:
                 SystemSet::on_update(GameState::Playing)
                 .with_system(spawn_tile)
+                .with_system(spawn_trains)
+                .with_system(move_trains)   
                 .with_system(create_board)
-                .with_system(logic_tick_event)
                 .with_system(change_tick_speed)
                 .with_system(listen_to_game_state_changes)
                 //////////// INTERACTIONS:
@@ -71,14 +72,13 @@ impl Plugin for MainGamePlugin {
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-                .with_system(move_trains)   
+                .with_system(logic_tick)   
             )
-            .add_event::<TileSpawnEvent>()
-            .add_event::<LogicTickEvent>()
             .add_event::<DoubleClickEvent>()
             .add_event::<TileHoverEvent>()
             .add_event::<ScrollBarLimits>()
             .add_event::<BoardEvent>()
+            .add_event::<ChangeGameStateEvent>()
             ;
     }
 }
@@ -128,8 +128,6 @@ pub struct LevelNameElem;
 /////////////////////////////////////////////////////////////////////////////////////
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
-
-
 
 
 
@@ -232,18 +230,20 @@ fn click_erase_button(
         (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<EraseStateButton>),
         >,
-    mut board_q: Query<(Entity, &mut BoardHoverable, &mut BoardGameState), With<Board>>,
+    mut change_board_game_state_event_writer: EventWriter<ChangeGameStateEvent>,
+    mut board_q: Query<(Entity, &mut BoardHoverable, &BoardGameState), With<Board>>,
 ) {
     for (interaction, _) in &mut interaction_query {
-        for (_, _, mut hovering_state) in board_q.iter_mut() {
+        for (_, _, hovering_state) in board_q.iter_mut() {
             match *interaction {
                 Interaction::Clicked => {
                     match *hovering_state {
                         BoardGameState::Erasing =>{
-                            *hovering_state = BoardGameState::Drawing;
+                            change_board_game_state_event_writer.send(ChangeGameStateEvent { new_state: BoardGameState::Drawing, old_state: BoardGameState::Erasing });
+
                         },
                         BoardGameState::Drawing => {
-                            *hovering_state = BoardGameState::Erasing;
+                            change_board_game_state_event_writer.send(ChangeGameStateEvent { new_state: BoardGameState::Erasing, old_state: BoardGameState::Drawing });
                         },
                         _ => {}
                     };
@@ -259,20 +259,18 @@ fn click_undo_button(
         (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<UndoButton>),
         >,
-    mut spawn_event: EventWriter<TileSpawnEvent>,
-    mut board_q: Query<(Entity, &mut BoardHoverable, &BoardGameState), With<Board>>,
+    mut board_q: Query<(Entity, &mut BoardHoverable, &BoardGameState, &mut BoardTileMap), With<Board>>,
 ) {
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                for (_, mut board_hoverable, hovering_state) in board_q.iter_mut() {
+                for (_, mut board_hoverable, hovering_state, mut board_tile_map) in board_q.iter_mut() {
                     // if hovering_state is Running, continue:
                     if let BoardGameState::Running(_) = *hovering_state {continue;}
-                    println!("TRIGGERED UNDO! {:?}", board_hoverable.history.history);
                     let last_event = board_hoverable.history.history.pop();
-                    if let Some(TileSpawnEvent { x, y, new_tile, prev_tile }) = last_event {
+                    if let Some(TileSpawnData { x, y, new_tile, prev_tile }) = last_event {
                         if let Some(prev_tile) = prev_tile {
-                            spawn_event.send(TileSpawnEvent { x, y, new_tile: prev_tile, prev_tile: None });
+                            board_tile_map.map[y as usize][x as usize] = prev_tile;
                         }
                     }
                 }
@@ -284,19 +282,21 @@ fn click_undo_button(
 
 fn click_run_button(
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<RunButton>),>,
-    mut board_q: Query<(Entity, &mut BoardHoverable, &mut BoardGameState), With<Board>>,
+    mut board_q: Query<(Entity, &mut BoardHoverable, &BoardGameState), With<Board>>,
+    mut change_board_game_state_event_writer: EventWriter<ChangeGameStateEvent>,
+
 ) {
     for interaction in &mut interaction_query {
-        for (_, _, mut hovering_state) in board_q.iter_mut() {
+        for (_, _, hovering_state) in board_q.iter_mut() {
             match *interaction {
                 Interaction::Clicked => {
                     println!("TRIGGERED RUN!");
                     match *hovering_state {
                         BoardGameState::Erasing | BoardGameState::Drawing =>{
-                            *hovering_state = BoardGameState::Running(RunningState::Started);
+                            change_board_game_state_event_writer.send(ChangeGameStateEvent { new_state: BoardGameState::Running(RunningState::Started), old_state: *hovering_state });
                         },
                         BoardGameState::Running(_) => {
-                            *hovering_state = BoardGameState::Drawing;
+                            change_board_game_state_event_writer.send(ChangeGameStateEvent { new_state: BoardGameState::Drawing, old_state: *hovering_state });
                         },
                     };
                 }

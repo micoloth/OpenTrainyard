@@ -7,6 +7,7 @@ use crate::board::*;
 use crate::logic::*;
 use crate::loading::TrainAssets;
 
+
 ////////////////////////////////////////////////////////////////////////////////////
 // COMPONENTS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -46,30 +47,51 @@ impl Default for TrainBundle {
 pub fn move_trains(
     mut trains_q: Query<(&mut Train, &mut Transform)>, 
     // windows: Res<Windows>,
-    board_q: Query<(&BoardDimensions, &BoardHoverable, &BoardGameState), With<Board>>,
-    mut tick_status: ResMut<TicksInATick>,
-    mut logic_tick_event: EventWriter<LogicTickEvent>) {
+    mut board_q: Query<(&BoardDimensions, &BoardGameState, &mut BoardTickStatus), With<Board>>,
+    tick_params: ResMut<TicksInATick>,
+    ) {
         
-    for (board_dimensions, board_hoverable, hovering_state) in board_q.iter() {    // Really, there's just 1 board
-        if tick_status.locked_waiting_for_tick_event {return;}
-        // If board_hoverable.hovering_state is NOT running, return:
-        match hovering_state { BoardGameState::Running(_) => {}, _ => {return;}}
+    for (board_dimensions, game_state, tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
+        match game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
         for (train, mut transform) in trains_q.iter_mut() {
-            *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_status.ticks as f32));
+            *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_params.ticks as f32));
+            // println!("Getting train transform: {:?},  at tick: {:?}", train, tick_status.current_tick);
         }
     }
-    tick_status.current_tick += 1;
-    if tick_status.current_tick >= tick_status.ticks {
-        tick_status.current_tick = 0;
-        tick_status.locked_waiting_for_tick_event = true;
-        tick_status.first_half = true;
-        logic_tick_event.send(LogicTickEvent::TickEnd);
-    } else if tick_status.current_tick >= ((tick_status.ticks as f32 / 2.) as u32)  && tick_status.first_half {
-        logic_tick_event.send(LogicTickEvent::TickMiddle);
-        tick_status.locked_waiting_for_tick_event = true;
-        tick_status.first_half = false;
+}
+
+
+
+pub fn spawn_trains(
+    mut commands: Commands,
+    train_assets: Res<TrainAssets>,
+    tick_params: ResMut<TicksInATick>,
+    mut board_q: Query<(Entity, &BoardDimensions, &BoardTileMap, &Children, &BoardGameState, &BoardTickStatus), (With<Board>, Changed<BoardTileMap>)>,
+    trains_q: Query<(Entity, &Train)>,
+) {
+    for (board_id, board_dimensions, board_tilemap, children, game_state, board_tick_status) in board_q.iter_mut() {
+        // `children` is a collection of Entity IDs
+        for &child in children.iter() {
+            // get the health of each child unit
+            if let Ok((train_entity, train)) = trains_q.get(child)
+            {
+                let mut board_entity = commands.entity(board_id);  // Get entity by id:
+                board_entity.remove_children(&[train_entity]);
+                if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
+            }
+        }
+        match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
+        // spawnn all trains:
+        for train in board_tilemap.current_trains.iter() {
+            // println!("SPAWING train: {:?},  at tick: {:?}", train, board_tick_status.current_tick);
+            let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, board_tick_status.current_tick as f32 / tick_params.ticks as f32);
+            commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
+        }
     }
 }
+
+
+
 
 
 
