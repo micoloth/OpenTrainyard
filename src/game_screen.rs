@@ -52,6 +52,7 @@ impl Plugin for MainGamePlugin {
                 //////////// MAIN LOGIC:
                 SystemSet::on_update(GameState::Playing)
                 .with_system(spawn_tile)
+                .with_system(spawn_trains)
                 .with_system(create_board)
                 // .with_system(spawn_trains)  // ???
                 .with_system(change_tick_speed)

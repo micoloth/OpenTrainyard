@@ -315,48 +315,8 @@ pub fn cleanup_board(
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////
+// HELPER FUNCTIONS
+/////////////////////////////////////////////////////////////////////////////////////
 
 
-// pub fn logic_tick_redraw(
-//     mut commands: Commands,
-//     train_assets: Res<TrainAssets>,
-//     mut board_q: Query<(Entity, &BoardDimensions, &mut BoardTileMap, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
-//     trains_q: Query<(Entity, &Train)>,
-//     mut tick_params: ResMut<TicksInATick>,
-//     mut evt: EventReader<RedrawEvent>,
-//     mut spawn_event: EventWriter<TileSpawnEvent>,
-//     //GameScreenState resource:
-// ) {
-//     for trigger_event in evt.iter() {
-//         for (board_id, board_dimensions, mut board_tilemap, mut hovering_state, mut tick_status) in board_q.iter_mut() {
-//             // Despawn all trains sprites and save the train in current_trains: 
-            
-//             println!("REDRAWING TRAINS: {:?} at tick {:?}", trigger_event.trains.len(), tick_status.current_tick);
-            
-//             // Remove all train sprites:
-//             for (train_entity, train) in trains_q.iter() {
-//                 let mut board_entity = commands.entity(board_id);  // Get entity by id:
-//                 board_entity.remove_children(&[train_entity]);
-//                 if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
-//             }
-            
-//             match *hovering_state { BoardGameState::Running(_) => {}, _ => {continue;}}
-
-//             // spawnn all trains:
-//             for train in trigger_event.trains.iter() {
-//                 let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, tick_status.current_tick as f32 / tick_params.ticks as f32);
-//                 let mut board_entity = commands.entity(board_id);  // Get entity by id:
-//                 board_entity.push_children(&[child_id]);// add the child to the parent
-//             };
-
-//             // pretty_print_map(&new_tilemap);
-//             // Send an event to spawn all changed tiles:
-//             for (y, line) in trigger_event.tiles.iter().enumerate() {
-//                 for (x, tile) in line.iter().enumerate() {
-//                     spawn_event.send(TileSpawnEvent { x, y, new_tile: *tile, prev_tile: Some(board_tilemap.map[y][x]) });
-//                     board_tilemap.map[y as usize][x as usize] = *tile;
-//                 }
-//             }
-//         }
-//     }
-// }

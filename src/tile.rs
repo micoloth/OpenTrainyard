@@ -52,7 +52,6 @@ pub fn spawn_tile(
     mut board_q: Query<(Entity, &BoardDimensions, &BoardTileMap, &Children), (With<Board>, Changed<BoardTileMap>)>,
     tile_q: Query<(Entity, &Coordinates, &mut Tile)>,
 ) {
-    // get the properties of each squad
     for (board_id, board_dimensions, board_tilemap, children) in board_q.iter_mut() {
         // `children` is a collection of Entity IDs
         for &child in children.iter() {
@@ -63,7 +62,7 @@ pub fn spawn_tile(
                     // Remove parent/child relationship:
                     commands.entity(board_id).remove_children(&[tile_entity]);
                     // despawn tile entity:
-                    commands.entity(tile_entity).despawn();
+                    commands.entity(tile_entity).despawn_recursive();
                     // Create new tile:
                     let size = board_dimensions.tile_size;
                     let coordinates = Coordinates { x: coordinates.x as u16, y: coordinates.y as u16,};
