@@ -178,13 +178,6 @@ pub enum BoardEvent {
 }
 
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RedrawEvent {
-    pub tiles: Vec<Vec<Tile>>,
-    pub trains: Vec<Train>,
-}
-
-
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -205,7 +198,6 @@ pub fn create_board(
     board_assets_map: Res<TileAssets>,
     board_options: Res<BoardOptionsDefault>,
     windows: Res<Windows>,
-    mut spawn_event: EventWriter<RedrawEvent>,
     levels: Res<PuzzlesData>,
     mut board_event_reader: EventReader<BoardEvent>,
 ) {
@@ -248,7 +240,7 @@ pub fn create_board(
             // println!("board_dimensions.position: {:?}", board_dimensions.position);
 
             // We add the main resource of the game, the board
-            let mut board_entity = commands.spawn(BoardBundle {
+            let board_entity = commands.spawn(BoardBundle {
                 board: Board,
                 transform: Transform::from_translation(board_dimensions.position), // This component is required until
                 // global_transform: GlobalTransform::default(),
@@ -274,7 +266,7 @@ pub fn create_board(
                 visibility: default(),
                 computed_visibility: default(),
                 board_tick_status: default(),
-            });
+            }).id();
 
             
             // Send an event to spawn all tiles:
@@ -283,7 +275,7 @@ pub fn create_board(
                     let coordinates = Coordinates { x: x as u16, y: y as u16,};
                     let child_id = make_tile(*tile, &mut commands, &board_assets_map, board_dimensions.tile_size, coordinates);
                     
-                    board_entity.push_children(&[child_id]);// add the child to the parent
+                    commands.entity(board_entity).push_children(&[child_id]);// add the child to the parent
                 }
             }
         },

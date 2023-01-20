@@ -49,20 +49,19 @@ pub struct TileSpawnData {  // It was called Event!
 pub fn spawn_tile(
     mut commands: Commands,
     board_assets_map: Res<TileAssets>,
-    mut board_q: Query<(Entity, &BoardDimensions, &mut BoardTileMap, &Children), (With<Board>, Changed<BoardTileMap>)>,
-    mut tile_q: Query<(Entity, &Coordinates, &mut Tile)>,
+    mut board_q: Query<(Entity, &BoardDimensions, &BoardTileMap, &Children), (With<Board>, Changed<BoardTileMap>)>,
+    tile_q: Query<(Entity, &Coordinates, &mut Tile)>,
 ) {
     // get the properties of each squad
-    for (board_id, board_dimensions, mut board_tilemap, children) in board_q.iter_mut() {
+    for (board_id, board_dimensions, board_tilemap, children) in board_q.iter_mut() {
         // `children` is a collection of Entity IDs
         for &child in children.iter() {
             // get the health of each child unit
             if let Ok((tile_entity, coordinates, tile)) = tile_q.get(child)
             {
                 if board_tilemap.map[coordinates.x as usize][coordinates.y as usize] != *tile {
-                    let mut board_entity = commands.entity(board_id);  // Get entity by id:
                     // Remove parent/child relationship:
-                    board_entity.remove_children(&[tile_entity]);
+                    commands.entity(board_id).remove_children(&[tile_entity]);
                     // despawn tile entity:
                     commands.entity(tile_entity).despawn();
                     // Create new tile:
@@ -70,7 +69,7 @@ pub fn spawn_tile(
                     let coordinates = Coordinates { x: coordinates.x as u16, y: coordinates.y as u16,};
                     let child_id = make_tile(*tile, &mut commands, &board_assets_map, size, coordinates);
                     // Append to parent/child relationship:
-                    board_entity.push_children(&[child_id]);// add the child to the parent
+                    commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
                 }
             }
         }
@@ -412,7 +411,11 @@ pub fn make_tile(
         coordinates, // Tile coordinates
         texture: texture,
         transform: transform.with_translation(Vec3::new(transl_x, transl_y, 2.)),
-        ..default()
+        tile: t,
+        sprite: default(),
+        global_transform: default(),
+        visibility: default(),
+        computed_visibility: default(),
     });
     if let Tile::StartTile { dir, elems , orig_len} = t {
         child

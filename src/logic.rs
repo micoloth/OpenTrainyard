@@ -253,7 +253,6 @@ pub fn listen_to_game_state_changes(
     mut commands: Commands,
     mut board_q: Query<(Entity, &BoardDimensions, &mut BoardTileMap,  &mut BoardHoverable, &BoardGameState, &mut BoardTickStatus), (With<Board>, Changed<BoardGameState>)>,
     mut trains_q: Query<(Entity, &Train)>,
-    mut spawn_event: EventWriter<RedrawEvent>,
 
 ) {
     for (board_id, board_dimensions, mut board_tilemap, mut board_hoverable, hovering_state, mut tick_status) in board_q.iter_mut() {
@@ -273,7 +272,6 @@ pub fn listen_to_game_state_changes(
                 // RESET the board to Solved_map if it exists:
                 println!(">>>>>Current trains: {:?}", board_tilemap.current_trains.len());
                 board_tilemap.map = board_tilemap.submitted_map.clone();
-                spawn_event.send(RedrawEvent {tiles: board_tilemap.map.clone(), trains: board_tilemap.current_trains.clone()});
             },
             BoardGameState::Erasing => {
             },

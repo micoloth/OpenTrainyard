@@ -49,7 +49,7 @@ pub fn move_trains(
     // windows: Res<Windows>,
     mut board_q: Query<(&mut BoardTileMap, &BoardDimensions, &BoardGameState, &mut BoardTickStatus), With<Board>>,
     tick_params: ResMut<TicksInATick>,
-    mut logic_tick_event: EventWriter<RedrawEvent>) {
+    ) {
         
     for (mut board_tilemap, board_dimensions, game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
         // If board_hoverable.game_state is NOT running, continue:
@@ -59,11 +59,9 @@ pub fn move_trains(
             tick_status.current_tick = 0;
             tick_status.first_half = true;
             (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, *game_state).clone();
-            logic_tick_event.send(RedrawEvent {tiles: board_tilemap.map.clone(), trains: board_tilemap.current_trains.clone()});
         } else if tick_status.current_tick >= ((tick_params.ticks as f32 / 2.) as u32)  && tick_status.first_half {
             tick_status.first_half = false;
             (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle, *game_state);
-            logic_tick_event.send(RedrawEvent {tiles: board_tilemap.map.clone(), trains: board_tilemap.current_trains.clone()});
         }
         for (train, mut transform) in trains_q.iter_mut() {
             *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_params.ticks as f32));
