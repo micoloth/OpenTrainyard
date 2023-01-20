@@ -77,6 +77,7 @@ impl Plugin for MainGamePlugin {
             .add_event::<TileHoverEvent>()
             .add_event::<ScrollBarLimits>()
             .add_event::<BoardEvent>()
+            .add_event::<ChangeGameStateEvent>()
             ;
     }
 }

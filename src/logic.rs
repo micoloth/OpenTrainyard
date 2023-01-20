@@ -272,7 +272,9 @@ pub fn listen_to_game_state_changes(
                         board_tilemap.map = board_tilemap.submitted_map.clone();
                         *hovering_state = ev.new_state;
                     },
-                _ => {}
+                _ => {
+                    *hovering_state = ev.new_state;
+                }
             }
         }
     }
