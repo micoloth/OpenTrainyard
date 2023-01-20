@@ -67,7 +67,8 @@ pub fn spawn_tile(
                     // Create new tile:
                     let size = board_dimensions.tile_size;
                     let coordinates = Coordinates { x: coordinates.x as u16, y: coordinates.y as u16,};
-                    let child_id = make_tile(*tile, &mut commands, &board_assets_map, size, coordinates);
+                    let newtile = board_tilemap.map[coordinates.x as usize][coordinates.y as usize];
+                    let child_id = make_tile(newtile, &mut commands, &board_assets_map, size, coordinates);
                     // Append to parent/child relationship:
                     commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
                 }

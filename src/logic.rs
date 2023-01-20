@@ -144,8 +144,8 @@ pub fn tile_hover_event(
                                 let track_option = match track_option { None => continue, Some(b) => b, };
                                 let old_tile = board_tile_map.map[p_central.y as usize][p_central.x as usize];
                                 let new_tile = get_new_tile_from_track_option(board_tile_map.map[p_central.y as usize][p_central.x as usize], track_option);
-                                // Print it: 
                                 if new_tile != old_tile {
+                                    // Print it: 
                                     board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
                                     hoverable.history.push(TileSpawnData{x: p_central.x as usize, y: p_central.y as usize, new_tile, prev_tile: Some(old_tile)});
                                 }
