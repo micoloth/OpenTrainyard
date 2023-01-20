@@ -1,5 +1,5 @@
+
 use bevy::prelude::*;
-use crate::loading::TrainAssets;
 
 #[derive(Component)]
 pub struct Player;
@@ -12,10 +12,8 @@ use bevy::utils::Instant;
 use crate::utils::Coordinates;
 use crate::board::*;
 
-use crate::game_screen::GameScreenState;
 
-use crate::tile::TileSpawnEvent;
-use crate::train::make_train;
+use crate::tile::TileSpawnData;
 
 use crate::menu_utils::ScrollBarLimits;
 
@@ -126,7 +124,6 @@ pub fn tile_hover_mouse(mouse_input: Res<Input<MouseButton>>, windows: Res<Windo
 pub fn tile_hover_event(
         mut board_q: Query<(&BoardDimensions, &mut BoardHoverable, &mut BoardTileMap, &BoardGameState), With<Board>>, 
         mut hover_event: EventReader<TileHoverEvent>,
-        mut spawn_event: EventWriter<TileSpawnEvent>,
     ) {
     for ev in hover_event.iter() {
         // Match the 2 types of event:
@@ -150,10 +147,7 @@ pub fn tile_hover_event(
                                 // Print it: 
                                 if new_tile != old_tile {
                                     board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
-                                    let event = TileSpawnEvent{x: p_central.x as usize, y: p_central.y as usize, new_tile, prev_tile: Some(old_tile)};
-                                    board_tile_map.map[p_central.y as usize][p_central.x as usize] = new_tile;
-                                    spawn_event.send(event.clone());
-                                    hoverable.history.push(event);
+                                    hoverable.history.push(TileSpawnData{x: p_central.x as usize, y: p_central.y as usize, new_tile, prev_tile: Some(old_tile)});
                                 }
                             }
                             else if hoverable.hovered_pos_1.is_none() {hoverable.hovered_pos_1 = Some(pos); }
@@ -169,10 +163,7 @@ pub fn tile_hover_event(
                             };
                             if new_tile != old_tile {
                                 board_tile_map.map[p_new.y as usize][p_new.x as usize] = new_tile;
-                                let event = TileSpawnEvent{x: p_new.x as usize, y: p_new.y as usize, new_tile, prev_tile: Some(old_tile)};
-                                board_tile_map.map[p_new.y as usize][p_new.x as usize] = new_tile;
-                                spawn_event.send(event.clone());
-                                hoverable.history.push(event);
+                                hoverable.history.push(TileSpawnData{x: p_new.x as usize, y: p_new.y as usize, new_tile, prev_tile: Some(old_tile)});
                             }
                         },
                         BoardGameState::Running(_) => {},
@@ -234,7 +225,6 @@ pub fn double_click_event(
     windows: Res<Windows>, 
     mut board_q: Query<(&BoardDimensions, &mut BoardTileMap, &mut BoardHoverable, &BoardGameState), With<Board>>, 
     mut event_reader: EventReader<DoubleClickEvent>,
-    mut spawn_event: EventWriter<TileSpawnEvent>
 ) {
     for (board_dimensions, mut board_tile_map, mut board_hoverable, hovering_state) in board_q.iter_mut() { // It's never more than 1, but can very well be 0
         for ev in event_reader.iter() {
@@ -250,10 +240,8 @@ pub fn double_click_event(
             let newtile = get_new_tile_from_flipping(tile);
             // println!("  >>FLIPPED {:?}", newtile);
             if let Some(tile_) = newtile {
-                let event = TileSpawnEvent { x: pos.x as usize, y: pos.y as usize, new_tile: tile_, prev_tile: Some(tile) };
                 board_tile_map.map[pos.y as usize][pos.x as usize] = tile_;
-                spawn_event.send(event.clone());
-                board_hoverable.history.push(event);
+                board_hoverable.history.push(TileSpawnData { x: pos.x as usize, y: pos.y as usize, new_tile: tile_, prev_tile: Some(tile) });
 
             }
         }

@@ -53,7 +53,7 @@ impl Plugin for MainGamePlugin {
                 SystemSet::on_update(GameState::Playing)
                 .with_system(spawn_tile)
                 .with_system(create_board)
-                .with_system(logic_tick_redraw)
+                // .with_system(spawn_trains)  // ???
                 .with_system(change_tick_speed)
                 .with_system(listen_to_game_state_changes)
                 //////////// INTERACTIONS:
@@ -73,8 +73,6 @@ impl Plugin for MainGamePlugin {
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
                 .with_system(move_trains)   
             )
-            .add_event::<TileSpawnEvent>()
-            .add_event::<RedrawEvent>()
             .add_event::<DoubleClickEvent>()
             .add_event::<TileHoverEvent>()
             .add_event::<ScrollBarLimits>()
@@ -259,7 +257,6 @@ fn click_undo_button(
         (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<UndoButton>),
         >,
-    mut spawn_event: EventWriter<TileSpawnEvent>,
     mut board_q: Query<(Entity, &mut BoardHoverable, &BoardGameState, &mut BoardTileMap), With<Board>>,
 ) {
     for (interaction, mut color) in &mut interaction_query {
@@ -270,9 +267,8 @@ fn click_undo_button(
                     if let BoardGameState::Running(_) = *hovering_state {continue;}
                     println!("TRIGGERED UNDO! {:?}", board_hoverable.history.history);
                     let last_event = board_hoverable.history.history.pop();
-                    if let Some(TileSpawnEvent { x, y, new_tile, prev_tile }) = last_event {
+                    if let Some(TileSpawnData { x, y, new_tile, prev_tile }) = last_event {
                         if let Some(prev_tile) = prev_tile {
-                            spawn_event.send(TileSpawnEvent { x, y, new_tile: prev_tile, prev_tile: None });
                             board_tile_map.map[y as usize][x as usize] = prev_tile;
                         }
                     }
