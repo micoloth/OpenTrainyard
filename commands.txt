@@ -27,3 +27,9 @@ Browser: ./build_wasm.sh and open public/index.html in a browser
 cd OpenTrainyard
 
 trunk serve
+
+TODO: 
+ - Fix bug entities deletion (board + trains not disappearing)
+ - main menu !!
+ - train sprites  
+ - Music 
