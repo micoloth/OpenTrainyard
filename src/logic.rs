@@ -18,7 +18,6 @@ use crate::tile::TileSpawnData;
 use crate::menu_utils::ScrollBarLimits;
 
 
-
 ////////////////////////////////////////////////////////////////////////////////////
 // COMPONENTS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -250,32 +249,31 @@ pub fn double_click_event(
 
 
 pub fn listen_to_game_state_changes(
-    mut commands: Commands,
-    mut board_q: Query<(Entity, &BoardDimensions, &mut BoardTileMap,  &mut BoardHoverable, &BoardGameState, &mut BoardTickStatus), (With<Board>, Changed<BoardGameState>)>,
-    mut trains_q: Query<(Entity, &Train)>,
+    mut board_q: Query<(&mut BoardTileMap,  &mut BoardHoverable, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
+    mut change_board_game_state_event_reader: EventReader<ChangeGameStateEvent>,
 
 ) {
-    for (board_id, board_dimensions, mut board_tilemap, mut board_hoverable, hovering_state, mut tick_status) in board_q.iter_mut() {
-        match *hovering_state {
-            BoardGameState::Running(RunningState::Started) => {
-                board_tilemap.current_trains = Vec::new();
-                board_tilemap.submitted_map = board_tilemap.map.clone();
-                tick_status.current_tick = 10000000;
-                tick_status.first_half = true;
-                // Send redraw event:
-                // spawn_event.send(RedrawEvent {tiles: board_tilemap.map.clone(), trains: board_tilemap.current_trains.clone()});
-                // Set solved_tilemap  to a clone of the current tilemap:
-                // Set tick state to 0:
-            },
-            BoardGameState::Drawing => {
-                board_tilemap.current_trains = Vec::new();
-                // RESET the board to Solved_map if it exists:
-                println!(">>>>>Current trains: {:?}", board_tilemap.current_trains.len());
-                board_tilemap.map = board_tilemap.submitted_map.clone();
-            },
-            BoardGameState::Erasing => {
-            },
-            _ => {}
+    // For each event:
+    for ev in change_board_game_state_event_reader.iter() {
+        for (mut board_tilemap, mut board_hoverable, mut hovering_state, mut tick_status) in board_q.iter_mut() {
+            match *ev {
+                ChangeGameStateEvent{old_state: _, new_state: BoardGameState::Running(_) }=> {
+                        board_tilemap.current_trains = Vec::new();
+                        board_tilemap.submitted_map = board_tilemap.map.clone();
+                        tick_status.current_tick = 10000000;
+                        tick_status.first_half = true;
+                        *hovering_state = ev.new_state;
+
+                },
+                ChangeGameStateEvent{old_state: BoardGameState::Running(_), new_state: _  }=> {
+                        board_tilemap.current_trains = Vec::new();
+                        // RESET the board to Solved_map if it exists:
+                        println!(">>>>>Current trains: {:?}", board_tilemap.current_trains.len());
+                        board_tilemap.map = board_tilemap.submitted_map.clone();
+                        *hovering_state = ev.new_state;
+                    },
+                _ => {}
+            }
         }
     }
 }

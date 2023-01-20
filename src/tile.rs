@@ -59,7 +59,7 @@ pub fn spawn_tile(
             // get the health of each child unit
             if let Ok((tile_entity, coordinates, tile)) = tile_q.get(child)
             {
-                if board_tilemap.map[coordinates.x as usize][coordinates.y as usize] != *tile {
+                if board_tilemap.map[coordinates.y as usize][coordinates.x as usize] != *tile {
                     // Remove parent/child relationship:
                     commands.entity(board_id).remove_children(&[tile_entity]);
                     // despawn tile entity:
@@ -67,7 +67,7 @@ pub fn spawn_tile(
                     // Create new tile:
                     let size = board_dimensions.tile_size;
                     let coordinates = Coordinates { x: coordinates.x as u16, y: coordinates.y as u16,};
-                    let newtile = board_tilemap.map[coordinates.x as usize][coordinates.y as usize];
+                    let newtile = board_tilemap.map[coordinates.y as usize][coordinates.x as usize];
                     let child_id = make_tile(newtile, &mut commands, &board_assets_map, size, coordinates);
                     // Append to parent/child relationship:
                     commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
