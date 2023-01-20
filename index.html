@@ -14,8 +14,13 @@
         <link rel="manifest" href="manifest.json">
         <link rel="icon" href="icon.ico">
         <style type="text/css">body, html {
-    width: 100%;
-    /* height: 100%; */}
+    position: fixed; 
+    width:100%; 
+    height:100%; 
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+}
 
 body {
     background: linear-gradient(
@@ -46,9 +51,9 @@ body {
 }
 </style>
     
-<link rel="preload" href="/OpenTrainyard/trainyard-4ead0b1fec5a51ff_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/OpenTrainyard/trainyard-4ead0b1fec5a51ff.js"></head>
-    <body style="position: fixed; width:100%; height:100%; overflow: hidden;">
+<link rel="preload" href="/OpenTrainyard/trainyard-ff204831302ccdf3_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/OpenTrainyard/trainyard-ff204831302ccdf3.js"></head>
+    <body>
         <script>// Insert hack to make sound autoplay on Chrome as soon as the user interacts with the tab:
 // https://developers.google.com/web/updates/2018/11/web-audio-autoplay#moving-forward
 
@@ -128,4 +133,4 @@ body {
         </div>
     
 
-<script type="module">import init from '/OpenTrainyard/trainyard-4ead0b1fec5a51ff.js';init('/OpenTrainyard/trainyard-4ead0b1fec5a51ff_bg.wasm');</script></body></html>
+<script type="module">import init from '/OpenTrainyard/trainyard-ff204831302ccdf3.js';init('/OpenTrainyard/trainyard-ff204831302ccdf3_bg.wasm');</script></body></html>
