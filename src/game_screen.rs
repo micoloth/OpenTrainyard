@@ -53,8 +53,8 @@ impl Plugin for MainGamePlugin {
                 SystemSet::on_update(GameState::Playing)
                 .with_system(spawn_tile)
                 .with_system(spawn_trains)
+                .with_system(move_trains)   
                 .with_system(create_board)
-                // .with_system(spawn_trains)  // ???
                 .with_system(change_tick_speed)
                 .with_system(listen_to_game_state_changes)
                 //////////// INTERACTIONS:
@@ -72,7 +72,7 @@ impl Plugin for MainGamePlugin {
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-                .with_system(move_trains)   
+                .with_system(logic_tick)   
             )
             .add_event::<DoubleClickEvent>()
             .add_event::<TileHoverEvent>()

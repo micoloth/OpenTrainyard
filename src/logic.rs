@@ -84,7 +84,9 @@ pub fn change_tick_speed(
             // Find the fratction of the tick currently elapsed:
             let fraction = board_tick_status.current_tick as f32 / tick_params.ticks as f32;
             // Set the current tick to the same fraction of the new tick count:
-            board_tick_status.current_tick = (tick_params.ticks as f32 * fraction) as u32;
+            let current = tick_params.ticks as f32 * fraction;
+            // Ceil it:
+            board_tick_status.current_tick = current.ceil() as u32;
             println!("Tick speed changed to {}", tick_params.ticks);
         }
     }
@@ -260,8 +262,8 @@ pub fn listen_to_game_state_changes(
                 ChangeGameStateEvent{old_state: _, new_state: BoardGameState::Running(_) }=> {
                         board_tilemap.current_trains = Vec::new();
                         board_tilemap.submitted_map = board_tilemap.map.clone();
-                        tick_status.current_tick = 10000000;
-                        tick_status.first_half = true;
+                        tick_status.current_tick = 0;
+                        tick_status.first_half = Section::NotEvenBegun;
                         *hovering_state = ev.new_state;
 
                 },
@@ -283,9 +285,33 @@ pub fn listen_to_game_state_changes(
 
 
 
+pub fn logic_tick(
+    mut trains_q: Query<(&mut Train, &mut Transform)>, 
+    // windows: Res<Windows>,
+    mut board_q: Query<(&mut BoardTileMap, &BoardDimensions, &BoardGameState, &mut BoardTickStatus), With<Board>>,
+    tick_params: ResMut<TicksInATick>,
+    ) {
+        
+    for (mut board_tilemap, board_dimensions, game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
+        // If board_hoverable.game_state is NOT running, continue:
+        match game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
+        if (tick_status.current_tick >= tick_params.ticks || tick_status.current_tick == 0) && (tick_status.first_half == Section::Second || tick_status.first_half == Section::NotEvenBegun) {
+            tick_status.current_tick = 0;
+            // println!("Tick now 0");
+            tick_status.first_half = Section::First;
+            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, *game_state).clone();
+        } else if tick_status.current_tick >= ((tick_params.ticks as f32 / 2.) as u32)  && tick_status.first_half == Section::First {
+            tick_status.first_half = Section::Second;
+            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle, *game_state);
+        }
+        tick_status.current_tick += 1;
+    }
+}
 
 
-
+/////////////////////////////////////////////////////////////////////////////////////
+// HELPER FUNCTIONS
+/////////////////////////////////////////////////////////////////////////////////////
 
 
 pub fn logic_tick_core(board_tilemap: &BoardTileMap, trigger_event: TickMoment, mut hovering_state: BoardGameState) -> (Vec<Vec<Tile>>, Vec<Train>){ 
@@ -294,9 +320,6 @@ pub fn logic_tick_core(board_tilemap: &BoardTileMap, trigger_event: TickMoment, 
     let completed;
     let mut new_tilemap: Vec<Vec<Tile>>;
     let mut new_trains: Vec<Train>;
-    
-    //Print current trains:
-    println!("Current trains: {:?}", board_tilemap.current_trains.len());
     
     (new_tilemap, new_trains) = (board_tilemap.map.clone(), board_tilemap.current_trains.clone());
     
@@ -324,20 +347,9 @@ pub fn logic_tick_core(board_tilemap: &BoardTileMap, trigger_event: TickMoment, 
     else{
         panic!("Unknown RedrawEvent: for now we dont use {:?}", trigger_event);
     }
-    // If len of new_trains is 0 print it:
-    if new_trains.len() == 0 {
-        println!(">>How can POSSIBLY be there no trains...");
-    }
     return (new_tilemap, new_trains)
 
 }
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-// HELPER FUNCTIONS
-/////////////////////////////////////////////////////////////////////////////////////
 
 
 

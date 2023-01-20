@@ -127,17 +127,26 @@ pub struct BoardHoverable {
     pub hovered_pos_2: Option<Coordinates>,
     pub history: History
 }
+
+// Enum First half, second half or None:
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+pub enum Section {
+    First,
+    Second,
+    NotEvenBegun,  
+}
+
 #[derive(Debug, Component)]
 pub struct BoardTickStatus {
     pub current_tick: u32,
-    pub first_half: bool,
+    pub first_half: Section,
 }
 // impl default:
 impl Default for BoardTickStatus {
     fn default() -> Self {
         Self {
             current_tick: 0,
-            first_half: true,
+            first_half: Section::NotEvenBegun,
         }
     }
 }

@@ -47,24 +47,15 @@ impl Default for TrainBundle {
 pub fn move_trains(
     mut trains_q: Query<(&mut Train, &mut Transform)>, 
     // windows: Res<Windows>,
-    mut board_q: Query<(&mut BoardTileMap, &BoardDimensions, &BoardGameState, &mut BoardTickStatus), With<Board>>,
+    mut board_q: Query<(&BoardDimensions, &BoardGameState, &mut BoardTickStatus), With<Board>>,
     tick_params: ResMut<TicksInATick>,
     ) {
         
-    for (mut board_tilemap, board_dimensions, game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
-        // If board_hoverable.game_state is NOT running, continue:
+    for (board_dimensions, game_state, tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
         match game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
-        tick_status.current_tick += 1;
-        if tick_status.current_tick >= tick_params.ticks {
-            tick_status.current_tick = 0;
-            tick_status.first_half = true;
-            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, *game_state).clone();
-        } else if tick_status.current_tick >= ((tick_params.ticks as f32 / 2.) as u32)  && tick_status.first_half {
-            tick_status.first_half = false;
-            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle, *game_state);
-        }
         for (train, mut transform) in trains_q.iter_mut() {
             *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_params.ticks as f32));
+            // println!("Getting train transform: {:?},  at tick: {:?}", train, tick_status.current_tick);
         }
     }
 }
@@ -79,7 +70,6 @@ pub fn spawn_trains(
     trains_q: Query<(Entity, &Train)>,
 ) {
     for (board_id, board_dimensions, board_tilemap, children, game_state, board_tick_status) in board_q.iter_mut() {
-        match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
         // `children` is a collection of Entity IDs
         for &child in children.iter() {
             // get the health of each child unit
@@ -90,8 +80,10 @@ pub fn spawn_trains(
                 if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
             }
         }
+        match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
         // spawnn all trains:
         for train in board_tilemap.current_trains.iter() {
+            // println!("SPAWING train: {:?},  at tick: {:?}", train, board_tick_status.current_tick);
             let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, board_tick_status.current_tick as f32 / tick_params.ticks as f32);
             commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
         }
