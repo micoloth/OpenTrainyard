@@ -17,6 +17,8 @@ use crate::logic::TicksInATick;
 use crate::menu_utils::*;
 use crate::all_puzzles_clean::*;
 
+use crate::utils::SelectedLevel;
+
 
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 120.0;
@@ -175,6 +177,7 @@ fn init_gmae(
     mut game_screen_state: ResMut<GameScreenState>,
     // BoardEvent event writer:
     mut board_event_writer: EventWriter<BoardEvent>,
+    selected_level: Res<SelectedLevel>,
     // Query existing boards:
     board_q: Query<Entity, With<Board>>,
     levels: Res<PuzzlesData>,
@@ -187,7 +190,7 @@ fn init_gmae(
     // Button colors:
     button_colors: Res<ButtonColors>,
 ) {
-    change_level("Boomerang".to_string(), &mut game_screen_state, &levels, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
+    change_level(selected_level.level.clone(), &mut game_screen_state, &levels, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
 }
 
 fn click_nextlevel_button(
