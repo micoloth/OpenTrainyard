@@ -107,16 +107,18 @@ const SCROLLWHEEL_SPEED_MULTIPLIER: f32 = 5.;
 
 // Listen to scrollwheenl events:
 fn scroll_events_levels_mouse(
+    mut commands: Commands,
     mut scroll_evr: EventReader<MouseWheel>,
     mut button_query: Query<&mut Style,(With<Button>, With<LevelButton>),>,
 ) {
     use bevy::input::mouse::MouseScrollUnit;
     for ev in scroll_evr.iter() {
+        let vy = match ev.unit {
+            MouseScrollUnit::Line => {ev.y * SCROLLWHEEL_SPEED_MULTIPLIER}
+            MouseScrollUnit::Pixel => {ev.y}
+        };
+        if vy.abs() > 0. {make_border(&mut commands,  Color::rgb(0., 130./255., 0.));}
         for mut style in button_query.iter_mut() {
-            let vy = match ev.unit {
-                MouseScrollUnit::Line => {ev.y * SCROLLWHEEL_SPEED_MULTIPLIER}
-                MouseScrollUnit::Pixel => {ev.y}
-            };
             style.position.top = style.position.top.try_add(Val::Px(vy)).unwrap();
         }
     }
@@ -128,6 +130,7 @@ const TOUCH_SWIPE_SPEED_DECAY: f32 = 0.05;
 
 // Listen to scrollwheenl events:
 fn scroll_events_levels_touch(
+    mut commands: Commands,
     touches: Res<Touches>, 
     mut current_vy: Local<Option<f32>>,
     mut button_query: Query<&mut Style,(With<Button>, With<LevelButton>),>,
@@ -140,6 +143,7 @@ fn scroll_events_levels_touch(
     for finger in touches.iter() {
         // Get finger movement delta:
         *current_vy = Some(finger.delta().y);
+        if finger.delta().y > 0. {make_border(&mut commands,  Color::rgb(0., 130./255., 0.));}
     }
     if let Some(vy) = current_vy.as_ref() {
         for mut style in button_query.iter_mut() {
