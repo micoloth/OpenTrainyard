@@ -2,7 +2,6 @@ use crate::GameState;
 use bevy::prelude::*;
 
 use crate::loading::FontAssets;
-use crate::menu_utils::*;
 
 use crate::loading::TileAssets;
 
@@ -23,8 +22,6 @@ impl Plugin for MenuPlugin {
         app.init_resource::<ButtonColors>()
             .add_system_set(SystemSet::on_enter(GameState::MenuTitle).with_system(setup_menu))
             .add_system_set(SystemSet::on_update(GameState::MenuTitle).with_system(click_play_button))
-            .add_system_set(SystemSet::on_update(GameState::MenuTitle).with_system(scrollbar_input_handler))
-            .add_system_set(SystemSet::on_update(GameState::MenuTitle).with_system(scrollbar_dragging_handler))
             .add_system_set(SystemSet::on_exit(GameState::MenuTitle).with_system(cleanup_menu));
     }
 }

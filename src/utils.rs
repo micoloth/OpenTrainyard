@@ -5,7 +5,12 @@ use bevy::prelude::*;
 use std::ops::{Add, Sub};
 
 
-
+// SelectedLevel resource:
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Resource)] 
+pub struct SelectedLevel {
+    pub level: String,
+    pub city: String
+}
 
 #[cfg_attr(feature = "debug", derive(bevy_inspector_egui::Inspectable))]
 #[derive(Debug, Copy, Default, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component)]

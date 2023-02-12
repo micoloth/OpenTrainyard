@@ -11,7 +11,8 @@ use winit::window::Icon;
 
 // mod audio;
 mod loading;
-mod menu;
+mod menu_title;
+mod menu_levels;
 mod utils;
 mod tile;
 mod train;
@@ -23,8 +24,10 @@ mod all_puzzles_clean;
 
 // use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
-use crate::menu::MenuPlugin;
+use crate::menu_title::MenuPlugin;
+use crate::menu_levels::MenuLevelsPlugin;
 use crate::menu_utils::button_color_handler;
+use crate::utils::SelectedLevel;
 
 use crate::all_puzzles_clean::load_puzzles_data;
 
@@ -66,8 +69,11 @@ enum GameState {
     Playing,
     // Here the menu is drawn and waiting for player interaction
     MenuTitle,
+    MenuLevels,
     // Menu
 }
+
+
 
 fn setup_camera(mut commands: Commands) {
     // commands.spawn(OrthographicCameraBundle::new_2d());  // 2D orthographic camera
@@ -79,17 +85,19 @@ fn setup_camera(mut commands: Commands) {
 fn main() {
     // test();
     App::new()
-        // .insert_resource(Msaa { samples: 1 })
+        // .insert_resource(Msaa { samples: 0 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
-            window: WindowDescriptor {width: 360.,height: 550.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()), ..default()},
+            window: WindowDescriptor {width: 320.,height: 550.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()), ..default()},
             ..default()
-          }))
+        }).set(ImagePlugin::default_nearest()))
         .add_startup_system(setup_camera) // Startup system (cameras)
         .add_startup_system(set_window_icon)
         .insert_resource(load_puzzles_data())
+        .insert_resource(SelectedLevel{level: "".to_string(), city: "".to_string()})
         .add_plugin(LoadingPlugin)
         .add_plugin(MenuPlugin)
+        .add_plugin(MenuLevelsPlugin)
         .add_plugin(MenuMainGame)
         // .add_plugin(InternalAudioPlugin)
         .add_plugin(MainGamePlugin)
