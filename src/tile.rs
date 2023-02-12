@@ -397,6 +397,9 @@ fn add_funnels_minitile_children(
     });
 }
 
+const START_POSS: [i32; 7] = [0, 45, 90, 135, 180, 225, 270];  // In case it's not clear, this is starts = [((0:6) .* (46 - 1))...]
+
+
 pub fn make_tile(
     t: Tile,
     commands: &mut Commands,
@@ -405,7 +408,8 @@ pub fn make_tile(
     coordinates: Coordinates,
 ) -> Entity {
     // Translate the tile to the right position:
-    let (transl_x, transl_y) = ((coordinates.x as f32 * big_tile_size) + (big_tile_size / 2.), ((6 - coordinates.y) as f32 * big_tile_size) + (big_tile_size / 2.));
+    // let (transl_x, transl_y) = ((coordinates.x as f32 * big_tile_size) + (big_tile_size / 2.), ((6 - coordinates.y) as f32 * big_tile_size) + (big_tile_size / 2.));
+    let (transl_x, transl_y) =  (START_POSS[coordinates.x as usize] as f32 + (big_tile_size / 2.), START_POSS[6 - coordinates.y as usize] as f32 + (big_tile_size / 2.));
     let (texture, transform) = get_transform_and_texture(t, assets);
     let mut child = commands.spawn(TileSpriteBundle {
         coordinates, // Tile coordinates
@@ -434,7 +438,6 @@ pub fn make_tile(
             );
     } else if let Tile::PaintTile { track, c } = t {
         child.with_children(|parent| {
-            let size = ((40 - 6) as f32) / 46. * big_tile_size;
             let inner = get_asset(format!("p_{}.png", colorz_to_long_str(c)), assets);
             parent.spawn(SpriteBundle {
                 texture: inner,

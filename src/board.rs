@@ -62,7 +62,7 @@ pub fn get_board_option_default() -> BoardOptionsDefault {
         // tile_size: TileSize::Adaptive,
         tile_size: TileSize::Fixed(46.),
         position: BoardPosition::Centered {
-            offset: Vec3::new(0., 25., 0.),
+            offset: Vec3::new(3., 25., 0.),
         },
     }
 }

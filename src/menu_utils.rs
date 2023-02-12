@@ -288,10 +288,6 @@ pub fn make_button(
     },
     ButtonData{text: text.clone()})
     );
-    // Insert new component to the bundle: ButtonData{text: text.clone()}
-
-
-
     ec.with_children(|parent| {
         parent.spawn(TextBundle {
             text: Text {
@@ -314,6 +310,10 @@ pub fn make_button(
     }
     return ec.id();
 }
+
+
+
+
 
 pub fn make_border(commands: &mut Commands, color: Color) {
     // Draw a UiImage that has only a border, no fill. The border is yellow. It should be AS BIG AS THE SCREEN.
