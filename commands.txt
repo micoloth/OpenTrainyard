@@ -6,7 +6,7 @@ cd 5_bevy_minesweeper
 
 cargo install -f wasm-bindgen-cli --version 0.2.79
 
-cargo serve
+# cargo serve
 
 cargo run
 
@@ -28,8 +28,19 @@ cd OpenTrainyard
 
 trunk serve
 
+
+################ Released:
+
+https://micoloth.github.io/OpenTrainyard/
+
 TODO: 
- - Fix bug entities deletion (board + trains not disappearing)
+ - DONE Fix bug entities deletion (board + trains not disappearing)
  - main menu !!
+ - Border pixel in tile placement
  - train sprites  
- - Music 
+ - z index of split and start and stop
+ - Music
+ - bevy_pkv !!! 
+ - tutorial, in theory......
+
+
