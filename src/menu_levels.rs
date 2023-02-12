@@ -27,12 +27,13 @@ impl Plugin for MenuLevelsPlugin {
         app.init_resource::<ButtonColors>()
             .init_resource::<ClickPosition>()
             .add_system_set(SystemSet::on_enter(GameState::MenuLevels).with_system(setup_menu_levels))
-            .add_system_set(SystemSet::on_update(GameState::MenuLevels).with_system(click_play_button_levels))
-            .add_system_set(SystemSet::on_update(GameState::MenuLevels).with_system(scroll_events_levels_mouse))
-            .add_system_set(SystemSet::on_update(GameState::MenuLevels).with_system(scroll_events_levels_touch))
-            .add_system_set(SystemSet::on_update(GameState::MenuLevels).with_system(click_play_button_levels))
-            .add_system_set(SystemSet::on_update(GameState::MenuLevels).with_system(release_mouse))
-            .add_system_set(SystemSet::on_update(GameState::MenuLevels).with_system(release_touch))
+            .add_system_set(SystemSet::on_update(GameState::MenuLevels).with_system(click_play_button_levels)
+                .with_system(scroll_events_levels_mouse)
+                .with_system(scroll_events_levels_touch)
+                .with_system(click_play_button_levels)
+                .with_system(release_mouse)
+                .with_system(release_touch)
+            )
             .add_system_set(SystemSet::on_exit(GameState::MenuLevels).with_system(cleanup_menu_levels));
     }
 }
@@ -197,13 +198,18 @@ fn release_mouse(
 fn release_touch(
     touches: Res<Touches>, 
     click_position: Res<ClickPosition>,
+    windows: Res<Windows>,
     mut state: ResMut<State<GameState>>,
     mut selected_level: ResMut<SelectedLevel>,
 ) {
     for finger in touches.iter() {
         if touches.just_released(finger.id()) {
             // Get last finger pos:
-            let pos = finger.position();
+            // let pos = finger.position();
+            let window = windows.get_primary().expect("no primary window");
+            let pos = match window.cursor_position() { None => return, Some(b) => b, };  // In touches, it would be continue
+            let window_size = Vec2::new(window.width(), window.height());
+            let pos = pos - window_size / 2.;
             
             if distance(&click_position.pos, &pos) < 5. && selected_level.level != "".to_string(){ 
                 state.set(GameState::Playing).unwrap();
@@ -211,6 +217,7 @@ fn release_touch(
             else {
                 selected_level.level = "".to_string();
             }
+            return;
         }
     }
 }
