@@ -85,12 +85,12 @@ fn setup_camera(mut commands: Commands) {
 fn main() {
     // test();
     App::new()
-        // .insert_resource(Msaa { samples: 1 })
+        // .insert_resource(Msaa { samples: 0 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
-            window: WindowDescriptor {width: 360.,height: 550.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()), ..default()},
+            window: WindowDescriptor {width: 320.,height: 550.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()), ..default()},
             ..default()
-          }))
+        }).set(ImagePlugin::default_nearest()))
         .add_startup_system(setup_camera) // Startup system (cameras)
         .add_startup_system(set_window_icon)
         .insert_resource(load_puzzles_data())
