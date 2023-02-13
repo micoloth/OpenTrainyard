@@ -81,7 +81,7 @@ fn click_play_button(
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                state.set(GameState::Playing).unwrap();
+                state.set(GameState::MenuLevels).unwrap();
             }
             _ => {}
         }
