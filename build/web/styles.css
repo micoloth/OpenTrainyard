@@ -46,6 +46,6 @@ body {
 
 #bevy {
     background-color: white;
-    width: 320px;
-    height: 550px;
+    /* width: 320px;
+    height: 550px; */
 }
