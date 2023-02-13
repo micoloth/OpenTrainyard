@@ -396,7 +396,11 @@ fn change_level(
         if let Some(id) = commands.get_entity(board_id) { id.despawn_recursive();}
     }
     // Set the name of the game:
+
     game_screen_state.name = level_name;
+    if game_screen_state.name == "" {
+        game_screen_state.name = "Red Line".to_string();
+    }
     // Send the event to create the board:
     board_event_writer.send(BoardEvent::Make(game_screen_state.name.clone()));
     // Print the game name:
