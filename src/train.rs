@@ -138,8 +138,8 @@ fn get_train_transform(t:Train, board: &BoardDimensions, tick_rateo: f32) -> Tra
         (Side::L_, Side::T_) => {( 0.5*angle.sin(), 1. - 0.5 * angle.cos(), angle)},
         _ => {panic!("WTF")}
         };
-        transform.translation.x = (x + t.pos.px as f32) * board.tile_size;
-        transform.translation.y = (y + (6 - t.pos.py)as f32) * board.tile_size;
+        transform.translation.x = (x + t.pos.px as f32) * board.tile_size - t.pos.px as f32; // This last term is because of the fact that tiles are overlapped by 1px!
+        transform.translation.y = (y + (6 - t.pos.py)as f32) * board.tile_size - (6 - t.pos.py) as f32; // This last term is because of the fact that tiles are overlapped by 1px!
         transform.rotation = Quat::from_rotation_z( train_angle);
         
         transform.scale = Vec3::splat(1.);

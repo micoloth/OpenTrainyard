@@ -146,8 +146,8 @@ fn add_color_minitiles_children(
         for (j, x) in poss.iter().enumerate() {
             let n_to_get = i * poss.len() + j;
             if n_to_get < elems.len() {
-                let pos_x = -(23. - (*x as f32) - (small_tile_size as f32) / 2. +1.); // * scale;
-                let pos_y = (23. - (*y as f32) - (small_tile_size as f32) / 2. +1.); // * scale;
+                let pos_x = -(23. - (*x as f32) - (small_tile_size as f32) / 2. +1.5); // * scale;
+                let pos_y = (23. - (*y as f32) - (small_tile_size as f32) / 2. +1.5); // * scale;
                 let prefix = if is_start { "s" } else { "e" };
                 let minitile = format!(
                     "{}_elem_{}_{}.png",
@@ -340,7 +340,7 @@ fn add_arrow_minitile_children(
     } else if dir == Side::B_ {
         t = rotate_tile(t, -std::f32::consts::PI / 2.);
         pos_x = 0.;
-        pos_y = (23. - 46. + 6. / 2.); // * scale;
+        pos_y = ( - 23. + 6. / 2.); // * scale;
     } else {
         t = flipmatrix_horizontal(t);
         pos_x = -(23. - 6. / 2.); // * scale;
@@ -366,7 +366,7 @@ fn add_funnels_minitile_children(
     assets: &TileAssets,
     big_tile_size: f32,
 ) {
-    let scale = big_tile_size / 46.;
+    // let scale = big_tile_size / 45.;
     let funnel = get_asset("e_funnel_elem_rigth.png".to_string(), assets);
     let mut t = Transform::from_xyz(0., 0., 1.);
     let pos_x: f32;
@@ -385,7 +385,7 @@ fn add_funnels_minitile_children(
     } else {
         t = rotate_tile(t, -std::f32::consts::PI / 2.);
         pos_x = 0.;
-        pos_y = (23. - 46. + 8. / 2.); // * scale;
+        pos_y = (- 23. + 8. / 2.); // * scale;
     }
     // Translate t to the right position:
     t.translation.x = pos_x;

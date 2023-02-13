@@ -19,7 +19,7 @@ impl Plugin for LoadingPlugin {
                 // .with_collection::<AudioAssets>()
                 .with_collection::<TrainAssets>()
                 .with_collection::<TileAssets>()
-                .continue_to_state(GameState::MenuLevels),
+                .continue_to_state(GameState::MenuTitle),
             )
         ;
     }
@@ -30,7 +30,8 @@ impl Plugin for LoadingPlugin {
 
 #[derive(AssetCollection, Resource)]
 pub struct FontAssets {
-    #[asset(path = "fonts/FiraSans-Bold.ttf")]
+    // #[asset(path = "fonts/FiraSans-Bold.ttf")]
+    #[asset(path = "fonts/oswald/Oswald-Regular.ttf")]
     pub fira_sans: Handle<Font>,
 }
 
