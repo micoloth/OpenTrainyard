@@ -27,9 +27,9 @@ impl Plugin for MenuLevelsPlugin {
         app.init_resource::<ButtonColors>()
             .init_resource::<ClickPosition>()
             .add_system_set(SystemSet::on_enter(GameState::MenuLevels).with_system(setup_menu_levels))
-            .add_system_set(SystemSet::on_update(GameState::MenuLevels).with_system(click_play_button_levels)
+            .add_system_set(SystemSet::on_update(GameState::MenuLevels).with_system(scroll_events_levels_touch)
                 .with_system(scroll_events_levels_mouse)
-                .with_system(scroll_events_levels_touch)
+                .with_system(click_play_button_levels)
                 .with_system(click_play_button_levels)
                 .with_system(release_mouse)
                 .with_system(release_touch)
@@ -76,6 +76,7 @@ fn setup_menu_levels(
     windows: Res<Windows>,
 ) {
     println!("YES IM HERE. good...");
+    println!("Fingerss?????????");
     let width = windows.get_primary().unwrap().width();
     let height = windows.get_primary().unwrap().height();
 
@@ -87,19 +88,19 @@ fn setup_menu_levels(
     let rect_height = 40.;
     
     // One button per level name, stacked vertically:
-    for (i, name) in names.iter().enumerate() {
+    // for (i, name) in names.iter().enumerate() {
 
-        let offset_x = 0.;
-        // Vertical offset:
-        let offset_y = (i as f32) * rect_height;
-        // Boundaries (left right top bottom) of a Rectangle that is Centered in the window:
-        let left = width / 2. - rect_width / 2. + offset_x;
-        let right = width / 2. + rect_width / 2. + offset_x;
-        let top = height / 2. - rect_height / 2. + offset_y;
-        let bottom = height / 2. - rect_height * 1.5 + offset_y;
+    //     let offset_x = 0.;
+    //     // Vertical offset:
+    //     let offset_y = (i as f32) * rect_height;
+    //     // Boundaries (left right top bottom) of a Rectangle that is Centered in the window:
+    //     let left = width / 2. - rect_width / 2. + offset_x;
+    //     let right = width / 2. + rect_width / 2. + offset_x;
+    //     let top = height / 2. - rect_height / 2. + offset_y;
+    //     let bottom = height / 2. - rect_height * 1.5 + offset_y;
 
-        let startbutton_id = make_button(name.to_string(), &mut commands, &font_assets, &button_colors, 25., left, right, top, bottom, LevelButton, Option::<LevelButton>::None);
-    }
+    //     let startbutton_id = make_button(name.to_string(), &mut commands, &font_assets, &button_colors, 25., left, right, top, bottom, LevelButton, Option::<LevelButton>::None);
+    // }
     // make_scrollbar(&mut commands, &textures, 50., 250., 50., 25.);
 }
 
@@ -134,23 +135,39 @@ fn scroll_events_levels_touch(
     mut commands: Commands,
     touches: Res<Touches>, 
     mut current_vy: Local<Option<f32>>,
-    mut button_query: Query<&mut Style,(With<Button>, With<LevelButton>),>,
+    font_assets: Res<FontAssets>,
+    button_colors: Res<ButtonColors>,
+    // mut button_query: Query<&mut Style,(With<Button>, With<LevelButton>),>,
 ) {
+    
     if let Some(vy) = current_vy.as_ref() {
         let new_vy = vy * (1. - TOUCH_SWIPE_SPEED_DECAY);
         if new_vy > 0.1 { *current_vy = Some(new_vy);} 
         else {*current_vy = None;}
     }
+    println!("Fingerss?????????");
     for finger in touches.iter() {
+        make_border(&mut commands,  Color::rgb(0., 130./255., 0.));
+        //PRINT FINGER INFO TO CONSOLE:
+        println!("Finger: {:?}", finger);
+
+        // finger position as a String:
+        let finger_pos = format!("{:?}", finger.position());
+
+        // Spawn a button at position, with finegr position as text:
+        // size 30/30, centered at finger position:
+        let(top, bottom, left, right) = (finger.position().y + 15., finger.position().y - 15., finger.position().x - 15., finger.position().x + 15.);
+        make_button(finger_pos, &mut commands, &font_assets, &button_colors, 25., left, right, top, bottom, Button, Option::<LevelButton>::None);
+        
         // Get finger movement delta:
         *current_vy = Some(finger.delta().y);
         if finger.delta().y > 0. {make_border(&mut commands,  Color::rgb(0., 130./255., 0.));}
     }
-    if let Some(vy) = current_vy.as_ref() {
-        for mut style in button_query.iter_mut() {
-            style.position.top = style.position.top.try_add(Val::Px(*vy)).unwrap();
-        }
-    }
+    // if let Some(vy) = current_vy.as_ref() {
+    //     for mut style in button_query.iter_mut() {
+    //         style.position.top = style.position.top.try_add(Val::Px(*vy)).unwrap();
+    //     }
+    // }
 }
 
 
