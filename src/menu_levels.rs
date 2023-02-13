@@ -1,7 +1,5 @@
-use std::ops::ControlFlow;
 
 use crate::GameState;
-use crate::utils::Coordinates;
 use crate::utils::SelectedLevel;
 use bevy::input::mouse::MouseWheel;
 use bevy::prelude::*;
@@ -100,7 +98,6 @@ fn setup_menu_levels(
     let height = windows.get_primary().unwrap().height();
 
     // Get name of first level:
-    let name = levels.puzzles[0].name.clone();
     let names = levels.puzzles.iter().map(|x| x.name.clone()).collect::<Vec<String>>();
 
     let rect_width = 320.;
@@ -118,7 +115,7 @@ fn setup_menu_levels(
         let top = height / 2. - rect_height / 2. + offset_y;
         let bottom = height / 2. - rect_height * 1.5 + offset_y;
 
-        let startbutton_id = make_button(name.to_string(), &mut commands, &font_assets, &button_colors, 25., left, right, top, bottom, LevelButton, Option::<LevelButton>::None);
+        make_button(name.to_string(), &mut commands, &font_assets, &button_colors, 25., left, right, top, bottom, LevelButton, Option::<LevelButton>::None);
     }
 }
 
@@ -191,7 +188,6 @@ const TRACKPAD_SPEED_MULTIPLIER: f32 = 0.8;
 
 // Listen to scrollwheenl events:
 fn scroll_events_levels_mouse(
-    mut commands: Commands,
     mut scroll_evr: EventReader<MouseWheel>,
     mut button_query: Query<&mut Style,(With<Button>, With<LevelButton>),>,
 ) {
@@ -202,7 +198,7 @@ fn scroll_events_levels_mouse(
             MouseScrollUnit::Pixel => {ev.y * TRACKPAD_SPEED_MULTIPLIER}
         };
         for mut style in button_query.iter_mut() {
-            style.position.top = style.position.top.try_add(Val::Px(vy)).unwrap();
+            style.position.top.try_sub_assign(Val::Px(vy));
         }
     }
 }
@@ -213,7 +209,6 @@ const TOUCH_SWIPE_SPEED_DECAY: f32 = 0.04;
 
 // Listen to scrollwheenl events:
 fn scroll_events_levels_touch(
-    mut commands: Commands,
     mut current_vy: Local<Option<f32>>,
     mut button_query: Query<&mut Style,(With<Button>, With<LevelButton>),>,
     mut scroll_evr: EventReader<ScrollHappened>,
@@ -234,7 +229,7 @@ fn scroll_events_levels_touch(
     }
     if let Some(vy) = current_vy.as_ref() {
         for mut style in button_query.iter_mut() {
-            let v = style.position.top.try_sub_assign(Val::Px(*vy));
+            style.position.top.try_sub_assign(Val::Px(*vy));
         }
     }
 }
@@ -246,7 +241,7 @@ fn scroll_events_levels_touch(
 fn handle_full_click(
     mut full_click_happened_reader: EventReader<FullClickHappened>,
     mut state: ResMut<State<GameState>>,
-    mut selected_level: ResMut<SelectedLevel>,
+    selected_level: Res<SelectedLevel>,
 ) {
     for _ in full_click_happened_reader.iter() {
         info!("YEEEE Successfull Click!!! : ");
