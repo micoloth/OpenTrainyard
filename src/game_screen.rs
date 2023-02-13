@@ -95,13 +95,14 @@ impl Plugin for MenuMainGame {
     fn build(&self, app: &mut App) {
         app.init_resource::<ButtonColors>()
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(setup_game_menu))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_undo_button))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_erase_button))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_run_button))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_nextlevel_button))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(scrollbar_input_handler))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(scrollbar_dragging_handler))
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(add_borders))
+            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(click_undo_button)
+                .with_system(click_erase_button)
+                .with_system(click_run_button)
+                .with_system(click_nextlevel_button)
+                .with_system(click_back_button)
+                .with_system(scrollbar_input_handler)
+                .with_system(scrollbar_dragging_handler)
+                .with_system(add_borders))
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_menu))
             ;
     }
@@ -123,6 +124,11 @@ pub struct UndoButton;
 
 #[derive(Component)]
 pub struct NextLevelButton;
+
+#[derive(Component)]
+pub struct BackButton;
+
+
 
 #[derive(Component)]
 pub struct LevelNameElem;
@@ -160,13 +166,21 @@ fn setup_game_menu(
     // Next level:
     let (left_, right_, bottom_, top_) = get_upper_coordinates(&windows);
     let next_level_id = make_button("Next level".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(NextLevelButton));
+    // Back:
+    let back_id = make_button("Back".to_string(), &mut commands, &font_assets, &button_colors, 20., width - right_, width - left_, top_, bottom_, MainGameBotton, Some(BackButton));
 }
 
-fn cleanup_menu(mut commands: Commands, buttons: Query<Entity, (With<Button>, With<MainGameBotton>)>) {
+fn cleanup_menu(
+        mut commands: Commands, 
+        buttons: Query<Entity, With<MainGameBotton>>,
+        mut board_event_writer: EventWriter<BoardEvent>,
+    ) {
     // For button in query:
     for button in buttons.iter() { // It's never more than 1, but can very well be 0
         if let Some(id) = commands.get_entity(button) { id.despawn_recursive();};
     }
+    board_event_writer.send(BoardEvent::Delete);
+
 }
 
 
@@ -195,9 +209,8 @@ fn init_gmae(
 
 fn click_nextlevel_button(
     mut commands: Commands,
-    mut interaction_query: Query<(&Interaction, &mut BackgroundColor), (Changed<Interaction>, With<Button>, With<NextLevelButton>)>,
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<NextLevelButton>)>,
     mut game_screen_state: ResMut<GameScreenState>,
-    // BoardEvent event writer:
     mut board_event_writer: EventWriter<BoardEvent>,
     // Query existing boards:
     board_q: Query<Entity, With<Board>>,
@@ -211,13 +224,29 @@ fn click_nextlevel_button(
     // Button colors:
     button_colors: Res<ButtonColors>,
 ) {
-    for (interaction, mut color) in &mut interaction_query {
+    for interaction in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
                 if let Some(next_puzzle) = get_next_puzzle(game_screen_state.name.clone(), &levels) {
                     change_level(next_puzzle.name, &mut game_screen_state, &levels, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
 
                 }
+            }
+            _ => {}
+        }
+    }
+}
+
+fn click_back_button(
+    mut interaction_query: Query<(&Interaction, &mut BackgroundColor), (Changed<Interaction>, With<Button>, With<BackButton>)>,
+    mut game_state: ResMut<State<GameState>>,
+    mut selected_level: ResMut<SelectedLevel>,
+) {
+    for (interaction, mut color) in &mut interaction_query {
+        match *interaction {
+            Interaction::Clicked => {
+                game_state.set(GameState::MenuLevels);
+                selected_level.level = "".to_string();
             }
             _ => {}
         }
@@ -375,6 +404,9 @@ fn add_borders(
 
 
 
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // HELPER FUNCTIONS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -398,9 +430,6 @@ fn change_level(
     // Set the name of the game:
 
     game_screen_state.name = level_name;
-    if game_screen_state.name == "" {
-        game_screen_state.name = "Red Line".to_string();
-    }
     // Send the event to create the board:
     board_event_writer.send(BoardEvent::Make(game_screen_state.name.clone()));
     // Print the game name:
