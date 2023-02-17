@@ -4,12 +4,13 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct Player;
 
+use crate::data_saving::{SolutionData, LevelSolvedDataEvent};
 use crate::simulator::*;
 
 use bevy::utils::Instant;
 // use std::time::Instant;
 
-use crate::utils::Coordinates;
+use crate::utils::{Coordinates, SelectedLevel};
 use crate::board::*;
 
 
@@ -251,29 +252,35 @@ pub fn double_click_event(
 
 
 pub fn listen_to_game_state_changes(
-    mut board_q: Query<(&mut BoardTileMap,  &mut BoardHoverable, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
+    mut board_q: Query<(&mut BoardTileMap, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
+    selected_level_name: Res<SelectedLevel>,
     mut change_board_game_state_event_reader: EventReader<ChangeGameStateEvent>,
-
+    mut level_solved_data_event_writer: EventWriter<LevelSolvedDataEvent>,
 ) {
     // For each event:
     for ev in change_board_game_state_event_reader.iter() {
-        for (mut board_tilemap, mut board_hoverable, mut hovering_state, mut tick_status) in board_q.iter_mut() {
+        for (mut board_tilemap, mut hovering_state, mut tick_status) in board_q.iter_mut() {
             match *ev {
+                ChangeGameStateEvent{old_state: BoardGameState::Running(RunningState::Started), new_state: BoardGameState::Running(RunningState::Won)} => {
+                    let solution_data = SolutionData::new(&board_tilemap.submitted_map);
+                    level_solved_data_event_writer.send(LevelSolvedDataEvent{level_name: selected_level_name.level.clone(), solution_data: solution_data});
+
+                },
                 ChangeGameStateEvent{old_state: _, new_state: BoardGameState::Running(_) }=> {
-                        board_tilemap.current_trains = Vec::new();
-                        board_tilemap.submitted_map = board_tilemap.map.clone();
-                        tick_status.current_tick = 0;
-                        tick_status.first_half = Section::NotEvenBegun;
-                        *hovering_state = ev.new_state;
+                    board_tilemap.current_trains = Vec::new();
+                    board_tilemap.submitted_map = board_tilemap.map.clone();
+                    tick_status.current_tick = 0;
+                    tick_status.first_half = Section::NotEvenBegun;
+                    *hovering_state = ev.new_state;
 
                 },
                 ChangeGameStateEvent{old_state: BoardGameState::Running(_), new_state: _  }=> {
-                        board_tilemap.current_trains = Vec::new();
-                        // RESET the board to Solved_map if it exists:
-                        println!(">>>>>Current trains: {:?}", board_tilemap.current_trains.len());
-                        board_tilemap.map = board_tilemap.submitted_map.clone();
-                        *hovering_state = ev.new_state;
-                    },
+                    board_tilemap.current_trains = Vec::new();
+                    // RESET the board to Solved_map if it exists:
+                    println!(">>>>>Current trains: {:?}", board_tilemap.current_trains.len());
+                    board_tilemap.map = board_tilemap.submitted_map.clone();
+                    *hovering_state = ev.new_state;
+                },
                 _ => {
                     *hovering_state = ev.new_state;
                 }
@@ -286,23 +293,23 @@ pub fn listen_to_game_state_changes(
 
 
 pub fn logic_tick(
-    mut trains_q: Query<(&mut Train, &mut Transform)>, 
     // windows: Res<Windows>,
-    mut board_q: Query<(&mut BoardTileMap, &BoardDimensions, &BoardGameState, &mut BoardTickStatus), With<Board>>,
+    mut board_q: Query<(&mut BoardTileMap, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
     tick_params: ResMut<TicksInATick>,
+    mut change_gamestate_event_writer: EventWriter<ChangeGameStateEvent>,
     ) {
         
-    for (mut board_tilemap, board_dimensions, game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
+    for (mut board_tilemap, mut game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
         // If board_hoverable.game_state is NOT running, continue:
-        match game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
+        match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
         if (tick_status.current_tick >= tick_params.ticks || tick_status.current_tick == 0) && (tick_status.first_half == Section::Second || tick_status.first_half == Section::NotEvenBegun) {
             tick_status.current_tick = 0;
             // println!("Tick now 0");
             tick_status.first_half = Section::First;
-            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, *game_state).clone();
+            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, &mut game_state, &mut change_gamestate_event_writer).clone();
         } else if tick_status.current_tick >= ((tick_params.ticks as f32 / 2.) as u32)  && tick_status.first_half == Section::First {
             tick_status.first_half = Section::Second;
-            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle, *game_state);
+            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle, &mut game_state, &mut change_gamestate_event_writer);
         }
         tick_status.current_tick += 1;
     }
@@ -314,7 +321,12 @@ pub fn logic_tick(
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-pub fn logic_tick_core(board_tilemap: &BoardTileMap, trigger_event: TickMoment, mut hovering_state: BoardGameState) -> (Vec<Vec<Tile>>, Vec<Train>){ 
+pub fn logic_tick_core(
+        board_tilemap: &BoardTileMap, 
+        trigger_event: TickMoment, 
+        mut hovering_state: &mut BoardGameState,
+        mut change_gamestate_event_writer: &mut EventWriter<ChangeGameStateEvent>,
+    ) -> (Vec<Vec<Tile>>, Vec<Train>){ 
 
     let crashed;
     let completed;
@@ -333,11 +345,12 @@ pub fn logic_tick_core(board_tilemap: &BoardTileMap, trigger_event: TickMoment, 
         (new_tilemap, new_trains) = set_towards_side(new_trains, new_tilemap);
 
         // If there is a crash or a completion, set the state:
-        if crashed && (hovering_state != BoardGameState::Running(RunningState::Crashed)) {  // This is bc res mut trigger is fired always
-            hovering_state = BoardGameState::Running(RunningState::Crashed);
+        if crashed && (*hovering_state != BoardGameState::Running(RunningState::Crashed)) {  // This is bc res mut trigger is fired always
+            *hovering_state = BoardGameState::Running(RunningState::Crashed);
         }
-        else if completed && (hovering_state != BoardGameState::Running(RunningState::Won)) {
-            hovering_state = BoardGameState::Running(RunningState::Won);
+        else if completed && (*hovering_state != BoardGameState::Running(RunningState::Won)) {
+            change_gamestate_event_writer.send(ChangeGameStateEvent{old_state: *hovering_state, new_state: BoardGameState::Running(RunningState::Won)});  // Here I'm ASSUMING 
+            *hovering_state = BoardGameState::Running(RunningState::Won);
         }
     }
     else if trigger_event == TickMoment::TickMiddle {

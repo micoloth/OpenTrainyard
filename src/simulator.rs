@@ -631,9 +631,36 @@ pub fn print_map(map_: &Vec<Vec<Tile>>) -> Vec<String>{
     return map_str;
 }
 
-pub fn pretty_print_map(map_: &Vec<Vec<Tile>>){
+pub fn pretty_print_map(map_: &Vec<Vec<Tile>>) -> String{
     let reprmap = print_map(map_);
     let res = reprmap.join("\n");
+    return res;
     // println!("{}", res);
 }
 
+pub fn count_tracks(map: &Vec<Vec<Tile>>) -> i32 {
+    let mut count = 0;
+    for row in map {
+        for tile in row {
+            match tile {
+                Tile::TrackTile{toptrack: _, bottrack: _} => count += 1,
+                Tile::SingleTrackTile{track: _} => count += 1,
+                _ => (),
+            }
+        }
+    }
+    count
+}
+
+pub fn count_double_tracks(map: &Vec<Vec<Tile>>) -> i32 {
+    let mut count = 0;
+    for row in map {
+        for tile in row {
+            match tile {
+                Tile::TrackTile{toptrack: _, bottrack: _} => count += 1,
+                _ => (),
+            }
+        }
+    }
+    count
+}

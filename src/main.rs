@@ -5,6 +5,7 @@ use bevy::prelude::*;
 use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
+use data_saving::{SolutionDataMap, LevelSolvedDataEvent};
 // use trainyard::GamePlugin;
 use std::io::Cursor;
 use winit::window::Icon;
@@ -21,6 +22,7 @@ mod logic;
 mod game_screen;
 mod menu_utils;
 mod all_puzzles_clean;
+mod data_saving;
 
 // use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
@@ -40,7 +42,7 @@ mod simulator;
 mod tests;
 use tests::test;
 
-
+use bevy_pkv::PkvStore;
 
 
 
@@ -87,6 +89,7 @@ fn main() {
     App::new()
         // .insert_resource(Msaa { samples: 0 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
+        .insert_resource(PkvStore::new("OpenTrainyard", "OpenTrainyard"))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {width: 320.,height: 550.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()), ..default()},
             ..default()
@@ -94,6 +97,7 @@ fn main() {
         .add_startup_system(setup_camera) // Startup system (cameras)
         .add_startup_system(set_window_icon)
         .insert_resource(load_puzzles_data())
+        .insert_resource(SolutionDataMap::default())
         .insert_resource(SelectedLevel{level: "".to_string(), city: "".to_string()})
         .add_plugin(LoadingPlugin)
         .add_plugin(MenuPlugin)
@@ -103,6 +107,7 @@ fn main() {
         .add_plugin(MainGamePlugin)
         .add_state(GameState::Loading)
         .add_system(button_color_handler)
+        .add_event::<LevelSolvedDataEvent>()
         .run();
 }
 

@@ -19,6 +19,7 @@ use crate::all_puzzles_clean::*;
 
 use crate::utils::SelectedLevel;
 
+use crate::data_saving::save_player_data;
 
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 120.0;
@@ -69,6 +70,7 @@ impl Plugin for MainGamePlugin {
                 //////////// OTHERS/COSMETICS:
                 .with_system(add_borders)
                 .with_system(style_run_button)
+                .with_system(save_player_data)
             )
             /////////////// MOVE TRAINS:
             .add_system_set(
@@ -252,7 +254,6 @@ fn click_back_button(
         }
     }
 }
-
 
 
 

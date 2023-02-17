@@ -11,7 +11,7 @@ cargo install -f wasm-bindgen-cli --version 0.2.79
 cargo run
 
 
-
+http://127.0.0.1:8080/
 
 ################# FROM README:
 
@@ -31,16 +31,26 @@ trunk serve
 
 ################ Released:
 
+
+https://mediatemple.net/blog/web-development-tech/quick-tip-debug-ios-safari-true-local-emulator-actual-iphoneipad/
+
+
+
 https://micoloth.github.io/OpenTrainyard/
 
 TODO: 
  - DONE Fix bug entities deletion (board + trains not disappearing)
- - main menu !!
- - Border pixel in tile placement
+ - DONE main menu !!
+ - DONE Border pixel in tile placement
+ - DONE bevy_pkv !!! 
  - train sprites  
+ - FIX speed scroll nulling ...
+ - Color of curved tile border
  - z index of split and start and stop
+ - Dont flip if cross
  - Music
- - bevy_pkv !!! 
+ - Particle effect .....
  - tutorial, in theory......
+
 
 

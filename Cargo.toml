@@ -26,8 +26,10 @@ dev = [
 bevy = { version = "0.9.1", default-features = false, features = ["bevy_asset", "bevy_winit", "render", "png", "x11"] }
 bevy_kira_audio = { version = "0.13" }
 bevy_asset_loader = { version = "0.14.1" }
+bevy_pkv = "0.6.0"
 rand = { version = "0.8.3" }
 partial_application = "0.2.1"
+serde = { version = "1.0.130", features = ["derive"] }
 # iyes_loopless = {version = "0.9.1", default-features = false, features = ["bevy-compat", "fixedtimestep", "states"] }
 
 # keep the following in sync with Bevy's dependencies

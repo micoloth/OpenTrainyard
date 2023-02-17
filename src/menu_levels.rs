@@ -1,8 +1,11 @@
 
 use crate::GameState;
+use crate::data_saving::LevelSolutionData;
+use crate::data_saving::SolutionDataMap;
 use crate::utils::SelectedLevel;
 use bevy::input::mouse::MouseWheel;
 use bevy::prelude::*;
+use bevy_pkv::PkvStore;
 
 use crate::loading::FontAssets;
 use crate::menu_utils::*;
@@ -80,6 +83,7 @@ pub struct ScrollHappened {
 
 
 
+
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -91,7 +95,18 @@ fn setup_menu_levels(
     button_colors: Res<ButtonColors>,
     levels: Res<PuzzlesData>,
     windows: Res<Windows>,
+    pkv: Res<PkvStore>,
+    mut solution_data_map: ResMut<SolutionDataMap>,
 ) {
+
+    if let Ok(all_solutions) = pkv.get::<SolutionDataMap>("solved_levels") {
+        // Set resource:
+        *solution_data_map = all_solutions;
+    } else {
+        // Setsolution_data_map.levels to  an empty hashmap
+        *solution_data_map = SolutionDataMap::default();
+    }
+
     println!("YES IM HERE. good...");
     println!("Fingerss?????????");
     let width = windows.get_primary().unwrap().width();
@@ -106,6 +121,15 @@ fn setup_menu_levels(
     // One button per level name, stacked vertically:
     for (i, name) in names.iter().enumerate() {
 
+        // if name is in solution_data_map.levels, AND the object is of type Solved, then we have solved it, and we can make the button green
+        let name2 = match solution_data_map.levels.get(name)
+        {
+            Some(LevelSolutionData::Solved(_)) => {
+                format!("{} (SOLVED)", name)
+            },
+            _ => {name.clone()}
+        };
+
         let offset_x = 0.;
         // Vertical offset:
         let offset_y = (i as f32) * rect_height;
@@ -115,7 +139,7 @@ fn setup_menu_levels(
         let top = height / 2. - rect_height / 2. + offset_y;
         let bottom = height / 2. - rect_height * 1.5 + offset_y;
 
-        make_button(name.to_string(), &mut commands, &font_assets, &button_colors, 25., left, right, top, bottom, LevelButton, Option::<LevelButton>::None);
+        make_button(name2.to_string(), &mut commands, &font_assets, &button_colors, 25., left, right, top, bottom, LevelButton, Option::<LevelButton>::None);
     }
 }
 
@@ -183,8 +207,8 @@ fn handle_full_click_touch(
 
 
 // Set constan SCROLLWHEEL_SPEED_MULTIPLIER:
-const SCROLLWHEEL_SPEED_MULTIPLIER: f32 = 3.;
-const TRACKPAD_SPEED_MULTIPLIER: f32 = 0.8;
+const SCROLLWHEEL_SPEED_MULTIPLIER: f32 = - 0.03;
+const TRACKPAD_SPEED_MULTIPLIER: f32 = - 0.8;
 
 // Listen to scrollwheenl events:
 fn scroll_events_levels_mouse(
@@ -195,7 +219,7 @@ fn scroll_events_levels_mouse(
     for ev in scroll_evr.iter() {
         let vy = match ev.unit {
             MouseScrollUnit::Line => {ev.y * SCROLLWHEEL_SPEED_MULTIPLIER}
-            MouseScrollUnit::Pixel => {ev.y * TRACKPAD_SPEED_MULTIPLIER}
+            MouseScrollUnit::Pixel => {info!("{:?}", ev.y); ev.y * TRACKPAD_SPEED_MULTIPLIER}
         };
         for mut style in button_query.iter_mut() {
             style.position.top.try_sub_assign(Val::Px(vy));
