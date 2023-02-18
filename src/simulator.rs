@@ -225,7 +225,12 @@ pub fn switch_tile(pos: Pos) -> Pos {
 pub fn flip_exchange(t:  &Tile) -> Tile{
     let mut t2 = t.clone();
     t2 = match t2 {
-        Tile::TrackTile{toptrack, bottrack} => {Tile::TrackTile{toptrack: bottrack, bottrack: toptrack}},
+        Tile::TrackTile{toptrack, bottrack} => {
+            if is_cross(&t2) { t2 } 
+            else {
+                Tile::TrackTile{toptrack: bottrack, bottrack: toptrack}
+            }
+        },
         _ => {t2},
     };
     return t2;
