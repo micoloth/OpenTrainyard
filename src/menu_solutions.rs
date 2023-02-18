@@ -82,38 +82,6 @@ pub struct LevelNameElem;
 
 
 
-// Struct with a string and 2 ints:
-
-// #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-// pub struct SolutionData {
-//     pub map: String,
-//     pub tracks: i32,
-//     pub second_tracks: i32,
-// }
-
-// // Define constructor: reads map, calls count_tracks and count_double_tracks:
-// impl SolutionData {
-//     pub fn new(map: &Vec<Vec<Tile>>) -> Self {
-//         Self {
-//             map: pretty_print_map(&map),
-//             tracks: count_tracks(&map),
-//             second_tracks: count_double_tracks(&map),
-//         }
-//     }
-// }
-
-// // Enum: either an array of SolutionData or a None:
-// #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-// pub enum LevelSolutionData {
-//     Solved(Vec<SolutionData>),
-//     Unsolved,
-// }
-
-// // A struct with a strin -> LevelSolutionData hashmap:
-// #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Resource)]
-// pub struct SolutionDataMap {
-//     pub levels: HashMap<String, LevelSolutionData>,
-// }
 /////////////////////////////////////////////////////////////////////////////////////
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////

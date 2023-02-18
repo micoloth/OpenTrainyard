@@ -168,7 +168,10 @@ pub fn scrollbar_dragging_handler(
                 // let window_size = Vec2::new(window.width(), window.height());
                 // let position = pos - window_size / 2.;
                 let fraction = relposx / (sbpos.max_x - sbpos.min_x - handle_x);
-
+                // Fraction is now in [0,1]. 
+                // Tranform it by (1-x)^3:
+                let fraction = (1. - fraction).powf(5.);
+                
                 // New value using the fraction with  ScrollBarLimits { pub max: f32, pub min: f32, pub current: f32, pub step: f32,}:
                 let newval = sblimits.min + (sblimits.max - sblimits.min) * fraction;
                 // Round newval to the nearest step:

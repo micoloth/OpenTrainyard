@@ -100,7 +100,12 @@ fn main() {
         .add_startup_system(set_window_icon)
         .insert_resource(load_puzzles_data())
         .insert_resource(SolutionDataMap::default())
-        .insert_resource(SelectedLevel{level: "".to_string(), city: "".to_string()})
+        .insert_resource(SelectedLevel
+        {
+            // level: "Boomerang".to_string(),
+            level: "".to_string(),
+            city: "".to_string(),
+        })
         .add_plugin(LoadingPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(MenuLevelsPlugin)

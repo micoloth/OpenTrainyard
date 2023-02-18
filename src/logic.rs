@@ -80,14 +80,16 @@ pub fn change_tick_speed(
 ){
     // Iter events:
     for scroll_bar_limits_event in scroll_bar_limits_event_reader.iter() {
-        tick_params.ticks = ((1. / scroll_bar_limits_event.current) as u32).max(3);
+        let new_nticks = (scroll_bar_limits_event.current as u32).max(5);
         for mut board_tick_status in board_q.iter_mut() {    // Really, there's just 1 board
             // Find the fratction of the tick currently elapsed:
             let fraction = board_tick_status.current_tick as f32 / tick_params.ticks as f32;
             // Set the current tick to the same fraction of the new tick count:
-            let current = tick_params.ticks as f32 * fraction;
+            let current = new_nticks as f32 * fraction;
             // Ceil it:
             board_tick_status.current_tick = current.ceil() as u32;
+            // Set the new tick count:
+            tick_params.ticks = new_nticks;
             println!("Tick speed changed to {}", tick_params.ticks);
         }
     }

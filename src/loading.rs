@@ -20,6 +20,7 @@ impl Plugin for LoadingPlugin {
                 .with_collection::<TrainAssets>()
                 .with_collection::<TileAssets>()
                 .continue_to_state(GameState::MenuTitle),
+                // .continue_to_state(GameState::Playing),
             )
         ;
     }

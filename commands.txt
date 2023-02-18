@@ -46,11 +46,12 @@ TODO:
  - DONE Color of curved tile border
  - DONE train sprites  
  - DONE Dont flip if cross
+ - DONE FIX speed scroll nulling ...
  - Level solutions menu..
- - FIX speed scroll nulling ...
  - z index of split and start and stop
  - Music
  - Particle effect .....
  - tutorial, in theory......
 
 
+ - Remember: animations: https://github.com/jcornaz/benimator/blob/main/examples/bevy.rs
