@@ -44,13 +44,13 @@ pub struct FontAssets {
 // Assets for the trains. Must be used as a resource.
 #[derive(Debug, Clone, Default, AssetCollection, Resource)]
 pub struct TrainAssets {
-    #[asset(path = "samples/s_elem_1_blue.png")] pub train_blue: Handle<Image>,
-    #[asset(path = "samples/s_elem_1_red.png")] pub train_red: Handle<Image>,
-    #[asset(path = "samples/s_elem_1_yellow.png")] pub train_yellow: Handle<Image>,
-    #[asset(path = "samples/s_elem_1_orange.png")] pub train_orange: Handle<Image>,
-    #[asset(path = "samples/s_elem_1_green.png")] pub train_green: Handle<Image>,
-    #[asset(path = "samples/s_elem_1_purple.png")] pub train_purple: Handle<Image>,
-    #[asset(path = "samples/e_elem_1_brown.png")] pub train_brown: Handle<Image>,
+    #[asset(path = "samples/train_blue.png")] pub train_blue: Handle<Image>,
+    #[asset(path = "samples/train_red.png")] pub train_red: Handle<Image>,
+    #[asset(path = "samples/train_yellow.png")] pub train_yellow: Handle<Image>,
+    #[asset(path = "samples/train_orange.png")] pub train_orange: Handle<Image>,
+    #[asset(path = "samples/train_green.png")] pub train_green: Handle<Image>,
+    #[asset(path = "samples/train_purple.png")] pub train_purple: Handle<Image>,
+    #[asset(path = "samples/train_brown.png")] pub train_brown: Handle<Image>,
 }
 
 

@@ -43,14 +43,14 @@ TODO:
  - DONE main menu !!
  - DONE Border pixel in tile placement
  - DONE bevy_pkv !!! 
- - train sprites  
+ - DONE Color of curved tile border
+ - DONE train sprites  
+ - DONE Dont flip if cross
+ - Level solutions menu..
  - FIX speed scroll nulling ...
- - Color of curved tile border
  - z index of split and start and stop
- - Dont flip if cross
  - Music
  - Particle effect .....
  - tutorial, in theory......
-
 
 
