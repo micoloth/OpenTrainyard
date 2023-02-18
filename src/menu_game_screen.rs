@@ -432,10 +432,10 @@ fn change_level(
 
     game_screen_state.name = level_name;
     // Send the event to create the board:
-    board_event_writer.send(BoardEvent::Make(game_screen_state.name.clone()));
-    // Print the game name:
-    println!("LAUNCHED: {}", game_screen_state.name.clone());
     let map = levels.puzzles.iter().find(|p| p.name == *game_screen_state.name.clone()).unwrap().parsed_map.clone();    
+    println!("LAUNCHED: {}", game_screen_state.name.clone());
+    board_event_writer.send(BoardEvent::Make{map_name: game_screen_state.name.clone(), map: map.clone(), scale: 1.});
+    // Print the game name:
     println!(">> map:: {}", map);
     // Despawn the level name:
     for level_name_id in level_name_query.iter() {

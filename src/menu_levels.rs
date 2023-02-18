@@ -271,7 +271,7 @@ fn handle_full_click(
         info!("YEEEE Successfull Click!!! : ");
         if selected_level.level != ""
         {
-            state.set(GameState::Playing).unwrap();
+            state.set(GameState::MenuSolutions).unwrap();
         }
     }
 }

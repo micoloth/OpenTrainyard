@@ -182,7 +182,7 @@ pub struct BoardBundle {
 
 #[derive(Debug)]
 pub enum BoardEvent {
-    Make(String),
+    Make{map_name: String, map: String,  scale: f32},
     Delete,
 }
 
@@ -216,14 +216,11 @@ pub fn create_board(
     board_assets_map: Res<TileAssets>,
     board_options: Res<BoardOptionsDefault>,
     windows: Res<Windows>,
-    levels: Res<PuzzlesData>,
     mut board_event_reader: EventReader<BoardEvent>,
 ) {
     for event in board_event_reader.iter() {
         match event {
-            BoardEvent::Make(map_name) => {
-            let map = levels.puzzles.iter().find(|p| p.name == *map_name).unwrap().parsed_map.clone();    
-            // Split map on '\n':
+            BoardEvent::Make{map_name, map, scale} => {
             let map: Vec<String> = map.split('\n').map(|s| s.to_string()).collect();
             let tile_map: Vec<Vec<Tile>> = parse_map(map);
             let n_width_ = tile_map.len();
@@ -260,7 +257,7 @@ pub fn create_board(
             // We add the main resource of the game, the board
             let board_entity = commands.spawn(BoardBundle {
                 board: Board,
-                transform: Transform::from_translation(board_dimensions.position), // This component is required until
+                transform: Transform::from_translation(board_dimensions.position).with_scale(Vec3::splat(*scale)), // This component is required until
                 // global_transform: GlobalTransform::default(),
                 tile_map: BoardTileMap {
                     map: tile_map.clone(),

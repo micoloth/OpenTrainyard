@@ -6,6 +6,7 @@ use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
 use data_saving::{SolutionDataMap, LevelSolvedDataEvent};
+use menu_solutions::MenuSolutionsPlugin;
 // use trainyard::GamePlugin;
 use std::io::Cursor;
 use winit::window::Icon;
@@ -19,10 +20,11 @@ mod tile;
 mod train;
 mod board;
 mod logic;
-mod game_screen;
+mod menu_game_screen;
 mod menu_utils;
 mod all_puzzles_clean;
 mod data_saving;
+mod menu_solutions;
 
 // use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
@@ -33,7 +35,7 @@ use crate::utils::SelectedLevel;
 
 use crate::all_puzzles_clean::load_puzzles_data;
 
-use crate::game_screen::{MainGamePlugin, MenuMainGame};
+use crate::menu_game_screen::{MainGamePlugin, MenuMainGame};
 
 
 
@@ -67,12 +69,12 @@ pub enum ButtonAction {Clear,Generate}
 enum GameState {
     // During the loading State the LoadingPlugin will load our assets
     Loading,
-    // During this State the actual game logic is executed
-    Playing,
     // Here the menu is drawn and waiting for player interaction
     MenuTitle,
     MenuLevels,
-    // Menu
+    MenuSolutions,
+    // During this State the actual game logic is executed
+    Playing,
 }
 
 
@@ -102,6 +104,7 @@ fn main() {
         .add_plugin(LoadingPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(MenuLevelsPlugin)
+        .add_plugin(MenuSolutionsPlugin)
         .add_plugin(MenuMainGame)
         // .add_plugin(InternalAudioPlugin)
         .add_plugin(MainGamePlugin)
