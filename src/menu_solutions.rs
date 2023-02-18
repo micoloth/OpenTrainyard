@@ -3,6 +3,9 @@ use crate::data_saving::LevelSolutionData;
 use crate::data_saving::SolutionDataMap;
 use crate::loading::FontAssets;
 use crate::GameState;
+use crate::simulator::parse_map;
+use crate::simulator::pretty_print_map;
+use crate::simulator::print_map;
 use bevy::prelude::*;
 
 use crate::menu_utils::*;
@@ -47,6 +50,9 @@ impl Plugin for MenuSolutionsPlugin {
             .add_system_set(SystemSet::on_exit(GameState::MenuSolutions).with_system(cleanup_solutions_menu),)
             .add_system_set(SystemSet::on_update(GameState::MenuSolutions)
                 .with_system(create_board)
+                .with_system(handle_click_mouse)
+                .with_system(handle_click_touch)
+                .with_system(handle_full_click)
                 // .with_system(click_nextlevel_button)
                 // .with_system(click_back_button)
             )
@@ -88,7 +94,6 @@ pub struct LevelNameElem;
 
 
 
-
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -127,7 +132,6 @@ fn setup_solutions_menu(
         Some(LevelSolutionData::Solved(solved_maps)) => solved_maps.iter().map(|s| s.map.clone()).collect(),
         _ => vec![empty_map.clone()],
     };
-    println!(">> map:: {:?}", empty_map);
     // Get the solved maps, if there are any:
 
     for map in maps {
@@ -163,6 +167,30 @@ fn cleanup_solutions_menu(
     }
     board_event_writer.send(BoardEvent::Delete);
 
+}
+
+// Listen to event:
+fn handle_full_click(
+    mut full_click_happened_reader: EventReader<FullClickHappened>,
+    mut board_q: Query<(&BoardTileMap, &BoardDimensions), With<Board>>,
+    mut state: ResMut<State<GameState>>,
+    mut selected_level: ResMut<SelectedLevel>,
+) {
+    for ev in full_click_happened_reader.iter() {
+        // Get the board:
+        for (board, board_dimensions) in board_q.iter() {
+            // Check if ev.pos is inside the board:
+            if in_bounds(ev.pos, board_dimensions.rect) {
+                // Get the map:
+                let map = board.map_string.clone();
+                selected_level.map = map;
+                println!("WAIT.. we not passing from here?? {:?}", selected_level.map);
+                state.set(GameState::Playing);
+                // Write the event:
+                // change_level_writer.send(ChangeLevel);
+            }
+        }
+    }
 }
 
 

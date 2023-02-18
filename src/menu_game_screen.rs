@@ -29,13 +29,6 @@ const TIME_STEP: f32 = 1.0 / 120.0;
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-#[derive(Debug, Component, Default, Resource)]
-pub struct GameScreenState {
-    pub name: String,
-    pub solved_map: String,
-
-}
-
 
 pub struct MainGamePlugin;
 
@@ -47,7 +40,6 @@ impl Plugin for MainGamePlugin {
         app
             .insert_resource(get_board_option_default())
             .insert_resource(get_ticks_in_a_tick_default())
-            .insert_resource(GameScreenState::default())
             // .insert_resource(GamePlayingState())
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(init_gmae),)
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_board),)
@@ -178,10 +170,10 @@ fn cleanup_menu(
         mut board_event_writer: EventWriter<BoardEvent>,
     ) {
     // For button in query:
+    board_event_writer.send(BoardEvent::Delete);
     for button in buttons.iter() { // It's never more than 1, but can very well be 0
         if let Some(id) = commands.get_entity(button) { id.despawn_recursive();};
     }
-    board_event_writer.send(BoardEvent::Delete);
 
 }
 
@@ -190,13 +182,11 @@ fn cleanup_menu(
 
 fn init_gmae(
     mut commands: Commands,
-    mut game_screen_state: ResMut<GameScreenState>,
     // BoardEvent event writer:
     mut board_event_writer: EventWriter<BoardEvent>,
     selected_level: Res<SelectedLevel>,
     // Query existing boards:
     board_q: Query<Entity, With<Board>>,
-    levels: Res<PuzzlesData>,
     // Query all elems with the LevelNameElem component:
     level_name_query: Query<Entity, With<LevelNameElem>>,
     // Windows:
@@ -206,14 +196,14 @@ fn init_gmae(
     // Button colors:
     button_colors: Res<ButtonColors>,
 ) {
-    change_level(selected_level.level.clone(), &mut game_screen_state, &levels, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
+    change_level(selected_level.level.clone(), selected_level.map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
 }
 
 fn click_nextlevel_button(
     mut commands: Commands,
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<NextLevelButton>)>,
-    mut game_screen_state: ResMut<GameScreenState>,
     mut board_event_writer: EventWriter<BoardEvent>,
+    mut selected_level: ResMut<SelectedLevel>,
     // Query existing boards:
     board_q: Query<Entity, With<Board>>,
     levels: Res<PuzzlesData>,
@@ -229,9 +219,12 @@ fn click_nextlevel_button(
     for interaction in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                if let Some(next_puzzle) = get_next_puzzle(game_screen_state.name.clone(), &levels) {
-                    change_level(next_puzzle.name, &mut game_screen_state, &levels, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
-
+                if let Some(next_puzzle) = get_next_puzzle(selected_level.level.clone(), &levels) {
+                    let map = levels.puzzles.iter().find(|p| p.name == next_puzzle.name.clone()).unwrap().parsed_map.clone();    
+                    // TODO this is wrong u should read playerdata
+                    selected_level.level = next_puzzle.name.clone();
+                    selected_level.map = map.clone();
+                    change_level(next_puzzle.name, map, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
                 }
             }
             _ => {}
@@ -415,8 +408,7 @@ fn add_borders(
 
 fn change_level(
         level_name: String, 
-        game_screen_state: &mut GameScreenState, 
-        levels: &PuzzlesData, 
+        map: String, 
         board_q: &Query<Entity, With<Board>>, 
         commands: &mut Commands, 
         board_event_writer: &mut EventWriter<BoardEvent>, 
@@ -430,20 +422,17 @@ fn change_level(
     }
     // Set the name of the game:
 
-    game_screen_state.name = level_name;
     // Send the event to create the board:
-    let map = levels.puzzles.iter().find(|p| p.name == *game_screen_state.name.clone()).unwrap().parsed_map.clone();    
-    println!("LAUNCHED: {}", game_screen_state.name.clone());
-    board_event_writer.send(BoardEvent::Make{map_name: game_screen_state.name.clone(), map: map.clone(), scale: 1.});
+    println!("LAUNCHED: {}", level_name.clone());
+    board_event_writer.send(BoardEvent::Make{map_name: level_name.clone(), map: map.clone(), scale: 1.});
     // Print the game name:
-    println!(">> map:: {}", map);
     // Despawn the level name:
     for level_name_id in level_name_query.iter() {
         if let Some(level_name_ec) = commands.get_entity(level_name_id) {level_name_ec.despawn_recursive();}
     }
     // Spawn the level name BUTTON:
     let (left_, right_, bottom_, top_) = get_upper_coordinates(windows);
-    let name_id = make_button(game_screen_state.name.clone(), commands, font_assets, button_colors, 20., left_ - 110., right_ -110., top_, bottom_, MainGameBotton, Some(LevelNameElem));
+    let name_id = make_button(level_name.clone(), commands, font_assets, button_colors, 20., left_ - 110., right_ -110., top_, bottom_, MainGameBotton, Some(LevelNameElem));
 
 }
 

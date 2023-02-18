@@ -80,9 +80,40 @@ pub struct ButtonData {
     pub text: String
 }
 
+//Resource "ClickPosition", with a (x,y) tuple:
+#[derive(Default, Resource, Debug, Copy, Clone, PartialEq)]
+pub struct ClickPosition { // This is EXCLUDIVELY used because we want to record a click as a click-RELERASE in the SAME POSITION, so that a Touch-Swipe DON't trigger a click.
+    pub clicked_pos: Option<Vec2>,
+    pub last_hovered_pos: Option<Vec2>,
+
+}
+// Impl euclidean distance:
+pub fn distance(one: &Vec2, other: &Vec2) -> f32 {
+    let x = one.x - other.x;
+    let y = one.y - other.y;
+    (x * x + y * y).sqrt()
+}
+
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub enum ClickState {JustClicked, Hovering, JustReleased}
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
+
+
+#[derive(Debug, Copy, Clone)]
+pub struct FullClickHappened {
+    pub pos: Vec2
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct ScrollHappened {
+    pub vy: f32
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 // SYSTEMS
@@ -170,7 +201,7 @@ pub fn scrollbar_dragging_handler(
                 let fraction = relposx / (sbpos.max_x - sbpos.min_x - handle_x);
                 // Fraction is now in [0,1]. 
                 // Tranform it by (1-x)^3:
-                let fraction = (1. - fraction).powf(5.);
+                let fraction = (1. - fraction).powf(4.);
                 
                 // New value using the fraction with  ScrollBarLimits { pub max: f32, pub min: f32, pub current: f32, pub step: f32,}:
                 let newval = sblimits.min + (sblimits.max - sblimits.min) * fraction;
@@ -190,9 +221,103 @@ pub fn scrollbar_dragging_handler(
     }
 }
 
+
+
+
+pub fn handle_click_mouse(
+    mouse_input: Res<Input<MouseButton>>, 
+    windows: Res<Windows>,
+    mut click_position: Local<ClickPosition>,
+    mut full_click_happened_writer: EventWriter<FullClickHappened>,
+    mut scroll_happened_writer: EventWriter<ScrollHappened>,
+) {
+    if mouse_input.any_just_released([MouseButton::Left, MouseButton::Right]) {
+        _touch_event_handler(&windows, &mut click_position, ClickState::JustReleased, &mut full_click_happened_writer, &mut scroll_happened_writer);
+    }
+    else if mouse_input.any_just_pressed([MouseButton::Left, MouseButton::Right]) {
+        _touch_event_handler(&windows, &mut click_position, ClickState::JustClicked, &mut full_click_happened_writer, &mut scroll_happened_writer);
+    }
+    else if mouse_input.any_pressed([MouseButton::Left, MouseButton::Right]) {
+        _touch_event_handler(&windows, &mut click_position, ClickState::Hovering, &mut full_click_happened_writer, &mut scroll_happened_writer);
+    }
+}
+
+
+pub fn handle_click_touch(
+    touches: Res<Touches>, 
+    mut click_position: Local<ClickPosition>,
+    windows: Res<Windows>,
+    mut full_click_happened_writer: EventWriter<FullClickHappened>,
+    mut scroll_happened_writer: EventWriter<ScrollHappened>,
+) {
+    for finger in touches.iter() {
+        if touches.just_released(finger.id()) {
+            _touch_event_handler(&windows, &mut click_position, ClickState::JustReleased, &mut full_click_happened_writer, &mut scroll_happened_writer);
+        }
+        else if touches.just_pressed(finger.id()) {
+            _touch_event_handler(&windows, &mut click_position, ClickState::JustClicked, &mut full_click_happened_writer, &mut scroll_happened_writer);
+        }
+        else {
+            _touch_event_handler(&windows, &mut click_position, ClickState::Hovering, &mut full_click_happened_writer, &mut scroll_happened_writer);
+        }
+        return;
+    }
+}
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // HELPER FUNCTIONS
 /////////////////////////////////////////////////////////////////////////////////////
+
+
+// ClickState {JustClicked, Hovering, JustReleased}
+
+fn _touch_event_handler(
+    windows: &Windows, 
+    click_position: &mut ClickPosition, 
+    state: ClickState,
+    full_click_happened_writer: &mut EventWriter<FullClickHappened>,
+    scroll_happened_writer: &mut EventWriter<ScrollHappened>
+) {
+    let window = windows.get_primary().expect("no primary window");
+    let pos = window.cursor_position();
+    let window_size = Vec2::new(window.width(), window.height());
+    // If Some(Vec2), substract Window size: 
+    let clicked_pos = match pos {
+        Some(pos) => Some(pos - window_size / 2.),
+        None => None,
+    };
+
+    match state {
+        ClickState::JustClicked => {
+            click_position.clicked_pos = clicked_pos;
+            click_position.last_hovered_pos = clicked_pos;
+        }
+        ClickState::Hovering => {
+            if click_position.last_hovered_pos.is_some() && clicked_pos.is_some() {
+                let last_pos = click_position.last_hovered_pos.unwrap();
+                let new_pos = clicked_pos.unwrap();
+                let delta = new_pos - last_pos;
+                scroll_happened_writer.send(ScrollHappened{vy: delta.y});
+            }
+            click_position.last_hovered_pos = clicked_pos;
+        }
+        ClickState::JustReleased => {
+            if click_position.clicked_pos.is_some() && click_position.last_hovered_pos.is_some() && distance(&click_position.clicked_pos.unwrap(), &click_position.last_hovered_pos.unwrap()) < 5.
+            {
+                info!("YEEEE Successfull Click!!! : pos{:?}", clicked_pos);
+                full_click_happened_writer.send(FullClickHappened{pos: click_position.clicked_pos.unwrap()});
+            }
+            else{
+                info!("NOO Aborted Click!!! : pos{:?}", clicked_pos);
+            }
+            click_position.clicked_pos = None;
+            click_position.last_hovered_pos = None;
+        }
+    }
+}
+
 
 pub fn make_scrollbar(
     mut commands: &mut Commands,

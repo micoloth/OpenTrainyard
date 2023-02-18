@@ -85,6 +85,7 @@ pub struct BoardTileMap {
     pub map: Vec<Vec<Tile>>,
     pub submitted_map: Vec<Vec<Tile>>,
     pub map_name: String,
+    pub map_string: String,
     pub current_trains: Vec<Train>
 }
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -221,8 +222,8 @@ pub fn create_board(
     for event in board_event_reader.iter() {
         match event {
             BoardEvent::Make{map_name, map, scale} => {
-            let map: Vec<String> = map.split('\n').map(|s| s.to_string()).collect();
-            let tile_map: Vec<Vec<Tile>> = parse_map(map);
+            let vec_str: Vec<String> = map.split('\n').map(|s| s.to_string()).collect();
+            let tile_map: Vec<Vec<Tile>> = parse_map(vec_str);
             let n_width_ = tile_map.len();
             let n_height_ = tile_map.len();
             let tile_size = match board_options.tile_size {
@@ -261,6 +262,7 @@ pub fn create_board(
                 // global_transform: GlobalTransform::default(),
                 tile_map: BoardTileMap {
                     map: tile_map.clone(),
+                    map_string: map.clone(),
                     map_name: map_name.to_string(),
                     submitted_map: tile_map.clone(),
                     current_trains: Vec::new(),

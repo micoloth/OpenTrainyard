@@ -105,6 +105,7 @@ fn main() {
             // level: "Boomerang".to_string(),
             level: "".to_string(),
             city: "".to_string(),
+            map: "".to_string(),
         })
         .add_plugin(LoadingPlugin)
         .add_plugin(MenuPlugin)

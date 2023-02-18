@@ -14,7 +14,6 @@ use crate::menu_utils::*;
 use crate::all_puzzles_clean::PuzzlesData;
 
 use crate::menu_utils::make_button;
-use crate::menu_utils::ButtonColors;
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -33,8 +32,8 @@ impl Plugin for MenuLevelsPlugin {
                 .with_system(scroll_events_levels_mouse)
                 .with_system(click_play_button_levels)
                 .with_system(click_play_button_levels)
-                .with_system(handle_full_click_mouse)
-                .with_system(handle_full_click_touch)
+                .with_system(handle_click_mouse)
+                .with_system(handle_click_touch)
                 .with_system(handle_full_click)
             )
             .add_system_set(SystemSet::on_exit(GameState::MenuLevels).with_system(cleanup_menu_levels))
@@ -48,38 +47,12 @@ impl Plugin for MenuLevelsPlugin {
 #[derive(Component)]
 pub struct LevelButton;
 
-//Resource "ClickPosition", with a (x,y) tuple:
-#[derive(Default, Resource, Debug, Copy, Clone, PartialEq)]
-pub struct ClickPosition { // This is EXCLUDIVELY used because we want to record a click as a click-RELERASE in the SAME POSITION, so that a Touch-Swipe DON't trigger a click.
-    pub clicked_pos: Option<Vec2>,
-    pub last_hovered_pos: Option<Vec2>,
-
-}
-// Impl euclidean distance:
-pub fn distance(one: &Vec2, other: &Vec2) -> f32 {
-    let x = one.x - other.x;
-    let y = one.y - other.y;
-    (x * x + y * y).sqrt()
-}
-
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub enum ClickState {JustClicked, Hovering, JustReleased}
 
 
 /////////////////////////////////////////////////////////////////////////////////////
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
-
-#[derive(Debug, Copy, Clone)]
-pub struct FullClickHappened {
-    pub pos: Vec2
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct ScrollHappened {
-    pub vy: f32
-}
 
 
 
@@ -162,48 +135,6 @@ fn click_play_button_levels(
         }
     }
 }
-
-
-fn handle_full_click_mouse(
-    mouse_input: Res<Input<MouseButton>>, 
-    windows: Res<Windows>,
-    mut click_position: Local<ClickPosition>,
-    mut full_click_happened_writer: EventWriter<FullClickHappened>,
-    mut scroll_happened_writer: EventWriter<ScrollHappened>,
-) {
-    if mouse_input.any_just_released([MouseButton::Left, MouseButton::Right]) {
-        _touch_event_handler(&windows, &mut click_position, ClickState::JustReleased, &mut full_click_happened_writer, &mut scroll_happened_writer);
-    }
-    else if mouse_input.any_just_pressed([MouseButton::Left, MouseButton::Right]) {
-        _touch_event_handler(&windows, &mut click_position, ClickState::JustClicked, &mut full_click_happened_writer, &mut scroll_happened_writer);
-    }
-    else if mouse_input.any_pressed([MouseButton::Left, MouseButton::Right]) {
-        _touch_event_handler(&windows, &mut click_position, ClickState::Hovering, &mut full_click_happened_writer, &mut scroll_happened_writer);
-    }
-}
-
-
-fn handle_full_click_touch(
-    touches: Res<Touches>, 
-    mut click_position: Local<ClickPosition>,
-    windows: Res<Windows>,
-    mut full_click_happened_writer: EventWriter<FullClickHappened>,
-    mut scroll_happened_writer: EventWriter<ScrollHappened>,
-) {
-    for finger in touches.iter() {
-        if touches.just_released(finger.id()) {
-            _touch_event_handler(&windows, &mut click_position, ClickState::JustReleased, &mut full_click_happened_writer, &mut scroll_happened_writer);
-        }
-        else if touches.just_pressed(finger.id()) {
-            _touch_event_handler(&windows, &mut click_position, ClickState::JustClicked, &mut full_click_happened_writer, &mut scroll_happened_writer);
-        }
-        else {
-            _touch_event_handler(&windows, &mut click_position, ClickState::Hovering, &mut full_click_happened_writer, &mut scroll_happened_writer);
-        }
-        return;
-    }
-}
-
 
 
 // Set constan SCROLLWHEEL_SPEED_MULTIPLIER:
@@ -295,50 +226,3 @@ fn cleanup_menu_levels(mut commands: Commands, buttons: Query<Entity, (With<Butt
 // HELPER FUNCTIONS
 /////////////////////////////////////////////////////////////////////////////////////
 
-
-// ClickState {JustClicked, Hovering, JustReleased}
-
-fn _touch_event_handler(
-    windows: &Windows, 
-    click_position: &mut ClickPosition, 
-    state: ClickState,
-    full_click_happened_writer: &mut EventWriter<FullClickHappened>,
-    scroll_happened_writer: &mut EventWriter<ScrollHappened>
-) {
-let window = windows.get_primary().expect("no primary window");
-let pos = window.cursor_position();
-let window_size = Vec2::new(window.width(), window.height());
-// If Some(Vec2), substract Window size: 
-let clicked_pos = match pos {
-    Some(pos) => Some(pos - window_size / 2.),
-    None => None,
-};
-
-match state {
-    ClickState::JustClicked => {
-        click_position.clicked_pos = clicked_pos;
-        click_position.last_hovered_pos = clicked_pos;
-    }
-    ClickState::Hovering => {
-        if click_position.last_hovered_pos.is_some() && clicked_pos.is_some() {
-            let last_pos = click_position.last_hovered_pos.unwrap();
-            let new_pos = clicked_pos.unwrap();
-            let delta = new_pos - last_pos;
-            scroll_happened_writer.send(ScrollHappened{vy: delta.y});
-        }
-        click_position.last_hovered_pos = clicked_pos;
-    }
-    ClickState::JustReleased => {
-        if click_position.clicked_pos.is_some() && click_position.last_hovered_pos.is_some() && distance(&click_position.clicked_pos.unwrap(), &click_position.last_hovered_pos.unwrap()) < 5.
-        {
-            info!("YEEEE Successfull Click!!! : pos{:?}", clicked_pos);
-            full_click_happened_writer.send(FullClickHappened{pos: click_position.clicked_pos.unwrap()});
-        }
-        else{
-            info!("NOO Aborted Click!!! : pos{:?}", clicked_pos);
-        }
-        click_position.clicked_pos = None;
-        click_position.last_hovered_pos = None;
-    }
-}
-}

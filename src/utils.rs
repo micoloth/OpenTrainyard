@@ -9,7 +9,8 @@ use std::ops::{Add, Sub};
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Resource)] 
 pub struct SelectedLevel {
     pub level: String,
-    pub city: String
+    pub city: String,
+    pub map: String,
 }
 
 #[cfg_attr(feature = "debug", derive(bevy_inspector_egui::Inspectable))]
