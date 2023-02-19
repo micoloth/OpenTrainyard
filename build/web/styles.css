@@ -49,3 +49,8 @@ body {
     /* width: 320px;
     height: 550px; */
 }
+
+/* In div with class "popup", use font "Oswald" */
+.popup {
+    font-family: 'Oswald', sans-serif;
+}
