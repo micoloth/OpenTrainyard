@@ -168,10 +168,15 @@ fn setup_game_menu(
 fn cleanup_menu(
         mut commands: Commands, 
         buttons: Query<Entity, With<MainGameBotton>>,
-        mut board_event_writer: EventWriter<BoardEvent>,
+        board_q: Query<Entity, With<Board>>,
     ) {
+    // Delete all boards:
+    for board_id in board_q.iter() {
+        if let Some(entity) = commands.get_entity(board_id) { 
+            entity.despawn_recursive();
+        }
+    }   
     // For button in query:
-    board_event_writer.send(BoardEvent::Delete);
     for button in buttons.iter() { // It's never more than 1, but can very well be 0
         if let Some(id) = commands.get_entity(button) { id.despawn_recursive();};
     }
