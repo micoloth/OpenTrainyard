@@ -153,9 +153,10 @@ fn setup_game_menu(
     let undo_id = make_button("Undo".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right , top, bottom, UndoButton, Some(MainGameBotton));
     let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
     let scrollbar_id = make_scrollbar(&mut commands, &textures, 
-        ScrollBarLimits { max: 1660., min: 5., current: 300., step: 0.01 / 120.},
+        ScrollBarLimits { max: 2000., min: 4., current: 0., step: 0.01},
         &button_colors,  // ^ IMPORTANT note: This is now REVERSED!! (max is on the Left and min is on the Right)
         width * percent_left_right + margin/2., width - margin , top - heigh - margin, bottom - heigh - margin,
+        0.35,
         MainGameBotton);
     // Next level:
     let (left_, right_, bottom_, top_) = get_upper_coordinates(&windows);

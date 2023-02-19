@@ -201,12 +201,7 @@ pub fn scrollbar_dragging_handler(
                 let fraction = relposx / (sbpos.max_x - sbpos.min_x - handle_x);
                 // Fraction is now in [0,1]. 
                 // Tranform it by (1-x)^3:
-                let fraction = (1. - fraction).powf(4.);
-                
-                // New value using the fraction with  ScrollBarLimits { pub max: f32, pub min: f32, pub current: f32, pub step: f32,}:
-                let newval = sblimits.min + (sblimits.max - sblimits.min) * fraction;
-                // Round newval to the nearest step:
-                let newval = (newval / sblimits.step).round() * sblimits.step;
+                let newval = _get_scrollbar_value(fraction, &sblimits);
                 // println!("THANKSSS, {:?}", newval);
                 // Update ScrollBarPosition:
                 sbpos.current_x = relposx;
@@ -220,6 +215,8 @@ pub fn scrollbar_dragging_handler(
         }
     }
 }
+
+
 
 
 
@@ -328,6 +325,7 @@ pub fn make_scrollbar(
     pright: f32,
     ptop: f32,
     pbottom: f32,
+    position_fraction: f32,
     type_: impl Bundle,
 ) -> Entity {
     // let arrow = assets.s_arrow_elem_rigth.clone();
@@ -355,7 +353,14 @@ pub fn make_scrollbar(
     // and apply it to ScrollBarPosition{ max_x: pright, min_x: pleft} to get the current_x:
     let fraction = (scroll_bar_limits.current - scroll_bar_limits.min)
         / (scroll_bar_limits.max - scroll_bar_limits.min);
-    let current_x = fraction * (pright - pleft);
+    let current_x = position_fraction * (pright - pleft);
+    let current_val = _get_scrollbar_value(position_fraction, &scroll_bar_limits);
+    let scroll_bar_limits = ScrollBarLimits {
+        min: scroll_bar_limits.min,
+        max: scroll_bar_limits.max,
+        current: current_val,
+        step: scroll_bar_limits.step,
+    };
     let handle = commands
         .spawn(ScrollBarHandleBundle {
             style: Style {
@@ -524,9 +529,13 @@ pub fn make_border(commands: &mut Commands, color: Color) {
         .insert(BorderElem);
 }
 
-// fn cleanup_menu(mut commands: Commands, buttons: Query<Entity, (With<Button>, With<MainGameBotton>)>) {
-//     // For button in query:
-//     for button in buttons.iter() { // It's never more than 1, but can very well be 0
-//         commands.entity(button).despawn_recursive();
-//     }
-// }
+
+fn _get_scrollbar_value(fraction: f32, sblimits: &ScrollBarLimits) -> f32 {
+    let fraction = (1. - fraction).powf(6.);
+                
+    // New value using the fraction with  ScrollBarLimits { pub max: f32, pub min: f32, pub current: f32, pub step: f32,}:
+    let newval = sblimits.min + (sblimits.max - sblimits.min) * fraction;
+    // Round newval to the nearest step:
+    let newval = (newval / sblimits.step).round() * sblimits.step;
+    newval
+}

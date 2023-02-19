@@ -80,7 +80,7 @@ pub fn change_tick_speed(
 ){
     // Iter events:
     for scroll_bar_limits_event in scroll_bar_limits_event_reader.iter() {
-        let new_nticks = (scroll_bar_limits_event.current as u32).max(5);
+        let new_nticks = (scroll_bar_limits_event.current as u32).max(4);
         for mut board_tick_status in board_q.iter_mut() {    // Really, there's just 1 board
             // Find the fratction of the tick currently elapsed:
             let fraction = board_tick_status.current_tick as f32 / tick_params.ticks as f32;
