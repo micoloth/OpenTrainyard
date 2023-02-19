@@ -1,19 +1,19 @@
 <!DOCTYPE html><html lang="en"><head>
-        <meta charset="utf-8">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-title" content="My App">
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-touch-fullscreen" content="yes">
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-        <meta id="extViewportMeta" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-        <title>TrainYard</title> <!-- ToDo -->
-        
-        
-        
-        <link rel="manifest" href="manifest.json">
-        <link rel="icon" href="icon.ico">
-        <style type="text/css">
+    <meta charset="utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="My App">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta id="extViewportMeta" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>TrainYard</title> <!-- ToDo -->
+    
+    
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.ico">
+    <style type="text/css">
 /* Custom properties when on Moile: */
 @media (max-width: 600px) {
     body, html {
@@ -64,12 +64,18 @@ body {
     /* width: 320px;
     height: 550px; */
 }
-</style>
-    
-<link rel="preload" href="/OpenTrainyard/trainyard-35ecb771f85255b_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/OpenTrainyard/trainyard-35ecb771f85255b.js"></head>
-    <body>
-        <script>// Insert hack to make sound autoplay on Chrome as soon as the user interacts with the tab:
+
+/* In div with class "popup", use font "Oswald" */
+.popup {
+    font-family: 'Oswald', sans-serif;
+}</style>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald&amp;display=swap" rel="stylesheet">
+
+<link rel="preload" href="/OpenTrainyard/trainyard-53613078ba28a7d7_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/OpenTrainyard/trainyard-53613078ba28a7d7.js"></head>
+
+<body>
+    <script>// Insert hack to make sound autoplay on Chrome as soon as the user interacts with the tab:
 // https://developers.google.com/web/updates/2018/11/web-audio-autoplay#moving-forward
 
 // the following function keeps track of all AudioContexts and resumes them on the first user
@@ -132,8 +138,8 @@ body {
     });
 })();
 </script>
-        <div class="game-container">
-            <canvas id="bevy" style="
+    <div class="game-container">
+        <canvas id="bevy" style="
             touch-action: none;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -143,9 +149,45 @@ body {
             user-select: none;
             outline: none;
             -webkit-tap-highlight-color: rgba(255, 255, 255, 0);">
-                Javascript and support for canvas is required
-            </canvas>
-        </div>
-    
+            Javascript and support for canvas is required
+        </canvas>
+    </div>
 
-<script type="module">import init from '/OpenTrainyard/trainyard-35ecb771f85255b.js';init('/OpenTrainyard/trainyard-35ecb771f85255b_bg.wasm');</script></body></html>
+    <!-- After 10 seconds on the page, show a static popup div in the middle of the page saying "thanks": -->
+    <!-- 1. Define the div: -->
+    <div id="popup_star" class="popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background-color:rgba(23, 23, 30, 0.8); color:white; padding:20px; border-radius:10px; text-align:center;">
+        <h1>Thanks for playing Trainyard!</h1>
+        <p>If you like this, please consider starring the Github Repo 
+            <a href="https://github.com/micoloth" target="_blank" style="color:rgb(159, 190, 255);">here</a>.
+            <br>
+            It would mean a lot!
+        </p>
+        <p>Thanks.</p>
+    </div>
+    <div id="popup_timer" class="popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background-color:rgba(23, 23, 30, 0.8); color:white; padding:20px; border-radius:10px; text-align:center;">
+        <h2>Remember to not procrastinate too much!</h2>
+        <p>You probably have work to do... :)</p>
+        <p>Again, please consider adding a
+            <a href="https://github.com/micoloth" target="_blank" style="color:rgb(159, 190, 255);">star</a>.
+        </p>
+    </div>
+    <!-- 2. Define Javascript logic to show the div after 10 seconds: -->
+    <script>
+        // Check if it is the first time the user is on the page:
+        if (localStorage.getItem("firstTime") === null) {
+            localStorage.setItem("firstTime", "false");
+            setTimeout(function () { document.getElementById("popup_star").style.display = "block"; }, 200000);  // 10 minutes: 600000
+            setTimeout(function () { document.getElementById("popup_timer").style.display = "block"; }, 600000);  // 10 minutes: 600000
+        }
+
+        // <!-- 3. Add another logi: when the user clicks anywhere in the page, hide the div: -->
+        document.addEventListener("click", function () {
+            document.getElementById("popup_star").style.display = "none";
+            document.getElementById("popup_timer").style.display = "none";
+        }
+        );
+    </script>
+
+
+
+<script type="module">import init from '/OpenTrainyard/trainyard-53613078ba28a7d7.js';init('/OpenTrainyard/trainyard-53613078ba28a7d7_bg.wasm');</script></body></html>
