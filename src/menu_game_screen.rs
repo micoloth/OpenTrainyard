@@ -446,30 +446,32 @@ fn change_level(
 fn get_coordinates(windows: &Windows) -> (f32, f32, f32, f32, f32, f32, f32, f32) {
     let width = windows.get_primary().unwrap().width();
     let height = windows.get_primary().unwrap().height();
+    // Genius plan: I'll assume THE BOARD IS ALWAYS ABOUT AS WIDE AS THE SCREEN, AND ALSO SQUARE.
     // Boundaries (left right top bottom) of a Rectangle that occupies the LEFT HALF of the screen, minus a 20 pixel wide margin all around:
-    let margin = 20.;
-    let heigh = 40.;
+    let margin = 7.;
+    let button_height = 40.;
     let percent_left_right = 0.35;
     let left = margin;
     let right = width * percent_left_right - margin/2.;
     // Make the button 40 px high FROM THE BOTTOM:
-    let bottom = height - margin - 2.*40.;
-    let top = height - margin - heigh;
-    (width, margin, heigh, percent_left_right, left, right, bottom, top)
+    let bottom = height / 2. + width / 2. - 1.5 * margin ;
+    let top = height / 2. + width / 2. - 1.5 * margin + button_height;
+    (width, margin, button_height, percent_left_right, left, right, bottom, top)
 }
 
 fn get_upper_coordinates(windows: &Windows) -> (f32, f32, f32, f32) {
     let width = windows.get_primary().unwrap().width();
     let height = windows.get_primary().unwrap().height();
+    // Genius plan: I'll assume THE BOARD IS ALWAYS ABOUT AS WIDE AS THE SCREEN, AND ALSO SQUARE.
     // Boundaries (left right top bottom) of a Rectangle that occupies the RIGHT HALF of the screen, minus a 20 pixel wide margin all around:
-    let margin = 20.;
-    let heigh = 30.;
+    let margin = 7.;
+    let button_height = 30.;
     // Position it at the TOP of the screen:
     let percent_left_right = 0.65;
     let left = width * percent_left_right + margin/2.;
     let right = width - margin;
-    let top = margin;
-    let bottom = margin - heigh;
+    let bottom = height / 2. - width / 2. - 3.5 * margin - 2.* button_height;
+    let top = height / 2. - width / 2. - 3.5 * margin - button_height;
     return (left, right, bottom, top);
 }
 
