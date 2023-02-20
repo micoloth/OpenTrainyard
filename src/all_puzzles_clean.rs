@@ -34,6 +34,20 @@ pub fn get_next_puzzle(current_puzzle: String, pluzzles: &PuzzlesData) -> Option
     return None;
 }
 
+pub fn get_prev_puzzle(current_puzzle: String, pluzzles: &PuzzlesData) -> Option<PuzzleData> {
+    for (i, puzzle) in pluzzles.puzzles.iter().enumerate() {
+        if puzzle.name == current_puzzle {
+            if i > 0 {
+                return Some(pluzzles.puzzles[i - 1].clone());
+            }
+            else {
+                return None;
+            }
+        }
+    }
+    return None;
+}
+
 
 pub fn load_puzzles_data() -> PuzzlesData {
     let puzzles: [PuzzleData; 231] = [

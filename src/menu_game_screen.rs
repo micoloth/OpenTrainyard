@@ -246,8 +246,7 @@ fn click_back_button(
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                game_state.set(GameState::MenuLevels);
-                selected_level.level = "".to_string();
+                game_state.set(GameState::MenuSolutions);
             }
             _ => {}
         }
