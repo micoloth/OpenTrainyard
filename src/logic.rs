@@ -304,11 +304,11 @@ pub fn logic_tick(
     for (mut board_tilemap, mut game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
         // If board_hoverable.game_state is NOT running, continue:
         match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
-        if (tick_status.current_tick >= tick_params.ticks || tick_status.current_tick == 0) && (tick_status.first_half == Section::Second || tick_status.first_half == Section::NotEvenBegun) {
+        if (tick_status.current_tick >= tick_params.ticks && tick_status.first_half == Section::Second) || (tick_status.first_half == Section::NotEvenBegun && tick_status.current_tick == 0) {
+            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, &mut game_state, &mut change_gamestate_event_writer).clone();
             tick_status.current_tick = 0;
             // println!("Tick now 0");
             tick_status.first_half = Section::First;
-            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, &mut game_state, &mut change_gamestate_event_writer).clone();
         } else if tick_status.current_tick >= ((tick_params.ticks as f32 / 2.) as u32)  && tick_status.first_half == Section::First {
             tick_status.first_half = Section::Second;
             (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle, &mut game_state, &mut change_gamestate_event_writer);

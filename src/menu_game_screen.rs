@@ -48,7 +48,7 @@ impl Plugin for MainGamePlugin {
                 SystemSet::on_update(GameState::Playing)
                 .with_system(spawn_tile)
                 .with_system(spawn_trains)
-                .with_system(move_trains)   
+                .with_system(move_trains.after(spawn_trains))
                 .with_system(create_board)
                 .with_system(change_tick_speed)
                 .with_system(listen_to_game_state_changes)
