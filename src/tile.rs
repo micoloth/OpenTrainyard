@@ -296,10 +296,10 @@ fn get_transform_and_texture(
         Tile::EmptyTile => ("empty.png".to_string(), transform),
         Tile::RockTile => ("rock.png".to_string(), transform),
         Tile::SplitTile { side_in } => match &print_tile(&t)[..] {
-            "D1" => ("scissor_u.png".to_string(), Transform::from_xyz(0., 0., 4.)),
-            "D2" => ("scissor_u.png".to_string(), rotate_tile_90(Transform::from_xyz(0., 0., 4.), 2)),
-            "D3" => ("scissor_u.png".to_string(), rotate_tile_90(Transform::from_xyz(0., 0., 4.), 1)),
-            "D4" => ("scissor_u.png".to_string(), rotate_tile_90(Transform::from_xyz(0., 0., 4.), -1)),
+            "D1" => ("scissor_u.png".to_string(), Transform::from_xyz(0., 0., 2.)),
+            "D2" => ("scissor_u.png".to_string(), rotate_tile_90(Transform::from_xyz(0., 0., 2.), 2)),
+            "D3" => ("scissor_u.png".to_string(), rotate_tile_90(Transform::from_xyz(0., 0., 2.), 1)),
+            "D4" => ("scissor_u.png".to_string(), rotate_tile_90(Transform::from_xyz(0., 0., 2.), -1)),
             _ => {
                 panic!("Unknown tile combination: {}", print_tile(&t))
             }
@@ -445,6 +445,14 @@ pub fn make_tile(
                 ..default()
             });
         });
+    } else if let Tile::SplitTile { side_in: _ } = t{
+        child.with_children(|parent| {
+            parent.spawn(SpriteBundle {
+            texture: get_asset("scissor_u_inner.png".to_string(), assets),
+            transform: Transform::from_xyz(0., 0., 4.),
+            ..default()
+        });
+    });
     }
     return child.id();
 }

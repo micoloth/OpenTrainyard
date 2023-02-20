@@ -258,7 +258,7 @@ pub fn create_board(
             // We add the main resource of the game, the board
             let board_entity = commands.spawn(BoardBundle {
                 board: Board,
-                transform: Transform::from_translation(board_dimensions.position).with_scale(Vec3::splat(*scale)), // This component is required until
+                transform: Transform::from_translation(board_dimensions.position).with_scale(Vec3{x: *scale, y: *scale, z: 1.}), // This component is required until
                 // global_transform: GlobalTransform::default(),
                 tile_map: BoardTileMap {
                     map: tile_map.clone(),
