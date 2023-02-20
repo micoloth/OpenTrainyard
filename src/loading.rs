@@ -58,6 +58,8 @@ pub struct TrainAssets {
 
 #[derive(AssetCollection, Resource)]
 pub struct TileAssets {
+    #[asset(path = "samples/tick.png")] pub tick: Handle<Image>,
+    #[asset(path = "samples/star.png")] pub star: Handle<Image>,
     #[asset(path = "samples/s_elem_1_blue.png")] pub s_elem_1_blue: Handle<Image>,
     #[asset(path = "samples/s_base.png")] pub s_base: Handle<Image>,
     #[asset(path = "samples/e_elem_9_yellow.png")] pub e_elem_9_yellow: Handle<Image>,
