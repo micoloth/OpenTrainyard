@@ -594,20 +594,19 @@ pub fn parse_map(map_: Vec<String>) -> Vec<Vec<Tile>>{
     for row in map_{
         let mut row_vec: Vec<Tile> = Vec::new();
         for s in row.split(" "){
-            row_vec.push(parse_tile(s));
+            // If the string is empty, skip it:
+            if s != "" {
+                row_vec.push(parse_tile(s));
+            }
         }
         m.push(row_vec);
     }
-    // TRANSPOSE the 2d array (switch rows and columns):
-    let mut m2: Vec<Vec<Tile>> = Vec::new();
-    for i in 0..m[0].len(){
-        let mut row_vec: Vec<Tile> = Vec::new();
-        for j in 0..m.len(){
-            row_vec.push(m[j][i].clone());
-        }
-        m2.push(row_vec);
+    // Assert that this has size 7x7:
+    assert!(m.len() == 7);
+    for row in &m{
+        assert!(row.len() == 7);
     }
-    return m2;
+    return m;
 }
 
 pub fn print_tile(t: &Tile) -> String{
