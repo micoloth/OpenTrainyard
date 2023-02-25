@@ -135,9 +135,9 @@ fn add_color_minitiles_children(
     // let scale = big_tile_size / 46.;
     let (n, poss, small_tile_size) = if orig_len == 1 {
         (1, get_poss_minitile_1(), get_dimension_minitile_1())
-    } else if elems.len() <= 4 {
+    } else if orig_len <= 4 {
         (4, get_poss_minitile_4(), get_dimension_minitile_4())
-    } else if elems.len() <= 9 {
+    } else if orig_len <= 9 {
         (9, get_poss_minitile_9(), get_dimension_minitile_9())
     } else {
         panic!("Too many elements in StartTile");

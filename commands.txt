@@ -50,6 +50,7 @@ TODO:
  - DONE Button text
  - DONE Score in solutions menu
  - DONE Extra Tick on tile transition
+ - DONE Bug: 9 start tiles
  - Level solutions menu..
  - z index of split and start and stop
  - Music
@@ -61,7 +62,6 @@ TODO:
  - Background
  - Zindex start
  - Ghost train direction in stop (+start?) and split
- - Bug: 9 start tiles
 
 
  - Remember: animations: https://github.com/jcornaz/benimator/blob/main/examples/bevy.rs

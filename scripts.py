@@ -7,6 +7,7 @@ from pathlib import Path
 data = json.loads(Path(path).read_text())
 
 
+
 # A list of dicts like this: 
 # {'local_filename_map': 'Red Line.png',
 #  'name': 'Red Line',
@@ -19,6 +20,12 @@ data = json.loads(Path(path).read_text())
 #  'thumb': 'http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/redLine_thumb.png'}
 
 data[0]
+
+# Get all repeated names:
+names = [d['name'] for d in data]
+import pandas as pd
+names = pd.Series(names)
+names[names.duplicated()]
 
 
 # For each value in "city", get how many times it appears in the list of dicts:

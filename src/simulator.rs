@@ -606,7 +606,17 @@ pub fn parse_map_rows(map_: Vec<String>) -> Vec<Vec<Tile>>{
     for row in &m{
         assert!(row.len() == 7);
     }
-    return m;
+
+    // TRANSPOSE the 2d array (switch rows and columns):
+    let mut m2: Vec<Vec<Tile>> = Vec::new();
+    for i in 0..m[0].len(){
+        let mut row_vec: Vec<Tile> = Vec::new();
+        for j in 0..m.len(){
+            row_vec.push(m[j][i].clone());
+        }
+        m2.push(row_vec);
+    }
+    return m2;
 }
 
 pub fn parse_map(map_: &String) -> Vec<Vec<Tile>>{
@@ -629,11 +639,20 @@ pub fn print_tile(t: &Tile) -> String{
 }
 
 pub fn print_map(map_: &Vec<Vec<Tile>>) -> Vec<String>{
+    // TRANSPOSE the 2d array (switch rows and columns):
+    let mut m2: Vec<Vec<Tile>> = Vec::new();
+    for i in 0..map_[0].len(){
+        let mut row_vec: Vec<Tile> = Vec::new();
+        for j in 0..map_.len(){
+            row_vec.push(map_[j][i].clone());
+        }
+        m2.push(row_vec);
+    }
     let mut map_str: Vec<String> = Vec::new();
     for i in 0..7{
         let mut row_str: String = String::new();
         for j in 0..7{
-            row_str.push_str(&print_tile(&map_[i][j]));
+            row_str.push_str(&print_tile(&m2[i][j]));
             row_str.push_str(" ");
         }
         map_str.push(row_str);

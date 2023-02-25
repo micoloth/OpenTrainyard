@@ -49,8 +49,8 @@ impl Plugin for MenuSolutionsPlugin {
                 .with_system(handle_full_click_solution)
                 .with_system(click_nextlevel_button_solution)
                 .with_system(click_prevlevel_button_solution)
-                .with_system(sol_click_back_button)
-                .with_system(sol_click_clone_button)
+                .with_system(click_back_button_solution)
+                .with_system(click_clone_button_solution)
                 .with_system(scroll_events_solution_touch)
                 .with_system(scroll_events_solution_mouse)
                 .with_system(handle_gesture_mouse)
@@ -251,7 +251,7 @@ pub fn scroll_events_solution_touch(
 
 
 
-fn sol_click_back_button(
+fn click_back_button_solution(
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<BackButton>)>,
     mut game_state: ResMut<State<GameState>>,
     mut selected_level: ResMut<SelectedLevel>,
@@ -268,7 +268,7 @@ fn sol_click_back_button(
 }
 
 
-fn sol_click_clone_button(
+fn click_clone_button_solution(
     mut commands: Commands,
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<CloneButton>, With<SolutionsMenuBotton>)>,
     mut selected_level: ResMut<SelectedLevel>,
