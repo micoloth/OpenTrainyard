@@ -439,7 +439,7 @@ pub fn check_arrived_or_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (b
             new_trains.push(*train);
         };
     };
-    let completed = helper_check_completed(&new_field);
+    let completed = helper_check_completed(&new_field) && new_trains.len() == 0;
 
     // // println!(">>>> {:?}", print_tile(&new_field[3][5]));
     // println!("after 4 trains{:?}; Crashed: {:?}, Completed: {:?}", new_trains, crashed, completed);

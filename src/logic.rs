@@ -350,7 +350,7 @@ pub fn logic_tick_core(
         if crashed && (*hovering_state != BoardGameState::Running(RunningState::Crashed)) {  // This is bc res mut trigger is fired always
             *hovering_state = BoardGameState::Running(RunningState::Crashed);
         }
-        else if completed && (*hovering_state != BoardGameState::Running(RunningState::Won)) {
+        else if completed && (*hovering_state != BoardGameState::Running(RunningState::Won) && (*hovering_state != BoardGameState::Running(RunningState::Crashed))) {
             change_gamestate_event_writer.send(ChangeGameStateEvent{old_state: *hovering_state, new_state: BoardGameState::Running(RunningState::Won)});  // Here I'm ASSUMING 
             *hovering_state = BoardGameState::Running(RunningState::Won);
         }
