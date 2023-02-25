@@ -97,6 +97,9 @@ pub fn distance(one: &Vec2, other: &Vec2) -> f32 {
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum ClickState {JustClicked, Hovering, JustReleased}
 
+#[derive(Component)]
+struct TextElem;  // Use this to qury text elems
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 // EVENTS
@@ -110,6 +113,7 @@ pub struct FullClickHappened {
 
 #[derive(Debug, Copy, Clone)]
 pub struct ScrollHappened {
+    pub vx: f32,
     pub vy: f32
 }
 
@@ -221,7 +225,7 @@ pub fn scrollbar_dragging_handler(
 
 
 
-pub fn handle_click_mouse(
+pub fn handle_gesture_mouse(
     mouse_input: Res<Input<MouseButton>>, 
     windows: Res<Windows>,
     mut click_position: Local<ClickPosition>,
@@ -240,7 +244,7 @@ pub fn handle_click_mouse(
 }
 
 
-pub fn handle_click_touch(
+pub fn handle_gesture_touch(
     touches: Res<Touches>, 
     mut click_position: Local<ClickPosition>,
     windows: Res<Windows>,
@@ -296,7 +300,7 @@ fn _touch_event_handler(
                 let last_pos = click_position.last_hovered_pos.unwrap();
                 let new_pos = clicked_pos.unwrap();
                 let delta = new_pos - last_pos;
-                scroll_happened_writer.send(ScrollHappened{vy: delta.y});
+                scroll_happened_writer.send(ScrollHappened{vx: delta.x, vy: delta.y});
             }
             click_position.last_hovered_pos = clicked_pos;
         }
@@ -444,6 +448,61 @@ pub fn make_button(
     return ec.id();
 }
 
+
+pub fn make_text(
+    text: String,
+    commands: &mut Commands,
+    font_assets: &FontAssets,
+    button_colors: &ButtonColors,
+    font_size: f32,
+    pleft: f32,
+    pright: f32,
+    ptop: f32,
+    pbottom: f32,
+    type1: impl Bundle,
+    type2: Option<impl Bundle>,
+) -> Entity {
+    let mut ec = commands.spawn((NodeBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            size: Size::new(Val::Px(pright - pleft), Val::Px(ptop - pbottom)),
+            margin: UiRect::all(Val::Auto),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center, // I have to say, this was cool ....
+            position: UiRect {
+                top: Val::Px(ptop),
+                left: Val::Px(pleft),
+                ..default()
+            },
+            ..default()
+        },
+        // background_color: button_colors.normal.into(),
+        ..default()
+    },
+    ButtonData{text: text.clone()})
+    );
+    ec.with_children(|parent| {
+        parent.spawn((TextBundle {
+            text: Text {
+                sections: vec![TextSection {
+                    value: text,
+                    style: TextStyle {
+                        font: font_assets.fira_sans.clone(),
+                        font_size: font_size,
+                        color: Color::rgb(0.9, 0.9, 0.9),
+                    },
+                }],
+                alignment: default(),
+            },
+            ..default()
+        }, TextElem{}));
+    });
+    ec.insert(type1);
+    if let Some(type2) = type2 {
+        ec.insert(type2);
+    }
+    return ec.id();
+}
 
 
 

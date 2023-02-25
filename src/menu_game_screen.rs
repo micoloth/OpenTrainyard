@@ -241,7 +241,6 @@ fn click_nextlevel_button(
 fn click_back_button(
     mut interaction_query: Query<(&Interaction, &mut BackgroundColor), (Changed<Interaction>, With<Button>, With<BackButton>)>,
     mut game_state: ResMut<State<GameState>>,
-    mut selected_level: ResMut<SelectedLevel>,
 ) {
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
@@ -429,7 +428,7 @@ fn change_level(
 
     // Send the event to create the board:
     println!("LAUNCHED: {}", level_name.clone());
-    board_event_writer.send(BoardEvent::Make{map_name: level_name.clone(), map: map.clone(), scale: 1.});
+    board_event_writer.send(BoardEvent::Make{map_name: level_name.clone(), map: map.clone(), scale: 1., position: None, index: None});
     // Print the game name:
     // Despawn the level name:
     for level_name_id in level_name_query.iter() {
@@ -437,7 +436,7 @@ fn change_level(
     }
     // Spawn the level name BUTTON:
     let (left_, right_, bottom_, top_) = get_upper_coordinates(windows);
-    let name_id = make_button(level_name.clone(), commands, font_assets, button_colors, 20., left_ - 110., right_ -110., top_, bottom_, MainGameBotton, Some(LevelNameElem));
+    let name_id = make_text(level_name.clone(), commands, font_assets, button_colors, 20., left_ - 110., right_ -110., top_, bottom_, MainGameBotton, Some(LevelNameElem));
 
 }
 
