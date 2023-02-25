@@ -589,7 +589,7 @@ pub fn parse_tile(t: &str) -> Tile{
     else {return Tile::TrackTile{toptrack: get_track(pos_to_trackoption(t.to_string(), 0)), bottrack: get_track(pos_to_trackoption(t.to_string(), 1))};}
 }
 
-pub fn parse_map(map_: Vec<String>) -> Vec<Vec<Tile>>{
+pub fn parse_map_rows(map_: Vec<String>) -> Vec<Vec<Tile>>{
     let mut m: Vec<Vec<Tile>> = Vec::new();
     for row in map_{
         let mut row_vec: Vec<Tile> = Vec::new();
@@ -607,6 +607,12 @@ pub fn parse_map(map_: Vec<String>) -> Vec<Vec<Tile>>{
         assert!(row.len() == 7);
     }
     return m;
+}
+
+pub fn parse_map(map_: &String) -> Vec<Vec<Tile>>{
+    let vec_str: Vec<String> = map_.split('\n').map(|s| s.to_string()).collect();
+    let tile_map: Vec<Vec<Tile>> = parse_map_rows(vec_str);
+    return tile_map;
 }
 
 pub fn print_tile(t: &Tile) -> String{

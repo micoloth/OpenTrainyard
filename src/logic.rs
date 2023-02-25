@@ -264,7 +264,7 @@ pub fn listen_to_game_state_changes(
         for (mut board_tilemap, mut hovering_state, mut tick_status) in board_q.iter_mut() {
             match *ev {
                 ChangeGameStateEvent{old_state: BoardGameState::Running(RunningState::Started), new_state: BoardGameState::Running(RunningState::Won)} => {
-                    let solution_data = SolutionData::new(&board_tilemap.submitted_map);
+                    let solution_data = SolutionData::new_from_tiles(&board_tilemap.submitted_map);
                     level_solved_data_event_writer.send(LevelSolvedDataEvent{level_name: selected_level_name.level.clone(), solution_data: solution_data});
 
                 },
@@ -304,7 +304,7 @@ pub fn logic_tick(
     for (mut board_tilemap, mut game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
         // If board_hoverable.game_state is NOT running, continue:
         match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
-        if (tick_status.current_tick >= tick_params.ticks && tick_status.first_half == Section::Second) || (tick_status.first_half == Section::NotEvenBegun && tick_status.current_tick == 0) {
+        if (tick_status.current_tick >= tick_params.ticks -1 && tick_status.first_half == Section::Second) || (tick_status.first_half == Section::NotEvenBegun && tick_status.current_tick == 0) {
             (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, &mut game_state, &mut change_gamestate_event_writer).clone();
             tick_status.current_tick = 0;
             // println!("Tick now 0");

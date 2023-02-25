@@ -41,7 +41,7 @@ impl Plugin for MainGamePlugin {
             .insert_resource(get_board_option_default())
             .insert_resource(get_ticks_in_a_tick_default())
             // .insert_resource(GamePlayingState())
-            .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(init_gmae),)
+            .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(init_gmae).after(setup_game_menu),)
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_board),)
             .add_system_set(
                 //////////// MAIN LOGIC:
@@ -159,11 +159,13 @@ fn setup_game_menu(
         0.35,
         MainGameBotton);
     // Next level:
-    let (left_, right_, bottom_, top_) = get_upper_coordinates(&windows);
+    let (_, _, (left_, right_, bottom_, top_)) = get_upper_coordinates(&windows);
     let next_level_id = make_button("Next level".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(NextLevelButton));
     // Back:
-    let back_id = make_button("Back".to_string(), &mut commands, &font_assets, &button_colors, 20., width - right_, width - left_, top_, bottom_, MainGameBotton, Some(BackButton));
+    let ((left_, right_, bottom_, top_), _, _) = get_upper_coordinates(&windows);
+    let back_id = make_button("Back".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(BackButton));
 }
+
 
 fn cleanup_menu(
         mut commands: Commands, 
@@ -201,8 +203,14 @@ fn init_gmae(
     font_assets: Res<FontAssets>,
     // Button colors:
     button_colors: Res<ButtonColors>,
+    mut text_query: Query<&mut Text, With<TextElem>>,
+
 ) {
-    change_level(selected_level.level.clone(), selected_level.map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
+    // Spawn the level name BUTTON:
+    let (_, (left_, right_, bottom_, top_), _) = get_upper_coordinates(&windows);
+    let name_id = make_text(selected_level.level.clone(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(LevelNameElem));
+    
+    change_level(selected_level.level.clone(), selected_level.map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
 }
 
 fn click_nextlevel_button(
@@ -221,6 +229,8 @@ fn click_nextlevel_button(
     font_assets: Res<FontAssets>,
     // Button colors:
     button_colors: Res<ButtonColors>,
+    mut text_query: Query<&mut Text, With<TextElem>>,
+
 ) {
     for interaction in &mut interaction_query {
         match *interaction {
@@ -230,7 +240,7 @@ fn click_nextlevel_button(
                     // TODO this is wrong u should read playerdata
                     selected_level.level = next_puzzle.name.clone();
                     selected_level.map = map.clone();
-                    change_level(next_puzzle.name, map, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors);
+                    change_level(next_puzzle.name, map, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
                 }
             }
             _ => {}
@@ -418,8 +428,11 @@ fn change_level(
         board_event_writer: &mut EventWriter<BoardEvent>, 
         level_name_query: &Query<Entity,  With<LevelNameElem>>, 
         windows: &Windows, 
+        // Query mut TextElem:
         font_assets: &FontAssets, 
-        button_colors: &ButtonColors) {
+        button_colors: &ButtonColors,
+        mut text_query: &mut Query<&mut Text, With<TextElem>>,
+    ) {
     // Delete board:
     for board_id in board_q.iter() {
         if let Some(id) = commands.get_entity(board_id) { id.despawn_recursive();}
@@ -429,14 +442,10 @@ fn change_level(
     // Send the event to create the board:
     println!("LAUNCHED: {}", level_name.clone());
     board_event_writer.send(BoardEvent::Make{map_name: level_name.clone(), map: map.clone(), scale: 1., position: None, index: None});
-    // Print the game name:
-    // Despawn the level name:
-    for level_name_id in level_name_query.iter() {
-        if let Some(level_name_ec) = commands.get_entity(level_name_id) {level_name_ec.despawn_recursive();}
+    
+    for mut text in text_query.iter_mut() {
+        text.sections[0].value = level_name.clone();
     }
-    // Spawn the level name BUTTON:
-    let (left_, right_, bottom_, top_) = get_upper_coordinates(windows);
-    let name_id = make_text(level_name.clone(), commands, font_assets, button_colors, 20., left_ - 110., right_ -110., top_, bottom_, MainGameBotton, Some(LevelNameElem));
 
 }
 
@@ -457,7 +466,7 @@ fn get_coordinates(windows: &Windows) -> (f32, f32, f32, f32, f32, f32, f32, f32
     (width, margin, button_height, percent_left_right, left, right, bottom, top)
 }
 
-fn get_upper_coordinates(windows: &Windows) -> (f32, f32, f32, f32) {
+fn get_upper_coordinates(windows: &Windows) -> ((f32, f32, f32, f32), (f32, f32, f32, f32), (f32, f32, f32, f32)) {
     let width = windows.get_primary().unwrap().width();
     let height = windows.get_primary().unwrap().height();
     // Genius plan: I'll assume THE BOARD IS ALWAYS ABOUT AS WIDE AS THE SCREEN, AND ALSO SQUARE.
@@ -465,12 +474,11 @@ fn get_upper_coordinates(windows: &Windows) -> (f32, f32, f32, f32) {
     let margin = 7.;
     let button_height = 30.;
     // Position it at the TOP of the screen:
-    let percent_left_right = 0.65;
-    let left = width * percent_left_right + margin/2.;
-    let right = width - margin;
+    let percent_left_right = 0.3;
+    let left = margin;
+    let right = width * percent_left_right + margin/2.;
     let bottom = height / 2. - width / 2. - 3.5 * margin - 2.* button_height;
     let top = height / 2. - width / 2. - 3.5 * margin - button_height;
-    return (left, right, bottom, top);
+    return ((left, right - margin, bottom, top), (right, width - right, bottom, top), (width - right + margin, width - left, bottom, top));
 }
-
 

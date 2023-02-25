@@ -47,11 +47,21 @@ TODO:
  - DONE train sprites  
  - DONE Dont flip if cross
  - DONE FIX speed scroll nulling ...
+ - DONE Button text
+ - DONE Score in solutions menu
+ - DONE Extra Tick on tile transition
  - Level solutions menu..
  - z index of split and start and stop
  - Music
  - Particle effect .....
  - tutorial, in theory......
+ - cometic status button when running
+ - Cosmetic score in title when hovering
+ - Cosmetic Won menu overlayed
+ - Background
+ - Zindex start
+ - Ghost train direction in stop (+start?) and split
+ - Bug: 9 start tiles
 
 
  - Remember: animations: https://github.com/jcornaz/benimator/blob/main/examples/bevy.rs

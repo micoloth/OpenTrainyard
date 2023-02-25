@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use bevy_pkv::PkvStore;
 
-use crate::simulator::{count_tracks, count_double_tracks, pretty_print_map, Tile};
+use crate::simulator::{count_tracks, count_double_tracks, pretty_print_map, Tile, parse_map};
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -26,11 +26,18 @@ pub struct SolutionData {
 
 // Define constructor: reads map, calls count_tracks and count_double_tracks:
 impl SolutionData {
-    pub fn new(map: &Vec<Vec<Tile>>) -> Self {
+    pub fn new_from_tiles(map: &Vec<Vec<Tile>>) -> Self {
         Self {
             map: pretty_print_map(&map),
             tracks: count_tracks(&map),
             second_tracks: count_double_tracks(&map),
+        }
+    }
+    pub fn new_from_string(map: String) -> Self {
+        Self {
+            map: map.clone(),
+            tracks: count_tracks(&parse_map(&map)),
+            second_tracks: count_double_tracks(&parse_map(&map)),
         }
     }
 }
@@ -44,18 +51,18 @@ pub enum LevelSolutionData {
 
 // A struct with a strin -> LevelSolutionData hashmap:
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Resource)]
-pub struct SolutionDataMap {
+pub struct SolutionsSavedData {
     pub levels: HashMap<String, LevelSolutionData>,
 }
 // Default: empty hashmap:
-impl Default for SolutionDataMap {
+impl Default for SolutionsSavedData {
     fn default() -> Self {
         Self {
             levels: HashMap::new(),
         }
     }
 }
-impl SolutionDataMap {
+impl SolutionsSavedData {
     // Getter: take a string, return the data if present, else Unsolved:
     pub fn get(&self, level_name: &str) -> LevelSolutionData {
         match self.levels.get(level_name) {
@@ -83,7 +90,7 @@ pub struct LevelSolvedDataEvent {
 
 pub fn save_player_data(
     mut pkv: ResMut<PkvStore>,
-    mut solution_data_map: ResMut<SolutionDataMap>,
+    mut solution_data_map: ResMut<SolutionsSavedData>,
     mut level_solved_events: EventReader<LevelSolvedDataEvent>,
 ) {
     for event in level_solved_events.iter() {

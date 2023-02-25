@@ -1,7 +1,7 @@
 
 use crate::GameState;
 use crate::data_saving::LevelSolutionData;
-use crate::data_saving::SolutionDataMap;
+use crate::data_saving::SolutionsSavedData;
 use crate::loading::TileAssets;
 use crate::utils::SelectedLevel;
 use bevy::input::mouse::MouseWheel;
@@ -28,13 +28,13 @@ impl Plugin for MenuLevelsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ButtonColors>()
             .add_system_set(SystemSet::on_enter(GameState::MenuLevels).with_system(setup_menu_levels))
-            .add_system_set(SystemSet::on_update(GameState::MenuLevels).with_system(scroll_events_levels_touch)
+            .add_system_set(SystemSet::on_update(GameState::MenuLevels)
+                .with_system(scroll_events_levels_touch)
                 .with_system(scroll_events_levels_mouse)
-                .with_system(click_play_button_levels)
-                .with_system(click_play_button_levels)
-                .with_system(handle_click_mouse)
-                .with_system(handle_click_touch)
+                .with_system(handle_gesture_mouse)
+                .with_system(handle_gesture_touch)
                 .with_system(handle_full_click)
+                .with_system(click_play_button_levels)
             )
             // ButtonColors resource:
             .insert_resource(MenuLimits{..default()})
@@ -83,18 +83,18 @@ fn setup_menu_levels(
     levels: Res<PuzzlesData>,
     windows: Res<Windows>,
     pkv: Res<PkvStore>,
-    mut solution_data_map: ResMut<SolutionDataMap>,
+    mut solution_data_map: ResMut<SolutionsSavedData>,
     tile_assets: Res<TileAssets>,
     // Resourvce:
     mut menu_limits: ResMut<MenuLimits>,
 ) {
 
-    if let Ok(all_solutions) = pkv.get::<SolutionDataMap>("solved_levels") {
+    if let Ok(all_solutions) = pkv.get::<SolutionsSavedData>("solved_levels") {
         // Set resource:
         *solution_data_map = all_solutions;
     } else {
         // Setsolution_data_map.levels to  an empty hashmap
-        *solution_data_map = SolutionDataMap::default();
+        *solution_data_map = SolutionsSavedData::default();
     }
 
     println!("YES IM HERE. good...");

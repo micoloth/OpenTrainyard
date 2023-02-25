@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 
-use crate::simulator::{Tile, parse_map};
+use crate::simulator::{Tile, parse_map_rows, parse_map};
 use crate::utils::Coordinates;
 
 use crate::tile::{TileSpawnData, make_tile};
@@ -157,6 +157,7 @@ pub struct BoardDimensions {
     pub tile_size: f32, // Tile world size
     pub position: Vec3,
     pub rect: Rect,
+    pub index: Option<u32>,
 }
 #[derive(Bundle)]
 pub struct BoardBundle {
@@ -181,9 +182,15 @@ pub struct BoardBundle {
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum BoardEvent {
-    Make{map_name: String, map: String,  scale: f32},
+    Make{
+        map_name: String, 
+        map: String,  
+        scale: f32,
+        position: Option<BoardPosition>,
+        index: Option<u32>,
+    },
     Delete,
 }
 
@@ -221,84 +228,89 @@ pub fn create_board(
 ) {
     for event in board_event_reader.iter() {
         match event {
-            BoardEvent::Make{map_name, map, scale} => {
-            let vec_str: Vec<String> = map.split('\n').map(|s| s.to_string()).collect();
-            let tile_map: Vec<Vec<Tile>> = parse_map(vec_str);
-            let n_width_ = tile_map.len();
-            let n_height_ = tile_map.len();
-            let tile_size = match board_options.tile_size {
-                TileSize::Fixed(v) => v,
-                TileSize::Adaptive =>  (
-                    windows.get_primary().unwrap().width() / n_width_ as f32).min(
-                        windows.get_primary().unwrap().height() / n_height_ as f32) * 0.92
-            };
-            let board_position = match board_options.position {
-                BoardPosition::Centered { offset } => {
-                    // offset
-                    Vec3::new(-(n_width_ as f32 * tile_size / 2.), -(n_height_ as f32 * tile_size / 2.), 0.) + offset
-                }
-                BoardPosition::Custom(p) => p,
-            };
-            // log::info!("board size: {}", board_size);
+            BoardEvent::Make{map_name, map, scale, position, index} => {
+                // Print map:
+                let tile_map: Vec<Vec<Tile>> = parse_map(map);
+                let n_width_ = tile_map.len();
+                let n_height_ = tile_map.len();
+                let tile_size = match board_options.tile_size {
+                    TileSize::Fixed(v) => v,
+                    TileSize::Adaptive =>  (
+                        windows.get_primary().unwrap().width() / n_width_ as f32).min(
+                            windows.get_primary().unwrap().height() / n_height_ as f32) * 0.92
+                };
+                // If position is None, we use the default position:
+                let board_position = match position {
+                    Some(p) => { p},
+                    None => { &board_options.position }
+                };
+                let board_position = match board_position.clone() {
+                    BoardPosition::Centered { offset } => {
+                        // offset
+                        Vec3::new(-(n_width_ as f32 * tile_size / 2.), -(n_height_ as f32 * tile_size / 2.), 0.) + offset
+                    }
+                    BoardPosition::Custom(p) => p,
+                };
+                // log::info!("board size: {}", board_size);
 
-            // Init BoardDimensions component
-            let board_dimensions = BoardDimensions {
-                tile_size,
-                position: board_position,
-                rect: Rect{
-                    top: board_position.y,
-                    bottom: board_position.y + n_height_ as f32 * tile_size,
-                    left: board_position.x,
-                    right: board_position.x + n_width_ as f32 * tile_size,
-                }
-            };
-            // Println board_dimensions.position:
-            // println!("board_dimensions.position: {:?}", board_dimensions.position);
+                // Init BoardDimensions component
+                let board_dimensions = BoardDimensions {
+                    tile_size,
+                    position: board_position,
+                    rect: Rect{
+                        top: board_position.y,
+                        bottom: board_position.y + n_height_ as f32 * tile_size,
+                        left: board_position.x,
+                        right: board_position.x + n_width_ as f32 * tile_size,
+                    },
+                    index: *index,
+                };
+                // Println board_dimensions.position:
+                // println!("board_dimensions.position: {:?}", board_dimensions.position);
 
-            // We add the main resource of the game, the board
-            let board_entity = commands.spawn(BoardBundle {
-                board: Board,
-                transform: Transform::from_translation(board_dimensions.position).with_scale(Vec3{x: *scale, y: *scale, z: 1.}), // This component is required until
-                // global_transform: GlobalTransform::default(),
-                tile_map: BoardTileMap {
-                    map: tile_map.clone(),
-                    map_string: map.clone(),
-                    map_name: map_name.to_string(),
-                    submitted_map: tile_map.clone(),
-                    current_trains: Vec::new(),
-                },
-                hoverable: BoardHoverable {
-                    hovered_pos_1: None,
-                    hovered_pos_2: None,
-                    history: History{ ..default()},
-                },
-                options: board_dimensions,
-                sprite: Sprite{
-                    color: Color::rgb(0.5, 0.5, 0.5),
-                    ..default()
-                },
-                hovering_state: BoardGameState::Drawing,
-                global_transform: GlobalTransform::default(),
-                texture: default(),
-                visibility: default(),
-                computed_visibility: default(),
-                board_tick_status: default(),
-            }).id();
-
-            
-            // Send an event to spawn all tiles:
-            for (y, line) in tile_map.iter().enumerate() {
-                for (x, tile) in line.iter().enumerate() {
-                    let coordinates = Coordinates { x: x as u16, y: y as u16,};
-                    let child_id = make_tile(*tile, &mut commands, &board_assets_map, board_dimensions.tile_size, coordinates);
-                    
-                    commands.entity(board_entity).push_children(&[child_id]);// add the child to the parent
+                // We add the main resource of the game, the board
+                let board_entity = commands.spawn(BoardBundle {
+                    board: Board,
+                    transform: Transform::from_translation(board_dimensions.position).with_scale(Vec3{x: *scale, y: *scale, z: 1.}), // This component is required until
+                    // global_transform: GlobalTransform::default(),
+                    tile_map: BoardTileMap {
+                        map: tile_map.clone(),
+                        map_string: map.clone(),
+                        map_name: map_name.to_string(),
+                        submitted_map: tile_map.clone(),
+                        current_trains: Vec::new(),
+                    },
+                    hoverable: BoardHoverable {
+                        hovered_pos_1: None,
+                        hovered_pos_2: None,
+                        history: History{ ..default()},
+                    },
+                    options: board_dimensions,
+                    sprite: Sprite{
+                        color: Color::rgb(0.5, 0.5, 0.5),
+                        ..default()
+                    },
+                    hovering_state: BoardGameState::Drawing,
+                    global_transform: GlobalTransform::default(),
+                    texture: default(),
+                    visibility: default(),
+                    computed_visibility: default(),
+                    board_tick_status: default(),
+                }).id();
+                
+                // Send an event to spawn all tiles:
+                for (y, line) in tile_map.iter().enumerate() {
+                    for (x, tile) in line.iter().enumerate() {
+                        let coordinates = Coordinates { x: x as u16, y: y as u16,};
+                        let child_id = make_tile(*tile, &mut commands, &board_assets_map, board_dimensions.tile_size, coordinates);
+                        
+                        commands.entity(board_entity).push_children(&[child_id]);// add the child to the parent
+                    }
                 }
-            }
-        },
-        _ => {}
+            },
+            _ => {}
+        }
     }
-}
 }
 
 pub fn cleanup_board(

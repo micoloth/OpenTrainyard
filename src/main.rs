@@ -2,10 +2,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use bevy::prelude::*;
+use bevy_tweening::*;
 use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use data_saving::{SolutionDataMap, LevelSolvedDataEvent};
+use data_saving::{SolutionsSavedData, LevelSolvedDataEvent};
 use menu_solutions::MenuSolutionsPlugin;
 // use trainyard::GamePlugin;
 use std::io::Cursor;
@@ -96,10 +97,11 @@ fn main() {
             window: WindowDescriptor {width: 320.,height: 550.,title: "Trainyard".to_string(), canvas: Some("#bevy".to_owned()), ..default()},
             ..default()
         }).set(ImagePlugin::default_nearest()))
+        .add_plugin(TweeningPlugin)
         .add_startup_system(setup_camera) // Startup system (cameras)
         .add_startup_system(set_window_icon)
         .insert_resource(load_puzzles_data())
-        .insert_resource(SolutionDataMap::default())
+        .insert_resource(SolutionsSavedData::default())
         .insert_resource(SelectedLevel
         {
             // level: "Boomerang".to_string(),

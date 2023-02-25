@@ -30,6 +30,7 @@ bevy_pkv = "0.6.0"
 rand = { version = "0.8.3" }
 partial_application = "0.2.1"
 serde = { version = "1.0.130", features = ["derive"] }
+bevy_tweening = "0.6.0"
 # iyes_loopless = {version = "0.9.1", default-features = false, features = ["bevy-compat", "fixedtimestep", "states"] }
 
 # keep the following in sync with Bevy's dependencies

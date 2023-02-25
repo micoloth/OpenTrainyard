@@ -98,7 +98,7 @@ pub fn distance(one: &Vec2, other: &Vec2) -> f32 {
 pub enum ClickState {JustClicked, Hovering, JustReleased}
 
 #[derive(Component)]
-struct TextElem;  // Use this to qury text elems
+pub struct TextElem;  // Use this to qury text elems
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -472,7 +472,8 @@ pub fn make_text(
             position: UiRect {
                 top: Val::Px(ptop),
                 left: Val::Px(pleft),
-                ..default()
+                right: Val::Px(pright),
+                bottom: Val::Px(pbottom),
             },
             ..default()
         },
@@ -492,7 +493,7 @@ pub fn make_text(
                         color: Color::rgb(0.9, 0.9, 0.9),
                     },
                 }],
-                alignment: default(),
+                alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center },
             },
             ..default()
         }, TextElem{}));

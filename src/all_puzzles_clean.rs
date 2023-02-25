@@ -20,6 +20,23 @@ pub struct PuzzlesData {
     pub puzzles: Vec<PuzzleData>,
 }
 
+// Function that counts which names are present more than once:
+pub fn count_duplicates(puzzles: &PuzzlesData) -> Vec<String> {
+    let mut duplicates: Vec<String> = Vec::new();
+    let mut names: Vec<String> = Vec::new();
+    for puzzle in &puzzles.puzzles {
+        if names.contains(&puzzle.name) {
+            duplicates.push(puzzle.name.clone());
+        }
+        else {
+            names.push(puzzle.name.clone());
+        }
+    }
+    // Print:
+    println!("Duplicates: {:?}", duplicates);
+    duplicates
+}
+
 pub fn get_next_puzzle(current_puzzle: String, pluzzles: &PuzzlesData) -> Option<PuzzleData> {
     for (i, puzzle) in pluzzles.puzzles.iter().enumerate() {
         if puzzle.name == current_puzzle {
@@ -1131,7 +1148,7 @@ pub fn load_puzzles_data() -> PuzzlesData {
         },
         PuzzleData {
             // local_filename_map: "Rainbow Arrow.png".to_string(),
-            name: "Rainbow Arrow".to_string(),
+            name: "Rainbow Arrow 2".to_string(),
             // solutions_url: "http://www.trainyard.ca/solutions/rainbowArrow".to_string(),
             city: "Prince Edward Island Puzzles".to_string(),
             parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 r5 y5 MM g5 b5 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 E0010_b E0010_g Sl_pppp E0010_y E0010_r 00".to_string(),
@@ -2596,5 +2613,7 @@ pub fn load_puzzles_data() -> PuzzlesData {
         },
     ];
     //Turn array into Vec:
-    return PuzzlesData{puzzles: puzzles.to_vec()};
+    let p = PuzzlesData{puzzles: puzzles.to_vec()};
+    count_duplicates(&p);
+    return p;
 }
