@@ -1,6 +1,5 @@
 
 use crate::GameState;
-use crate::data_saving::LevelSolutionData;
 use crate::data_saving::SolutionsSavedData;
 use crate::loading::TileAssets;
 use crate::utils::SelectedLevel;
@@ -89,7 +88,7 @@ fn setup_menu_levels(
     mut menu_limits: ResMut<MenuLimits>,
 ) {
 
-    if let Ok(all_solutions) = pkv.get::<SolutionsSavedData>("solved_levels") {
+    if let Ok(all_solutions) = pkv.get::<SolutionsSavedData>("solved_levels_v2") {
         // Set resource:
         *solution_data_map = all_solutions;
     } else {
@@ -126,7 +125,7 @@ fn setup_menu_levels(
         // if name is in solution_data_map.levels, AND the object is of type Solved, then we have solved it, and we can make the button green
         let score = match solution_data_map.levels.get(name)
         {
-            Some(LevelSolutionData::Solved(solutions)) => {
+            Some(solutions) => {
                 // Get the solution (map, tracks, and second tracks) of the object with the MIN number of tracks:
                 let solution = solutions.iter().min_by_key(|x| x.tracks).unwrap();
                 format!("({}/{})", solution.tracks, solution.second_tracks)

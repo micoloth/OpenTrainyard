@@ -139,14 +139,16 @@ pub enum Section {
 
 #[derive(Debug, Component)]
 pub struct BoardTickStatus {
-    pub current_tick: u32,
+    pub current_game_tick: u32,
+    pub current_tick_in_a_tick: u32,
     pub first_half: Section,
 }
 // impl default:
 impl Default for BoardTickStatus {
     fn default() -> Self {
         Self {
-            current_tick: 0,
+            current_game_tick: 0,
+            current_tick_in_a_tick: 0,
             first_half: Section::NotEvenBegun,
         }
     }

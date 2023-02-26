@@ -6,7 +6,7 @@ use bevy_tweening::*;
 use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use data_saving::{SolutionsSavedData, LevelSolvedDataEvent};
+use data_saving::{SolutionsSavedData, SelectedLevelSolvedDataEvent};
 use menu_solutions::MenuSolutionsPlugin;
 // use trainyard::GamePlugin;
 use std::io::Cursor;
@@ -102,15 +102,7 @@ fn main() {
         .add_startup_system(set_window_icon)
         .insert_resource(load_puzzles_data())
         .insert_resource(SolutionsSavedData::default())
-        .insert_resource(SelectedLevel
-        {
-            // level: "Boomerang".to_string(),
-            level: "".to_string(),
-            city: "".to_string(),
-            map: "".to_string(),
-            solution_index: 0,
-            maps: vec![],
-        })
+        .insert_resource(SelectedLevel::default())
         .add_plugin(LoadingPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(MenuLevelsPlugin)
@@ -120,7 +112,7 @@ fn main() {
         .add_plugin(MainGamePlugin)
         .add_state(GameState::Loading)
         .add_system(button_color_handler)
-        .add_event::<LevelSolvedDataEvent>()
+        .add_event::<SelectedLevelSolvedDataEvent>()
         .run();
 }
 

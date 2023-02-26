@@ -4,7 +4,7 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct Player;
 
-use crate::data_saving::{SolutionData, LevelSolvedDataEvent};
+use crate::data_saving::*;
 use crate::simulator::*;
 
 use bevy::utils::Instant;
@@ -83,11 +83,11 @@ pub fn change_tick_speed(
         let new_nticks = (scroll_bar_limits_event.current as u32).max(4);
         for mut board_tick_status in board_q.iter_mut() {    // Really, there's just 1 board
             // Find the fratction of the tick currently elapsed:
-            let fraction = board_tick_status.current_tick as f32 / tick_params.ticks as f32;
+            let fraction = board_tick_status.current_tick_in_a_tick as f32 / tick_params.ticks as f32;
             // Set the current tick to the same fraction of the new tick count:
             let current = new_nticks as f32 * fraction;
             // Ceil it:
-            board_tick_status.current_tick = current.ceil() as u32;
+            board_tick_status.current_tick_in_a_tick = current.ceil() as u32;
             // Set the new tick count:
             tick_params.ticks = new_nticks;
             println!("Tick speed changed to {}", tick_params.ticks);
@@ -255,23 +255,26 @@ pub fn double_click_event(
 
 pub fn listen_to_game_state_changes(
     mut board_q: Query<(&mut BoardTileMap, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
-    selected_level_name: Res<SelectedLevel>,
+    mut selected_level: ResMut<SelectedLevel>,
     mut change_board_game_state_event_reader: EventReader<ChangeGameStateEvent>,
-    mut level_solved_data_event_writer: EventWriter<LevelSolvedDataEvent>,
+    mut level_solved_data_event_writer: EventWriter<SelectedLevelSolvedDataEvent>,
 ) {
     // For each event:
     for ev in change_board_game_state_event_reader.iter() {
         for (mut board_tilemap, mut hovering_state, mut tick_status) in board_q.iter_mut() {
             match *ev {
                 ChangeGameStateEvent{old_state: BoardGameState::Running(RunningState::Started), new_state: BoardGameState::Running(RunningState::Won)} => {
-                    let solution_data = SolutionData::new_from_tiles(&board_tilemap.submitted_map);
-                    level_solved_data_event_writer.send(LevelSolvedDataEvent{level_name: selected_level_name.level.clone(), solution_data: solution_data});
-
+                    let solution_data = SolutionData::new_from_tiles(&board_tilemap.submitted_map, tick_status.current_game_tick);
+                    let index = selected_level.solution_index.clone();
+                    if index >= selected_level.maps.len() as u16 { selected_level.maps.push(solution_data); }
+                    else { selected_level.maps[index as usize] = solution_data; }
+                    level_solved_data_event_writer.send(SelectedLevelSolvedDataEvent{});
                 },
                 ChangeGameStateEvent{old_state: _, new_state: BoardGameState::Running(_) }=> {
                     board_tilemap.current_trains = Vec::new();
                     board_tilemap.submitted_map = board_tilemap.map.clone();
-                    tick_status.current_tick = 0;
+                    tick_status.current_tick_in_a_tick = 0;
+                    tick_status.current_game_tick = 0;
                     tick_status.first_half = Section::NotEvenBegun;
                     *hovering_state = ev.new_state;
 
@@ -299,21 +302,27 @@ pub fn logic_tick(
     mut board_q: Query<(&mut BoardTileMap, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
     tick_params: ResMut<TicksInATick>,
     mut change_gamestate_event_writer: EventWriter<ChangeGameStateEvent>,
+    game_tick: Local<u16>,
     ) {
         
     for (mut board_tilemap, mut game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
+        // if NoteEvenBegun, set game_tick to 0:
         // If board_hoverable.game_state is NOT running, continue:
         match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
-        if (tick_status.current_tick >= tick_params.ticks -1 && tick_status.first_half == Section::Second) || (tick_status.first_half == Section::NotEvenBegun && tick_status.current_tick == 0) {
+        if (tick_status.current_tick_in_a_tick >= tick_params.ticks -1 && tick_status.first_half == Section::Second) || (tick_status.first_half == Section::NotEvenBegun && tick_status.current_tick_in_a_tick == 0) {
+            if tick_status.first_half == Section::NotEvenBegun {
+                tick_status.current_game_tick = 0;
+            }
+            tick_status.current_tick_in_a_tick = 0;
+            tick_status.current_game_tick += 1;
             (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, &mut game_state, &mut change_gamestate_event_writer).clone();
-            tick_status.current_tick = 0;
             // println!("Tick now 0");
             tick_status.first_half = Section::First;
-        } else if tick_status.current_tick >= ((tick_params.ticks as f32 / 2.) as u32)  && tick_status.first_half == Section::First {
+        } else if tick_status.current_tick_in_a_tick >= ((tick_params.ticks as f32 / 2.) as u32)  && tick_status.first_half == Section::First {
             tick_status.first_half = Section::Second;
             (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle, &mut game_state, &mut change_gamestate_event_writer);
         }
-        tick_status.current_tick += 1;
+        tick_status.current_tick_in_a_tick += 1;
     }
 }
 

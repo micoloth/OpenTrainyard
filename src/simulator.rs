@@ -667,7 +667,7 @@ pub fn pretty_print_map(map_: &Vec<Vec<Tile>>) -> String{
     // println!("{}", res);
 }
 
-pub fn count_tracks(map: &Vec<Vec<Tile>>) -> i32 {
+pub fn count_tracks(map: &Vec<Vec<Tile>>) -> u32 {
     let mut count = 0;
     for row in map {
         for tile in row {
@@ -681,7 +681,7 @@ pub fn count_tracks(map: &Vec<Vec<Tile>>) -> i32 {
     count
 }
 
-pub fn count_double_tracks(map: &Vec<Vec<Tile>>) -> i32 {
+pub fn count_double_tracks(map: &Vec<Vec<Tile>>) -> u32 {
     let mut count = 0;
     for row in map {
         for tile in row {

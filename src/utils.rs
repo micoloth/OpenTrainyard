@@ -1,4 +1,4 @@
-use crate::GameState;
+use crate::{GameState, data_saving::SolutionData};
 use bevy::prelude::*;
 
 
@@ -6,13 +6,14 @@ use std::ops::{Add, Sub};
 
 
 // SelectedLevel resource:
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Resource)] 
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Resource, Default)] 
 pub struct SelectedLevel {
     pub level: String,
     pub city: String,
     pub map: String,
     pub solution_index: u16,
-    pub maps: Vec<String>,
+    pub maps: Vec<SolutionData>,
+    pub vanilla_map: String,
 }
 
 #[cfg_attr(feature = "debug", derive(bevy_inspector_egui::Inspectable))]

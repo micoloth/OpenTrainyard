@@ -1,3 +1,5 @@
+use crate::data_saving::SolutionData;
+use crate::data_saving::SolutionsSavedData;
 use crate::loading::FontAssets;
 use crate::GameState;
 use bevy::prelude::*;
@@ -230,19 +232,28 @@ fn click_nextlevel_button(
     // Button colors:
     button_colors: Res<ButtonColors>,
     mut text_query: Query<&mut Text, With<TextElem>>,
+    solution_data_map: Res<SolutionsSavedData>,
 
 ) {
     for interaction in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                // 
-
+                // Get the next level:
                 if let Some(next_puzzle) = get_next_puzzle(selected_level.level.clone(), &levels) {
-                    let map = levels.puzzles.iter().find(|p| p.name == next_puzzle.name.clone()).unwrap().parsed_map.clone();    
-                    // TODO this is wrong u should read playerdata
-                    selected_level.level = next_puzzle.name.clone();
-                    selected_level.map = map.clone();
-                    change_level(next_puzzle.name, map, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
+                    let empty_map = next_puzzle.parsed_map;
+                    let empty_map_data = SolutionData::new_from_string(empty_map.clone(), 0);
+                    let solved_data = solution_data_map.get(&next_puzzle.name);
+                    let maps = if solved_data.len() == 0 { vec![empty_map_data] }  else { solved_data };
+                    let index = maps.len() as u16 - 1;
+                    *selected_level = SelectedLevel{
+                        level: next_puzzle.name.clone(),
+                        maps: maps.clone(),
+                        solution_index: index,
+                        map: maps[index as usize].map.clone(),
+                        vanilla_map: empty_map,
+                        city: "".to_string(),
+                    };
+                    change_level(selected_level.level.clone(), selected_level.map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
                 }
             }
             _ => {}

@@ -1,10 +1,9 @@
 
 use std::time::Duration;
 
-use crate::data_saving::LevelSolutionData;
+use crate::data_saving::SelectedLevelSolvedDataEvent;
 use crate::data_saving::SolutionData;
 use crate::data_saving::SolutionsSavedData;
-use crate::data_saving::get_maps_in_order;
 use crate::loading::FontAssets;
 use crate::GameState;
 use bevy::input::mouse::MouseWheel;
@@ -52,14 +51,17 @@ impl Plugin for MenuSolutionsPlugin {
                 .with_system(click_prevlevel_button_solution)
                 .with_system(click_back_button_solution)
                 .with_system(click_clone_button_solution)
+                .with_system(click_newsolution_button_solution)
                 .with_system(scroll_events_solution_touch)
                 .with_system(scroll_events_solution_mouse)
                 .with_system(handle_gesture_mouse)
                 .with_system(handle_gesture_touch)
                 .with_system(handle_full_click_solution)
+                .with_system(make_board_and_title.before(handle_full_click_solution))
                 .with_system(advance_tick)
             )
             .add_event::<BoardEvent>()
+            .add_event::<RedrawCarouselEvent>()
             // add CarouselState resource:
             .insert_resource(CarouselState::default())
             ;
@@ -111,6 +113,11 @@ pub struct CarouselTextNode;
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
+#[derive(Debug, Clone)]
+pub struct RedrawCarouselEvent {
+    pub maps: Option<Vec<SolutionData>>,
+    pub level_name: String,
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -131,29 +138,23 @@ fn setup_solutions_menu(
     mut commands: Commands,
     font_assets: Res<FontAssets>,
     button_colors: Res<ButtonColors>,
-    textures: Res<TileAssets>,
     windows: Res<Windows>,
-    mut selected_level: ResMut<SelectedLevel>, 
-    board_q: Query<Entity, With<Board>>, 
-    mut board_event_writer: EventWriter<BoardEvent>, 
-    level_name_query: Query<Entity, With<LevelNameElem>>, 
-    levels: Res<PuzzlesData>, 
-    solution_data_map: Res<SolutionsSavedData>,
+    selected_level: ResMut<SelectedLevel>, 
     // Resource CarouselState:
-    mut carousel_state: ResMut<CarouselState>,
+    mut redraw_carousel_event_writer: EventWriter<RedrawCarouselEvent>,
 ) 
 {
     let level_name = selected_level.level.clone();
     // Print the game name:
     println!("LAUNCHED: {}", level_name.clone());
-    let maps = get_maps_in_order(&levels, &solution_data_map, &level_name);
-    _make_board_and_title(board_q, &mut commands, level_name_query, maps, board_event_writer, level_name, &windows, &font_assets, &button_colors, &mut carousel_state, &mut selected_level);
+    redraw_carousel_event_writer.send(RedrawCarouselEvent { maps: None, level_name: level_name, });
 
     
     let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-    let erase_id = make_button("Clone".to_string(), &mut commands, &font_assets, &button_colors, 25., left, right, top - heigh - margin, bottom - heigh - margin, SolutionsMenuBotton, Some(CloneButton));
     let undo_id = make_button("Previous level".to_string(), &mut commands, &font_assets, &button_colors, 25., left, right , top, bottom, PrevLevelButton, Some(SolutionsMenuBotton));
     let run_id = make_button("Next level".to_string(), &mut commands, &font_assets, &button_colors, 25., width * percent_left_right + margin/2., width - margin , top, bottom, SolutionsMenuBotton, Some(NextLevelButton));
+    let clone_id = make_button("Clone".to_string(), &mut commands, &font_assets, &button_colors, 25., left, right, top - heigh - margin, bottom - heigh - margin, SolutionsMenuBotton, Some(CloneButton));
+    let new_id = make_button("New".to_string(), &mut commands, &font_assets, &button_colors, 25., width * percent_left_right + margin/2., width - margin, top - heigh - margin, bottom - heigh - margin, SolutionsMenuBotton, Some(NewSolutionButton));
     
     // Upper::
     let ((left_, right_, bottom_, top_), _, _) = get_upper_coordinates(&windows);
@@ -244,7 +245,7 @@ fn click_back_button_solution(
     for (interaction) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                selected_level.level = "".to_string();
+                *selected_level = SelectedLevel::default();
                 game_state.set(GameState::MenuLevels);
             }
             _ => {}
@@ -254,19 +255,44 @@ fn click_back_button_solution(
 
 
 fn click_clone_button_solution(
-    mut commands: Commands,
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<CloneButton>, With<SolutionsMenuBotton>)>,
     mut selected_level: ResMut<SelectedLevel>,
-    windows: Res<Windows>,
-    board_q: Query<(Entity, &Transform), With<Board>>, 
-    textnode_q: Query<(Entity, &Transform, &Style), With<CarouselTextNode>>, 
-    mut carousel_state: ResMut<CarouselState>,
+    // SelectedLevelSolvedDataEvent event writer:
+    mut selected_level_solved_data_event_writer: EventWriter<SelectedLevelSolvedDataEvent>,
+    mut redraw_carousel_event_writer: EventWriter<RedrawCarouselEvent>,
 ) {
     for interaction in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                // Iter over boards:
-                _start_animation(true, &board_q, &textnode_q, &windows, &mut commands, &mut carousel_state);
+                let new_solution_data = selected_level.maps[selected_level.solution_index as usize].clone();
+                let index = selected_level.solution_index.clone();
+                selected_level.maps.push(new_solution_data); 
+                selected_level_solved_data_event_writer.send(SelectedLevelSolvedDataEvent{});
+                redraw_carousel_event_writer.send(RedrawCarouselEvent { maps: Some(selected_level.maps.clone()), level_name: selected_level.level.clone(), });
+
+            }
+            _ => {}
+        }
+    }
+}
+
+fn click_newsolution_button_solution(
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<NewSolutionButton>, With<SolutionsMenuBotton>)>,
+    mut selected_level: ResMut<SelectedLevel>,
+    // SelectedLevelSolvedDataEvent event writer:
+    mut selected_level_solved_data_event_writer: EventWriter<SelectedLevelSolvedDataEvent>,
+    mut redraw_carousel_event_writer: EventWriter<RedrawCarouselEvent>,
+    levels: Res<PuzzlesData>, 
+) {
+    for interaction in &mut interaction_query {
+        match *interaction {
+            Interaction::Clicked => {
+                let empty_map = levels.puzzles.iter().find(|p| p.name == selected_level.level.clone()).unwrap().parsed_map.clone();
+                let new_solution_data = SolutionData::new_from_string(empty_map, 0);
+                selected_level.maps.push(new_solution_data); 
+                selected_level_solved_data_event_writer.send(SelectedLevelSolvedDataEvent{});
+                redraw_carousel_event_writer.send(RedrawCarouselEvent { maps: Some(selected_level.maps.clone()), level_name: selected_level.level.clone(), });
+
             }
             _ => {}
         }
@@ -276,18 +302,11 @@ fn click_clone_button_solution(
 
 
 fn click_nextlevel_button_solution(
-    mut commands: Commands,
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<NextLevelButton>, With<SolutionsMenuBotton>)>,
     mut selected_level: ResMut<SelectedLevel>,
     levels: Res<PuzzlesData>,
-    font_assets: Res<FontAssets>,
-    button_colors: Res<ButtonColors>,
-    windows: Res<Windows>,
-    board_q: Query<Entity, With<Board>>, 
-    board_event_writer: EventWriter<BoardEvent>, 
-    level_name_query: Query<Entity, With<LevelNameElem>>, 
     solution_data_map: Res<SolutionsSavedData>,
-    mut carousel_state: ResMut<CarouselState>,
+    mut redraw_carousel_event_writer: EventWriter<RedrawCarouselEvent>,
 ) {
     for interaction in &mut interaction_query {
         match *interaction {
@@ -296,8 +315,7 @@ fn click_nextlevel_button_solution(
                     let level_name = next_puzzle.name.clone();
                     selected_level.level = level_name.clone();
                     println!("LAUNCHED: {}", level_name.clone());
-                    let maps = get_maps_in_order(&levels, &solution_data_map, &level_name);
-                    _make_board_and_title(board_q, &mut commands, level_name_query, maps, board_event_writer, level_name, &windows, &font_assets, &button_colors, &mut carousel_state, &mut selected_level);
+                    redraw_carousel_event_writer.send(RedrawCarouselEvent { maps: None, level_name: selected_level.level.clone(), });
                     return
                 }
             }
@@ -310,18 +328,11 @@ fn click_nextlevel_button_solution(
 
 
 fn click_prevlevel_button_solution(
-    mut commands: Commands,
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<PrevLevelButton>, With<SolutionsMenuBotton>)>,
     mut selected_level: ResMut<SelectedLevel>,
     levels: Res<PuzzlesData>,
-    font_assets: Res<FontAssets>,
-    button_colors: Res<ButtonColors>,
-    windows: Res<Windows>,
-    board_q: Query<Entity, With<Board>>, 
-    board_event_writer: EventWriter<BoardEvent>, 
-    level_name_query: Query<Entity, With<LevelNameElem>>, 
     solution_data_map: Res<SolutionsSavedData>,
-    mut carousel_state: ResMut<CarouselState>,
+    mut redraw_carousel_event_writer: EventWriter<RedrawCarouselEvent>,
 ) {
     for interaction in &mut interaction_query {
         match *interaction {
@@ -329,15 +340,7 @@ fn click_prevlevel_button_solution(
                 if let Some(prev_puzzle) = get_prev_puzzle(selected_level.level.clone(), &levels) {
                     let level_name = prev_puzzle.name.clone();
                     selected_level.level = level_name.clone();
-                    let empty_map = levels.puzzles.iter().find(|p| p.name == *level_name.clone()).unwrap().parsed_map.clone();    
-                    let solved_data = solution_data_map.levels.get(&level_name);
-                    let mut maps = match solved_data {
-                        Some(LevelSolutionData::Solved(solved_maps)) => {solved_maps.iter().map(|s| s.map.clone()).collect()},
-                        _ => vec![empty_map.clone()],
-                    };
-                    // Push empty_map.clone() to maps (add 1 element to the vec):
-                    maps.push(empty_map.clone());
-                    _make_board_and_title(board_q, &mut commands, level_name_query, maps, board_event_writer, level_name, &windows, &font_assets, &button_colors, &mut carousel_state, &mut selected_level);
+                    redraw_carousel_event_writer.send(RedrawCarouselEvent { maps: None, level_name: selected_level.level.clone(), });
                     return
                 }
             }
@@ -363,8 +366,9 @@ fn handle_full_click_solution(
         let rect = Rect{left:0. - width / 2., top:height / 2. - width / 2.+25. - height / 2. , right:width - width / 2.,  bottom:height / 2. +width / 2. + 25. - height / 2. };
         if carousel_state.timer.finished() && in_bounds(ev.pos, rect) {
             // Get the map:
+            println!("UHHH.. Why in finished??");
             let map = selected_level.maps[selected_level.solution_index as usize].clone();
-            selected_level.map = map;
+            selected_level.map = map.map;
             state.set(GameState::Playing);
             // Write the event:
             // change_level_writer.send(ChangeLevel);
@@ -373,6 +377,88 @@ fn handle_full_click_solution(
 }
 
 
+fn make_board_and_title(
+    windows: Res<Windows>, 
+    mut commands: Commands,
+    board_q: Query<Entity, With<Board>>,
+    mut carousel_state: ResMut<CarouselState>,
+    mut selected_level: ResMut<SelectedLevel>,
+    levels: Res<PuzzlesData>, 
+    solution_data_map: Res<SolutionsSavedData>,
+    level_name_query: Query<Entity, With<LevelNameElem>>, 
+    mut board_event_writer: EventWriter<BoardEvent>, 
+    mut redraw_carousel_event_reader: EventReader<RedrawCarouselEvent>,
+    font_assets: Res<FontAssets>, 
+    button_colors: Res<ButtonColors>, 
+    texts: Query<Entity, With<CarouselTextNode>>,
+) {
+    for ev in redraw_carousel_event_reader.iter() {
+        // Get the window:
+        let w = windows.get_primary().unwrap();
+        // Get width:
+        let width = w.width();
+        let height = w.height();
+        // Delete board:
+        for board_id in board_q.iter() {
+            if let Some(id) = commands.get_entity(board_id) { id.despawn_recursive();}
+        }
+        // Despawn the level name:
+        for level_name_id in level_name_query.iter() {
+            if let Some(level_name_ec) = commands.get_entity(level_name_id) {level_name_ec.despawn_recursive();}
+        }
+        // For button in query:
+        for text in texts.iter() { // It's never more than 1, but can very well be 0
+            if let Some(id) = commands.get_entity(text) { id.despawn_recursive();};
+        }
+
+
+        // Get the maps:
+        let empty_map = levels.puzzles.iter().find(|p| p.name == ev.level_name.clone()).unwrap().parsed_map.clone();
+        let empty_map_data = SolutionData::new_from_string(empty_map.clone(), 0);
+        let solved_data = solution_data_map.get(&ev.level_name);
+        let maps = match &ev.maps {
+            Some(maps) => maps.clone(),
+            None => {
+                if solved_data.len() == 0 { vec![empty_map_data] }  else { solved_data }
+            }
+        };
+        let index = maps.len() as u16 - 1;
+        *selected_level = SelectedLevel{
+            level: ev.level_name.clone(),
+            maps: maps.clone(),
+            solution_index: index,
+            map: maps[index as usize].map.clone(),
+            vanilla_map: empty_map,
+            city: "".to_string(),
+        };
+        // print index:
+        println!("Index: {}", selected_level.solution_index);
+
+        carousel_state.timer = Timer::new(Duration::from_millis(500), TimerMode::Once);
+        carousel_state.position_delta = Vec3::new(width * 0.6, 0., 0.);
+        carousel_state.position_offset = Vec3::new((1.-SCALE) * width/2. * 1.5  -width * 0.61, - width * SCALE / 2. + 25., 0.);
+
+
+        // Spawn the level name BUTTON:
+        let (_, (left_, right_, bottom_, top_), _) = get_upper_coordinates(&windows);
+        let name_id = make_text(ev.level_name.clone(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, SolutionsMenuBotton, Some(LevelNameElem));
+
+        // Set the name of the game:
+        // Get the solved maps, if there are any:
+        // let n_maps = maps.len();
+        for (i, map_data) in selected_level.maps.iter().enumerate() {
+            let ii = - (selected_level.solution_index as i16) + i as i16;
+            let pos = carousel_state.position_offset + carousel_state.position_delta * ii as f32;
+            let boardpos = Some(BoardPosition::Custom(pos));
+            board_event_writer.send(BoardEvent::Make{map_name: ev.level_name.clone(), map: map_data.map.clone(), scale: SCALE, position: boardpos, index: Some(i as u32)});
+
+            // Make the text:
+            let duration = if map_data.time == 0 {String::from("Unsolved")} else {format!("steps: {}", map_data.time)};
+            let text = format!("{} / {}  ({})", map_data.tracks, map_data.second_tracks, duration);
+            make_text(text, &mut commands, &font_assets, &button_colors, 20., left_ + carousel_state.position_delta.x * ii as f32, right_ + carousel_state.position_delta.x * ii as f32, top_+75., bottom_+75., SolutionsMenuBotton, Some(CarouselTextNode));
+        }
+    }
+}    
 
 
 
@@ -393,12 +479,12 @@ fn _scroll_event_solution(
     if v<0. && carousel_state.timer.finished() && selected_level.solution_index < selected_level.maps.len() as u16 - 1 {
         _start_animation(true, board_q, textnode_q, windows, commands, carousel_state);
         selected_level.solution_index += 1;
-        selected_level.map = selected_level.maps[selected_level.solution_index as usize].clone();
+        selected_level.map = selected_level.maps[selected_level.solution_index as usize].map.clone();
     } else if v>0. && carousel_state.timer.finished() && selected_level.solution_index > 0
     {
         _start_animation(false, board_q, textnode_q, windows, commands, carousel_state);
         selected_level.solution_index -= 1;
-        selected_level.map = selected_level.maps[selected_level.solution_index as usize].clone();
+        selected_level.map = selected_level.maps[selected_level.solution_index as usize].map.clone();
     }
 }
 
@@ -440,61 +526,6 @@ fn _start_animation(
     // Restart the timer in the carousel state:
     carousel_state.timer = Timer::new(Duration::from_millis(ANIMATION_TIME_STEP as u64), TimerMode::Once)
 }
-
-
-fn _make_board_and_title(
-        board_q: Query<Entity, With<Board>>,
-        commands: &mut Commands,
-        level_name_query: Query<Entity, With<LevelNameElem>>, 
-        maps: Vec<String>, mut board_event_writer: EventWriter<BoardEvent>, 
-        level_name: String, 
-        windows: &Res<Windows>, 
-        font_assets: &Res<FontAssets>, 
-        button_colors: &Res<ButtonColors>, 
-        mut carousel_state: &mut CarouselState,
-        selected_level: &mut ResMut<SelectedLevel>,
-    ) {
-    let w = windows.get_primary().unwrap();
-    // Get width:
-    let width = w.width();
-    let height = w.height();
-    // Delete board:
-    for board_id in board_q.iter() {
-        if let Some(id) = commands.get_entity(board_id) { id.despawn_recursive();}
-    }
-    // Despawn the level name:
-    for level_name_id in level_name_query.iter() {
-        if let Some(level_name_ec) = commands.get_entity(level_name_id) {level_name_ec.despawn_recursive();}
-    }
-
-    selected_level.maps = maps.clone();
-    selected_level.solution_index = 0;
-    selected_level.map = maps[selected_level.solution_index as usize].clone();
-    carousel_state.timer = Timer::new(Duration::from_millis(100), TimerMode::Once);
-    carousel_state.position_delta = Vec3::new(width * 0.6, 0., 0.);
-    carousel_state.position_offset = Vec3::new((1.-SCALE) * width/2. * 1.5  -width * 0.61, - width * SCALE / 2. + 25., 0.);
-
-    
-    // Spawn the level name BUTTON:
-    let (_, (left_, right_, bottom_, top_), _) = get_upper_coordinates(&windows);
-    let name_id = make_text(level_name.clone(), commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, SolutionsMenuBotton, Some(LevelNameElem));
-
-    // Set the name of the game:
-    // Get the solved maps, if there are any:
-    // let n_maps = maps.len();
-    for (i, map) in selected_level.maps.iter().enumerate() {
-        let pos = carousel_state.position_offset + carousel_state.position_delta * i as f32;
-        let boardpos = Some(BoardPosition::Custom(pos));
-        board_event_writer.send(BoardEvent::Make{map_name: level_name.clone(), map: map.clone(), scale: SCALE, position: boardpos, index: Some(i as u32)});
-
-        // Make the text:
-        let map_data = SolutionData::new_from_string(map.clone());
-        let text = format!("{} / {}", map_data.tracks, map_data.second_tracks);
-        make_text(text, commands, &font_assets, &button_colors, 20., left_, right_, top_+75., bottom_+75., SolutionsMenuBotton, Some(CarouselTextNode));
-    }
-}    
-
-
 
 
 fn get_coordinates(windows: &Windows) -> (f32, f32, f32, f32, f32, f32, f32, f32) {

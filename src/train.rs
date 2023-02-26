@@ -54,7 +54,7 @@ pub fn move_trains(
     for (board_dimensions, game_state, tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
         match game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
         for (train, mut transform) in trains_q.iter_mut() {
-            *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick as f32) / (tick_params.ticks as f32));
+            *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick_in_a_tick as f32) / (tick_params.ticks as f32));
             // println!("Getting train transform: {:?},  at tick: {:?}", train, tick_status.current_tick);
         }
     }
@@ -84,7 +84,7 @@ pub fn spawn_trains(
         // spawnn all trains:
         for train in board_tilemap.current_trains.iter() {
             // println!("SPAWING train: {:?},  at tick: {:?}", train, board_tick_status.current_tick);
-            let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, board_tick_status.current_tick as f32 / tick_params.ticks as f32);
+            let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, board_tick_status.current_tick_in_a_tick as f32 / tick_params.ticks as f32);
             commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
         }
     }
