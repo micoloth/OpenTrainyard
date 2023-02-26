@@ -80,8 +80,17 @@ impl SolutionsSavedData {
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
+// # Struct that is a Tuple<String, Vec<SolutionData>>:
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct DataToInsert{
+    pub level_name: String,
+    pub maps: Vec<SolutionData>,
+}
+
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct SelectedLevelSolvedDataEvent {
+    pub data: Option<DataToInsert>  // IF NONE, it will be TAKEN FROM THE SELECTED LEVEL RESOURCE
 }
 
 
@@ -89,38 +98,22 @@ pub struct SelectedLevelSolvedDataEvent {
 // SYSTEMS
 /////////////////////////////////////////////////////////////////////////////////////
 
-// pub fn save_player_data(
-//     mut pkv: ResMut<PkvStore>,
-//     mut solution_data_map: ResMut<SolutionsSavedData>,
-//     mut level_solved_events: EventReader<LevelSolvedDataEvent>,
-// ) {
-//     for event in level_solved_events.iter() {
-//         let level_name = event.level_name.clone();
-//         let index = event.solution_index;
-//         let solution_data = event.solution_data.clone();
-//         _add_solution_safe(&mut solution_data_map, level_name, index, solution_data);
-//         pkv.set("solved_levels_v2", &solution_data_map.clone()).expect("failed to store level data");
-//     }
-// }
 pub fn save_player_data(
     mut pkv: ResMut<PkvStore>,
     mut solution_data_map: ResMut<SolutionsSavedData>,
     mut level_solved_events: EventReader<SelectedLevelSolvedDataEvent>,
     selected_level: ResMut<SelectedLevel>,
 ) {
-    for _ in level_solved_events.iter() {
-        let level_name = selected_level.level.clone();
+    for ev in level_solved_events.iter() {
+        let (level_name, maps) = match &ev.data {
+            Some(data) => (data.level_name.clone(), data.maps.clone()),
+            None => (selected_level.level.clone(), selected_level.player_maps.clone()),
+        };
         let level_solution_data = solution_data_map.levels.get_mut(&level_name);
         match level_solution_data {
-            Some(solutions) => { *solutions = selected_level.maps.clone(); }
-            None => { solution_data_map.levels.insert(level_name, selected_level.maps.clone()); }
+            Some(solutions) => { *solutions = maps; }
+            None => { solution_data_map.levels.insert(level_name, maps); }
         }
-        // if level_solution_data == None {
-        //     solution_data_map.levels.insert(level_name, selected_level.maps.clone());
-        // }
-        // else {
-        //     *level_solution_data.unwrap() = selected_level.maps.clone();
-        // }
         pkv.set("solved_levels_v2", &solution_data_map.clone()).expect("failed to store level data");
     }
 }

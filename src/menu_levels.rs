@@ -1,6 +1,6 @@
 
 use crate::GameState;
-use crate::data_saving::SolutionsSavedData;
+use crate::data_saving::{SolutionsSavedData, SolutionData};
 use crate::loading::TileAssets;
 use crate::utils::SelectedLevel;
 use bevy::input::mouse::MouseWheel;
@@ -127,8 +127,15 @@ fn setup_menu_levels(
         {
             Some(solutions) => {
                 // Get the solution (map, tracks, and second tracks) of the object with the MIN number of tracks:
-                let solution = solutions.iter().min_by_key(|x| x.tracks).unwrap();
-                format!("({}/{})", solution.tracks, solution.second_tracks)
+                // Filter the solutions where time > 0:
+                let solutions: Vec<&SolutionData> = solutions.iter().filter(|x| x.time > 0).collect();
+                if solutions.len() == 0 {
+                    "".to_string()
+                }
+                else {
+                    let solution = solutions.iter().min_by_key(|x| x.tracks).unwrap();
+                    format!("({}/{})", solution.tracks, solution.second_tracks)
+                }
             },
             _ => {"".to_string()}
         };

@@ -265,10 +265,10 @@ pub fn listen_to_game_state_changes(
             match *ev {
                 ChangeGameStateEvent{old_state: BoardGameState::Running(RunningState::Started), new_state: BoardGameState::Running(RunningState::Won)} => {
                     let solution_data = SolutionData::new_from_tiles(&board_tilemap.submitted_map, tick_status.current_game_tick);
-                    let index = selected_level.solution_index.clone();
-                    if index >= selected_level.maps.len() as u16 { selected_level.maps.push(solution_data); }
-                    else { selected_level.maps[index as usize] = solution_data; }
-                    level_solved_data_event_writer.send(SelectedLevelSolvedDataEvent{});
+                    let index = selected_level.current_index.clone();
+                    if index >= selected_level.player_maps.len() as u16 { selected_level.player_maps.push(solution_data); }
+                    else { selected_level.player_maps[index as usize] = solution_data; }
+                    level_solved_data_event_writer.send(SelectedLevelSolvedDataEvent{data: None});
                 },
                 ChangeGameStateEvent{old_state: _, new_state: BoardGameState::Running(_) }=> {
                     board_tilemap.current_trains = Vec::new();

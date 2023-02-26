@@ -1,3 +1,5 @@
+use crate::data_saving::DataToInsert;
+use crate::data_saving::SelectedLevelSolvedDataEvent;
 use crate::data_saving::SolutionData;
 use crate::data_saving::SolutionsSavedData;
 use crate::loading::FontAssets;
@@ -212,7 +214,7 @@ fn init_gmae(
     let (_, (left_, right_, bottom_, top_), _) = get_upper_coordinates(&windows);
     let name_id = make_text(selected_level.level.clone(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(LevelNameElem));
     
-    change_level(selected_level.level.clone(), selected_level.map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
+    change_level(selected_level.level.clone(), selected_level.current_map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
 }
 
 fn click_nextlevel_button(
@@ -222,6 +224,7 @@ fn click_nextlevel_button(
     mut selected_level: ResMut<SelectedLevel>,
     // Query existing boards:
     board_q: Query<Entity, With<Board>>,
+    board_tilemap_q: Query<(&BoardTileMap, &BoardGameState, &BoardTickStatus ), With<Board>>,
     levels: Res<PuzzlesData>,
     // Query all elems with the LevelNameElem component:
     level_name_query: Query<Entity, With<LevelNameElem>>,
@@ -233,11 +236,16 @@ fn click_nextlevel_button(
     button_colors: Res<ButtonColors>,
     mut text_query: Query<&mut Text, With<TextElem>>,
     solution_data_map: Res<SolutionsSavedData>,
+    mut solved_data_event_writer: EventWriter<SelectedLevelSolvedDataEvent>,
 
 ) {
     for interaction in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
+                // Serialize the current map:
+                let evt_to_send_maybe = _get_event_to_serialize_current_map(&board_tilemap_q, &mut selected_level);
+                if let Some(evt_to_send) = evt_to_send_maybe { solved_data_event_writer.send(evt_to_send); }
+
                 // Get the next level:
                 if let Some(next_puzzle) = get_next_puzzle(selected_level.level.clone(), &levels) {
                     let empty_map = next_puzzle.parsed_map;
@@ -247,13 +255,13 @@ fn click_nextlevel_button(
                     let index = maps.len() as u16 - 1;
                     *selected_level = SelectedLevel{
                         level: next_puzzle.name.clone(),
-                        maps: maps.clone(),
-                        solution_index: index,
-                        map: maps[index as usize].map.clone(),
+                        player_maps: maps.clone(),
+                        current_index: index,
+                        current_map: maps[index as usize].map.clone(),
                         vanilla_map: empty_map,
                         city: "".to_string(),
                     };
-                    change_level(selected_level.level.clone(), selected_level.map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
+                    change_level(selected_level.level.clone(), selected_level.current_map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
                 }
             }
             _ => {}
@@ -261,13 +269,22 @@ fn click_nextlevel_button(
     }
 }
 
+
+
 fn click_back_button(
     mut interaction_query: Query<(&Interaction, &mut BackgroundColor), (Changed<Interaction>, With<Button>, With<BackButton>)>,
     mut game_state: ResMut<State<GameState>>,
+    board_tilemap_q: Query<(&BoardTileMap, &BoardGameState, &BoardTickStatus ), With<Board>>,
+    mut solved_data_event_writer: EventWriter<SelectedLevelSolvedDataEvent>,
+    mut selected_level: ResMut<SelectedLevel>,
 ) {
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
+                // Serialize the current map:
+                let evt_to_send_maybe = _get_event_to_serialize_current_map(&board_tilemap_q, &mut selected_level);
+                if let Some(evt_to_send) = evt_to_send_maybe { solved_data_event_writer.send(evt_to_send); }
+                
                 game_state.set(GameState::MenuSolutions);
             }
             _ => {}
@@ -462,6 +479,23 @@ fn change_level(
 
 }
 
+fn _get_event_to_serialize_current_map(board_tilemap_q: &Query<(&BoardTileMap, &BoardGameState, &BoardTickStatus), With<Board>>, selected_level: &mut ResMut<SelectedLevel>) -> Option<SelectedLevelSolvedDataEvent> {
+    let mut current_solution_maybe: Option<SolutionData> = None;
+    for (board_tilemap, board_game_state, borad_stick_status) in board_tilemap_q.iter() {
+        current_solution_maybe = match board_game_state {
+            BoardGameState::Running(Won) => { Some(SolutionData::new_from_tiles(&board_tilemap.submitted_map, borad_stick_status.current_game_tick) )},
+            BoardGameState::Drawing | BoardGameState::Erasing => { Some(SolutionData::new_from_tiles(&board_tilemap.map, 0)) }
+            _ => { None }
+        }
+    }
+    if let Some(current_solution) = current_solution_maybe {
+        let index = selected_level.current_index.clone();
+        if index >= selected_level.player_maps.len() as u16 { selected_level.player_maps.push(current_solution); }
+        else { selected_level.player_maps[index as usize] = current_solution; }
+        Some(SelectedLevelSolvedDataEvent{data: Some(DataToInsert{level_name: selected_level.level.clone(), maps: selected_level.player_maps.clone()})})
+    }
+    else { None }
+}
 
 fn get_coordinates(windows: &Windows) -> (f32, f32, f32, f32, f32, f32, f32, f32) {
     let width = windows.get_primary().unwrap().width();
