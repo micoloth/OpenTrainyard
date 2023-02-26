@@ -6,7 +6,7 @@ use bevy_tweening::*;
 use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use data_saving::{SolutionsSavedData, SelectedLevelSolvedDataEvent};
+use data_saving::{SolutionsSavedData, SelectedLevelSolvedDataEvent, save_player_data};
 use menu_solutions::MenuSolutionsPlugin;
 // use trainyard::GamePlugin;
 use std::io::Cursor;
@@ -112,6 +112,7 @@ fn main() {
         .add_plugin(MainGamePlugin)
         .add_state(GameState::Loading)
         .add_system(button_color_handler)
+        .add_system(save_player_data)
         .add_event::<SelectedLevelSolvedDataEvent>()
         .run();
 }

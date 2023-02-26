@@ -156,11 +156,22 @@ fn setup_solutions_menu(
 
     
     let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-    let undo_id = make_button("Previous level".to_string(), &mut commands, &font_assets, &button_colors, 25., left, right , top, bottom, PrevLevelButton, Some(SolutionsMenuBotton));
-    let run_id = make_button("Next level".to_string(), &mut commands, &font_assets, &button_colors, 25., width * percent_left_right + margin/2., width - margin , top, bottom, SolutionsMenuBotton, Some(NextLevelButton));
-    let clone_id = make_button("Clone".to_string(), &mut commands, &font_assets, &button_colors, 25., left, right, top - heigh - margin, bottom - heigh - margin, SolutionsMenuBotton, Some(CloneButton));
-    let new_id = make_button("New".to_string(), &mut commands, &font_assets, &button_colors, 25., width * percent_left_right + margin/2., width - margin, top - heigh - margin, bottom - heigh - margin, SolutionsMenuBotton, Some(NewSolutionButton));
+    let prev_id = make_button("Previous Level".to_string(), &mut commands, &font_assets, &button_colors, 25., left, right , top, bottom, PrevLevelButton, Some(SolutionsMenuBotton));
+    let next_id = make_button("Next Level".to_string(), &mut commands, &font_assets, &button_colors, 25., width * percent_left_right + margin/2., width - margin , top, bottom, SolutionsMenuBotton, Some(NextLevelButton));
     
+    
+    let ((l1, r1, b1, t1), (l2, r2, b2, t2), (l3, r3, b3, t3)) = get_sol_commands_coordinates(&windows);
+    println!("l1: {}, r1: {}, b1: {}, t1: {}", l1, r1, b1, t1);
+    println!("l2: {}, r2: {}, b2: {}, t2: {}", l2, r2, b2, t2);
+    println!("l3: {}, r3: {}, b3: {}, t3: {}", l3, r3, b3, t3);
+
+    let new_id = make_button("Delete".to_string(), &mut commands, &font_assets, &button_colors, 25., l1, r1, t1, b1, SolutionsMenuBotton, Some(DeleteSolutionButton));
+    let new_id = make_button("New Solution".to_string(), &mut commands, &font_assets, &button_colors, 25., l2, r2, t2, b2, SolutionsMenuBotton, Some(NewSolutionButton));
+    let clone_id = make_button("Clone".to_string(), &mut commands, &font_assets, &button_colors, 25., l3, r3, t3, b3, SolutionsMenuBotton, Some(CloneButton));
+    
+
+
+
     // Upper::
     let ((left_, right_, bottom_, top_), _, _) = get_upper_coordinates(&windows);
     let back_id = make_button("Back".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, SolutionsMenuBotton, Some(BackButton));
@@ -318,8 +329,10 @@ fn click_deletesolution_button_solution(
                 if selected_level.player_maps.len() > 1 {
                     let index = selected_level.current_index as usize;
                     selected_level.player_maps.remove(index);
+                    // let newindex be the min between (index and selected_level.player_maps.len() - 1);
+                    let newindex: Option<usize> = if index <= selected_level.player_maps.len() - 1 { Some(index) } else { None};
                     selected_level_solved_data_event_writer.send(SelectedLevelSolvedDataEvent{data: None});
-                    redraw_carousel_event_writer.send(RedrawCarouselEvent { maps: Some(selected_level.player_maps.clone()), level_name: selected_level.level.clone(), index: Some(index)});
+                    redraw_carousel_event_writer.send(RedrawCarouselEvent { maps: Some(selected_level.player_maps.clone()), level_name: selected_level.level.clone(), index: newindex});
                 }
             }
             _ => {}
@@ -333,7 +346,6 @@ fn click_nextlevel_button_solution(
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<NextLevelButton>, With<SolutionsMenuBotton>)>,
     mut selected_level: ResMut<SelectedLevel>,
     levels: Res<PuzzlesData>,
-    solution_data_map: Res<SolutionsSavedData>,
     mut redraw_carousel_event_writer: EventWriter<RedrawCarouselEvent>,
 ) {
     for interaction in &mut interaction_query {
@@ -341,6 +353,7 @@ fn click_nextlevel_button_solution(
             Interaction::Clicked => {
                 if let Some(next_puzzle) = get_next_puzzle(selected_level.level.clone(), &levels) {
                     let level_name = next_puzzle.name.clone();
+                    *selected_level = SelectedLevel::default();
                     selected_level.level = level_name.clone();
                     println!("LAUNCHED: {}", level_name.clone());
                     redraw_carousel_event_writer.send(RedrawCarouselEvent { maps: None, level_name: selected_level.level.clone(), index: None});
@@ -359,7 +372,6 @@ fn click_prevlevel_button_solution(
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<PrevLevelButton>, With<SolutionsMenuBotton>)>,
     mut selected_level: ResMut<SelectedLevel>,
     levels: Res<PuzzlesData>,
-    solution_data_map: Res<SolutionsSavedData>,
     mut redraw_carousel_event_writer: EventWriter<RedrawCarouselEvent>,
 ) {
     for interaction in &mut interaction_query {
@@ -367,6 +379,7 @@ fn click_prevlevel_button_solution(
             Interaction::Clicked => {
                 if let Some(prev_puzzle) = get_prev_puzzle(selected_level.level.clone(), &levels) {
                     let level_name = prev_puzzle.name.clone();
+                    *selected_level = SelectedLevel::default();
                     selected_level.level = level_name.clone();
                     redraw_carousel_event_writer.send(RedrawCarouselEvent { maps: None, level_name: selected_level.level.clone(), index: None });
                     return
@@ -447,7 +460,7 @@ fn make_board_and_title(
         let maps = match &ev.maps {
             Some(maps) => maps.clone(),
             None => {
-                if solved_data.len() == 0 { vec![empty_map_data] }  else { solved_data }
+                if selected_level.player_maps.len() != 0 {selected_level.player_maps.clone()} else if solved_data.len() == 0 { vec![empty_map_data] }  else { solved_data }
             }
         };
         let index = match &ev.index {
@@ -592,4 +605,21 @@ fn get_upper_coordinates(windows: &Windows) -> ((f32, f32, f32, f32), (f32, f32,
 }
 
 
+
+
+fn get_sol_commands_coordinates(windows: &Windows) -> ((f32, f32, f32, f32), (f32, f32, f32, f32), (f32, f32, f32, f32)) {
+    let width = windows.get_primary().unwrap().width();
+    let height = windows.get_primary().unwrap().height();
+    // Genius plan: I'll assume THE BOARD IS ALWAYS ABOUT AS WIDE AS THE SCREEN, AND ALSO SQUARE.
+    // Boundaries (left right top bottom) of a Rectangle that occupies the RIGHT HALF of the screen, minus a 20 pixel wide margin all around:
+    let margin = 7.;
+    let button_height = 40.;
+    let percent_left_right = 0.3;
+    let left = margin;
+    let right = width * percent_left_right + margin/2.;
+    // Make the button 40 px high FROM THE BOTTOM:
+    let bottom = height / 2. + width / 2. - 1.5 * margin  - button_height - margin;
+    let top = height / 2. + width / 2. - 1.5 * margin + button_height - button_height - margin;
+    return ((left, right - margin, bottom, top), (right, width - right, bottom, top), (width - right + margin, width - left, bottom, top));
+}
 

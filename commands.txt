@@ -51,7 +51,7 @@ TODO:
  - DONE Score in solutions menu
  - DONE Extra Tick on tile transition
  - DONE Bug: 9 start tiles
- - Level solutions menu..
+ - DONE Level solutions menu..
  - z index of split and start and stop
  - Music
  - Particle effect .....
@@ -62,6 +62,7 @@ TODO:
  - Background
  - Zindex start
  - Ghost train direction in stop (+start?) and split
+ - You MIGHT WANT to fix the 3-collision problem..
 
 
  - Remember: animations: https://github.com/jcornaz/benimator/blob/main/examples/bevy.rs
