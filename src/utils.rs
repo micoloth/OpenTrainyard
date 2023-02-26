@@ -11,6 +11,8 @@ pub struct SelectedLevel {
     pub level: String,
     pub city: String,
     pub map: String,
+    pub solution_index: u16,
+    pub maps: Vec<String>,
 }
 
 #[cfg_attr(feature = "debug", derive(bevy_inspector_egui::Inspectable))]

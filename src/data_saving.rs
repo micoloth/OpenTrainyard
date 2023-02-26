@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use bevy_pkv::PkvStore;
 
-use crate::simulator::{count_tracks, count_double_tracks, pretty_print_map, Tile, parse_map};
+use crate::{simulator::{count_tracks, count_double_tracks, pretty_print_map, Tile, parse_map}, all_puzzles_clean::PuzzlesData};
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -110,3 +110,17 @@ pub fn save_player_data(
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
+// HELPER FUNCTIONS
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+pub fn get_maps_in_order(levels: &Res<PuzzlesData>, solution_data_map: &Res<SolutionsSavedData>, level_name: &String) -> Vec<String> {
+    let empty_map = levels.puzzles.iter().find(|p| p.name == *level_name.clone()).unwrap().parsed_map.clone();
+    let solved_data = solution_data_map.levels.get(level_name);
+    let maps = match solved_data {
+        Some(LevelSolutionData::Solved(solved_maps)) => solved_maps.iter().map(|s| s.map.clone()).collect(),
+        _ => vec![empty_map.clone()],
+    };
+    maps
+}

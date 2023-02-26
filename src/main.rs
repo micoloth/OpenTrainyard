@@ -108,6 +108,8 @@ fn main() {
             level: "".to_string(),
             city: "".to_string(),
             map: "".to_string(),
+            solution_index: 0,
+            maps: vec![],
         })
         .add_plugin(LoadingPlugin)
         .add_plugin(MenuPlugin)
