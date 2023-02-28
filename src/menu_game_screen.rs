@@ -44,7 +44,7 @@ impl Plugin for MainGamePlugin {
         app
             .insert_resource(get_board_option_default())
             .insert_resource(get_ticks_in_a_tick_default())
-            .insert_resource(TutorialPopupTimer::default())
+            .insert_resource(PopupTimer::default())
             // .insert_resource(GamePlayingState())
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(init_gmae).after(setup_game_menu),)
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_board),)
@@ -65,7 +65,7 @@ impl Plugin for MainGamePlugin {
                 .with_system(double_click_touch)
                 .with_system(double_click_event)
                 //////////// OTHERS/COSMETICS:
-                .with_system(cleanup_tutorial)
+                .with_system(cleanup_popup)
                 .with_system(advance_tick)
                 .with_system(add_borders)
                 .with_system(style_run_button)
@@ -217,7 +217,7 @@ fn init_gmae(
     // Button colors:
     button_colors: Res<ButtonColors>,
     mut text_query: Query<&mut Text, With<TextElem>>,
-    tutorial_popup_timer: Res<TutorialPopupTimer>,
+    tutorial_popup_timer: Res<PopupTimer>,
 
 ) {
     // Spawn the level name BUTTON:
@@ -228,9 +228,10 @@ fn init_gmae(
 
     // if selected_level.level.clone() == "Red Line",  add a tutorial_popup_timer of 1 second:
     if selected_level.level.clone() == "Red Line" {
-        commands.insert_resource(TutorialPopupTimer {
+        commands.insert_resource(PopupTimer {
             timer: Some(Timer::from_seconds(1., TimerMode::Once)),
-            tutorial_text: "Welcome to Red Line! \nClick on the 'Run!' \nbutton to start the simulation.".to_string(),
+            popup_text: "Welcome to Trainyard! \nDraw a train track from the source (+)\n to the destination (o)".to_string(),
+            popup_type: PopupType::Tutorial,
         });
     }
 }

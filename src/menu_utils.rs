@@ -1,9 +1,14 @@
+use std::time::Duration;
+
 use crate::loading::FontAssets;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::ui::widget::ImageMode;
 use bevy::ui::FocusPolicy;
+use bevy_tweening::*;
+use bevy_tweening::lens::{TransformScaleLens, UiPositionLens};
+
 
 use crate::loading::TileAssets;
 
@@ -102,18 +107,33 @@ pub struct TextElem;  // Use this to qury text elems
 
 
 #[derive(Component)]
-pub struct TutorialPopup;  // Use this to qury text elems
+pub struct Popup;  // Use this to qury text elems
 
 #[derive(Component)]
-pub struct TutorialPopupButton;  // Use this to qury text elems
+pub struct ClosePopupButton;  // Use this to qury text elems
+
+#[derive(Component)]
+pub struct NextLevelPopupButton;
 
 
+#[derive(Debug)]
+pub enum PopupType {
+    Tutorial,
+    Victory
+}
+// Default Tutorial:
+impl Default for PopupType {
+    fn default() -> Self {
+        PopupType::Tutorial
+    }
+}
 
 // Resource CarouselState:
 #[derive(Debug, Component, Default, Resource)]
-pub struct TutorialPopupTimer {
+pub struct PopupTimer {
     pub timer: Option<Timer>,
-    pub tutorial_text: String,
+    pub popup_text: String,
+    pub popup_type: PopupType,
 }
 
 
@@ -282,20 +302,29 @@ pub fn handle_gesture_touch(
 }
 
 pub fn advance_tick(
-    mut popup_state: ResMut<TutorialPopupTimer>,
+    mut popup_state: ResMut<PopupTimer>,
     mut commands: Commands,
     font_assets: Res<FontAssets>,
     time: Res<Time>,
     button_colors: Res<ButtonColors>,
+    // tile assets:
+    tile_assets: Res<TileAssets>,
 ) {
     if let Some(timer) = popup_state.timer.as_mut() {
         timer.tick(time.delta());
         // If is finished:
         if timer.finished() {
             // Spawn a tutorial popup:
-            make_tutorial_popup(popup_state.tutorial_text.clone(), &mut commands, &font_assets, &button_colors);
+            match popup_state.popup_type {
+                PopupType::Tutorial => {
+                    make_tutorial_popup(popup_state.popup_text.clone(), &mut commands, &font_assets, &button_colors);
+                }
+                PopupType::Victory => {
+                    make_victory_popup(popup_state.popup_text.clone(), &mut commands, &font_assets, &button_colors, &tile_assets);
+                    // make_tutorial_popup(popup_state.popup_text.clone(), &mut commands, &font_assets, &button_colors);
+                }
+            }
             // Remove the timer:
-            // commands.remove_resource::<TutorialPopupTimer>();
             popup_state.timer = None;
         }
     }
@@ -303,10 +332,10 @@ pub fn advance_tick(
 
 
 // Cleanup tutorial system: every time a button with component TutorialPopupButton is clicked, every entity with TutorialPopup is despawned
-pub fn cleanup_tutorial(
+pub fn cleanup_popup(
     mut commands: Commands,
-    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<TutorialPopupButton>)>,
-    tutorial_query: Query<Entity, With<TutorialPopup>>,
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<ClosePopupButton>)>,
+    tutorial_query: Query<Entity, With<Popup>>,
 ) {
     for interaction in interaction_query.iter_mut() {
         if *interaction == Interaction::Clicked {
@@ -315,6 +344,7 @@ pub fn cleanup_tutorial(
                     entity.despawn_recursive();
                 }
             }
+            // commands.remove_resource::<PopupTimer>();
         }
     }
 }
@@ -570,7 +600,7 @@ pub fn make_tutorial_popup(
 {
     let font_size = 20.;
 // A fixed positioned popup rectangle with sides at 10% to 90& of screen width, and 45% to 55% of screen height. nside, print text.
-    commands.spawn((NodeBundle {
+    let popup_id = commands.spawn((NodeBundle {
         style: Style {
             position_type: PositionType::Absolute,
             size: Size::new(Val::Percent(80.), Val::Percent(25.)),
@@ -586,66 +616,213 @@ pub fn make_tutorial_popup(
         },
         background_color: Color::rgb(0.1, 0.1, 0.1).into(),
         ..default()
-    }, TutorialPopup{}))
-    .with_children(|parent| {
-        parent.spawn(TextBundle {
-            text: Text {
-                sections: vec![TextSection {
-                    value: text,
-                    style: TextStyle {
-                        font: font_assets.fira_sans.clone(),
-                        font_size: font_size,
-                        color: Color::rgba(0.9, 0.9, 0.9, 0.9),
-                    },
-                }],
-                alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center },
-            },
+    }, Popup{})).id();
+    let text_id = commands.spawn(TextBundle {
+        text: Text {
+            sections: vec![TextSection {
+                value: text,
+                style: TextStyle {
+                    font: font_assets.fira_sans.clone(),
+                    font_size: font_size,
+                    color: Color::rgba(0.9, 0.9, 0.9, 0.9),
+                },
+            }],
+            alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center },
+        },
+        style: Style {
+            margin: UiRect{top: Val::Percent(-10.), ..default()},
+            ..default()
+        },
+        ..default()
+    }).id();
+    commands.entity(popup_id).push_children(&[text_id]);// add the child to the parent
+
+    let but_id = commands.spawn(
+        (ButtonBundle {
             style: Style {
-                margin: UiRect{top: Val::Percent(-10.), ..default()},
+                position_type: PositionType::Absolute,
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center, // I have to say, this was cool ....
+                position: UiRect {
+                    // Button (centered horizontally, 40% of width., bottom vertically) 
+                    bottom: Val::Percent(5.),
+                    left: Val::Percent(35.),
+                    right: Val::Percent(35.),
+                    top: Val::Percent(75.),
+                },
+                ..default()
+            },
+            background_color: button_colors.normal.into(),
+            ..default()
+        },
+        ClosePopupButton{})
+    ).id();
+    commands.entity(popup_id).push_children(&[but_id]);// add the child to the parent
+
+    let but_text_id = commands.spawn(TextBundle {
+        text: Text {
+            sections: vec![TextSection {
+                value: "Got it".to_string(),
+                style: TextStyle {
+                    font: font_assets.fira_sans.clone(),
+                    font_size: font_size * 0.66,
+                    color: Color::rgb(0.9, 0.9, 0.9),
+                },
+            }],
+            alignment: default(),
+        },
+        ..default()
+    }).id();
+    commands.entity(but_id).push_children(&[but_text_id]);// add the child to the parent
+}
+
+
+pub fn make_victory_popup(
+    text: String,
+    commands: &mut Commands,
+    font_assets: &FontAssets,
+    button_colors: &ButtonColors,
+    tile_assets: &TileAssets,
+)
+{
+    let font_size = 20.;
+// A fixed positioned popup rectangle with sides at 10% to 90& of screen width, and 45% to 55% of screen height. nside, print text.
+    let popup_id = commands.spawn((NodeBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            size: Size::new(Val::Percent(80.), Val::Percent(25.)),
+            margin: UiRect::all(Val::Auto),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center, // I have to say, this was cool ....
+            position: UiRect {
+                top: Val::Percent(35.),
+                left: Val::Percent(10.),
                 ..default()
             },
             ..default()
-        });
-        let mut but = parent.spawn(
-            (ButtonBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
-                    margin: UiRect::all(Val::Auto),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center, // I have to say, this was cool ....
-                    position: UiRect {
-                        // Button (centered horizontally, 40% of width., bottom vertically) 
-                        bottom: Val::Percent(5.),
-                        left: Val::Percent(35.),
-                        right: Val::Percent(35.),
-                        top: Val::Percent(75.),
-                    },
-                    ..default()
+        },
+        background_color: Color::rgb(0.1, 0.1, 0.1).into(),
+        ..default()
+    }, Popup{})).id();
+    let text_id = commands.spawn(TextBundle {
+        text: Text {
+            sections: vec![TextSection {
+                value: "You won!".to_string(),
+                style: TextStyle {
+                    font: font_assets.fira_sans.clone(),
+                    font_size: font_size,
+                    color: Color::rgba(0.9, 0.9, 0.9, 0.9),
                 },
-                background_color: button_colors.normal.into(),
+            }],
+            alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center },
+        },
+        style: Style {
+            position: UiRect{left: Val::Percent(15.), ..default()},
+            margin: UiRect{top: Val::Percent(-10.), ..default()},
+            ..default()
+        },
+        ..default()
+    }).id();
+    commands.entity(popup_id).push_children(&[text_id]);// add the child to the parent
+
+    let but_id_close = commands.spawn(
+        (ButtonBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center, // I have to say, this was cool ....
+                position: UiRect { bottom: Val::Percent(5.), left: Val::Percent(15.), right: Val::Percent(55.), top: Val::Percent(75.),},
                 ..default()
             },
-            ButtonData{text: "Got it.".to_string()})
-        );
-        but.with_children(|parent| {
-            parent.spawn(TextBundle {
-                text: Text {
-                    sections: vec![TextSection {
-                        value: "Got it".to_string(),
-                        style: TextStyle {
-                            font: font_assets.fira_sans.clone(),
-                            font_size: font_size * 0.66,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                        },
-                    }],
-                    alignment: default(),
-                },
+            background_color: button_colors.normal.into(),
+            ..default()
+        },
+        ClosePopupButton{})
+    ).id();
+    commands.entity(popup_id).push_children(&[but_id_close]);// add the child to the parent
+
+    let but_text_id = commands.spawn(TextBundle {
+        text: Text {
+            sections: vec![TextSection {
+                value: "Got it".to_string(),
+                style: TextStyle { font: font_assets.fira_sans.clone(), font_size: font_size * 0.66, color: Color::rgb(0.9, 0.9, 0.9), },
+            }],
+            alignment: default(),
+        },
+        ..default()
+    }).id();
+    commands.entity(but_id_close).push_children(&[but_text_id]);// add the child to the parent
+
+    let but_id_nextlevel = commands.spawn(
+        (ButtonBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center, // I have to say, this was cool ....
+                position: UiRect { bottom: Val::Percent(5.), left: Val::Percent(55.), right: Val::Percent(15.), top: Val::Percent(75.),},
                 ..default()
-            });
-        });
-        but.insert(TutorialPopupButton{});
-    });
+            },
+            background_color: button_colors.normal.into(),
+            ..default()
+        }, 
+        NextLevelPopupButton{})
+    ).id();
+    commands.entity(popup_id).push_children(&[but_id_nextlevel]);// add the child to the parent
+
+    let but_nexttext_id = commands.spawn(TextBundle {
+        text: Text {
+            sections: vec![TextSection {
+                value: "Got it 2".to_string(),
+                style: TextStyle { font: font_assets.fira_sans.clone(), font_size: font_size * 0.66, color: Color::rgb(0.9, 0.9, 0.9), },
+            }],
+            alignment: default(),
+        },
+        ..default()
+    }).id();
+    commands.entity(but_id_nextlevel).push_children(&[but_nexttext_id]);// add the child to the parent
+
+    let old_pos = UiRect{left: Val::Percent(30.), top: Val::Percent(50.), right: Val::Percent(60.), bottom: Val::Percent(50.)};
+    let new_pos = UiRect{left: Val::Percent(-10.), top: Val::Percent(5.), right: Val::Percent(50.), bottom: Val::Percent(30.)};
+
+    // Spawn a Tick sprite:
+    commands.spawn(
+        (SpriteBundle {
+            texture: tile_assets.tick.clone(),
+            // Scale down to 50% of the width:
+            transform: Transform{..default()}.with_translation(Vec3::new(0., 0., 100.)).with_scale(Vec3::splat(5.45)),
+            ..default()
+        },
+        Popup{},
+        // Animator::new(Tween::new(
+        //     EaseFunction::QuadraticIn, Duration::from_millis(0.6 as u64), 
+        //     TransformScaleLens {start: Vec3 { x: 0., y: 0., z: 5. }, end: Vec3 { x: 1., y: 1., z: 5. },},
+        //     // UiPositionLens{start: old_pos, end: new_pos,},
+        // ))
+    )
+    );
+
+    // let tick_id = commands.spawn(
+    //     // NodeBundle{..default()}).with_children(|parent| {parent.spawn(
+    //     (ImageBundle {
+    //         image: UiImage(tile_assets.tick.clone()),
+    //         style: Style { 
+    //             position_type: PositionType::Absolute,
+    //             margin: UiRect{ bottom: Val::Percent(35.), left: Val::Percent(5.), right: Val::Percent(75.), top: Val::Percent(10.),},
+    //             ..default()
+    //         },
+    //         // Scale down to 50% of the width:
+    //         transform: Transform{..default()}.with_scale(Vec3::splat(1.45)),
+    //         ..default()
+    //     },
+    //     ))
+    // )).id();  
+    // commands.entity(popup_id).push_children(&[tick_id]);// add the child to the parent
+    
 }
+
 
 
 

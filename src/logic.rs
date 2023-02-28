@@ -5,6 +5,7 @@ use bevy::prelude::*;
 pub struct Player;
 
 use crate::data_saving::*;
+use crate::menu_utils::{PopupTimer, PopupType};
 use crate::simulator::*;
 
 use bevy::utils::Instant;
@@ -254,6 +255,7 @@ pub fn double_click_event(
 
 
 pub fn listen_to_game_state_changes(
+    mut commands: Commands,
     mut board_q: Query<(&mut BoardTileMap, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
     mut selected_level: ResMut<SelectedLevel>,
     mut change_board_game_state_event_reader: EventReader<ChangeGameStateEvent>,
@@ -264,11 +266,20 @@ pub fn listen_to_game_state_changes(
         for (mut board_tilemap, mut hovering_state, mut tick_status) in board_q.iter_mut() {
             match *ev {
                 ChangeGameStateEvent{old_state: BoardGameState::Running(RunningState::Started), new_state: BoardGameState::Running(RunningState::Won)} => {
+                    // serialize submitted solution:
                     let solution_data = SolutionData::new_from_tiles(&board_tilemap.submitted_map, tick_status.current_game_tick);
                     let index = selected_level.current_index.clone();
                     if index >= selected_level.player_maps.len() as u16 { selected_level.player_maps.push(solution_data); }
                     else { selected_level.player_maps[index as usize] = solution_data; }
                     level_solved_data_event_writer.send(SelectedLevelSolvedDataEvent{data: None});
+
+                    // Trigger a popup:
+                    commands.insert_resource(PopupTimer {
+                        timer: Some(Timer::from_seconds(1.5, TimerMode::Once)),
+                        popup_text: "Welcome to Trainyard! \nDraw a train track from the source (+)\n to the destination (o)".to_string(),
+                        popup_type: PopupType::Victory,
+                    });
+
                 },
                 ChangeGameStateEvent{old_state: _, new_state: BoardGameState::Running(_) }=> {
                     board_tilemap.current_trains = Vec::new();
