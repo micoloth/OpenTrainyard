@@ -44,6 +44,7 @@ impl Plugin for MainGamePlugin {
         app
             .insert_resource(get_board_option_default())
             .insert_resource(get_ticks_in_a_tick_default())
+            .insert_resource(TutorialPopupTimer::default())
             // .insert_resource(GamePlayingState())
             .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(init_gmae).after(setup_game_menu),)
             .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(cleanup_board),)
@@ -64,6 +65,8 @@ impl Plugin for MainGamePlugin {
                 .with_system(double_click_touch)
                 .with_system(double_click_event)
                 //////////// OTHERS/COSMETICS:
+                .with_system(cleanup_tutorial)
+                .with_system(advance_tick)
                 .with_system(add_borders)
                 .with_system(style_run_button)
             )
@@ -107,7 +110,7 @@ impl Plugin for MenuMainGame {
 
 
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct MainGameBotton;
 
 #[derive(Component)]
@@ -129,6 +132,9 @@ pub struct BackButton;
 
 #[derive(Component)]
 pub struct LevelNameElem;
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 // EVENTS
@@ -167,7 +173,10 @@ fn setup_game_menu(
     // Back:
     let ((left_, right_, bottom_, top_), _, _) = get_upper_coordinates(&windows);
     let back_id = make_button("Back".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(BackButton));
+
+
 }
+
 
 
 fn cleanup_menu(
@@ -191,6 +200,7 @@ fn cleanup_menu(
 
 
 
+
 fn init_gmae(
     mut commands: Commands,
     // BoardEvent event writer:
@@ -207,6 +217,7 @@ fn init_gmae(
     // Button colors:
     button_colors: Res<ButtonColors>,
     mut text_query: Query<&mut Text, With<TextElem>>,
+    tutorial_popup_timer: Res<TutorialPopupTimer>,
 
 ) {
     // Spawn the level name BUTTON:
@@ -214,7 +225,18 @@ fn init_gmae(
     let name_id = make_text(selected_level.level.clone(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(LevelNameElem));
     
     change_level(selected_level.level.clone(), selected_level.current_map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
+
+    // if selected_level.level.clone() == "Red Line",  add a tutorial_popup_timer of 1 second:
+    if selected_level.level.clone() == "Red Line" {
+        commands.insert_resource(TutorialPopupTimer {
+            timer: Some(Timer::from_seconds(1., TimerMode::Once)),
+            tutorial_text: "Welcome to Red Line! \nClick on the 'Run!' \nbutton to start the simulation.".to_string(),
+        });
+    }
 }
+
+
+
 
 fn click_nextlevel_button(
     mut commands: Commands,
@@ -426,13 +448,13 @@ fn add_borders(
         // Make new ones:
         match *hovering_state {
             BoardGameState::Running(RunningState::Crashed) => {
-                make_border(&mut commands,  Color::rgb(130./255., 9./255., 0.));
+                make_border(&mut commands,  Color::rgb(130./255., 9./255., 0.), MainGameBotton);
             },
             BoardGameState::Running(RunningState::Won) => {
-                make_border(&mut commands,  Color::rgb(0., 130./255., 0.));
+                make_border(&mut commands,  Color::rgb(0., 130./255., 0.), MainGameBotton);
             },
             BoardGameState::Erasing =>
-                make_border(&mut commands,  Color::rgb(1., 1., 0.)),
+                make_border(&mut commands,  Color::rgb(1., 1., 0.), MainGameBotton),
 
             _ => {}
         };           

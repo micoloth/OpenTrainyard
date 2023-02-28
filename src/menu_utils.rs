@@ -101,6 +101,22 @@ pub enum ClickState {JustClicked, Hovering, JustReleased}
 pub struct TextElem;  // Use this to qury text elems
 
 
+#[derive(Component)]
+pub struct TutorialPopup;  // Use this to qury text elems
+
+#[derive(Component)]
+pub struct TutorialPopupButton;  // Use this to qury text elems
+
+
+
+// Resource CarouselState:
+#[derive(Debug, Component, Default, Resource)]
+pub struct TutorialPopupTimer {
+    pub timer: Option<Timer>,
+    pub tutorial_text: String,
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -264,6 +280,45 @@ pub fn handle_gesture_touch(
         return;
     }
 }
+
+pub fn advance_tick(
+    mut popup_state: ResMut<TutorialPopupTimer>,
+    mut commands: Commands,
+    font_assets: Res<FontAssets>,
+    time: Res<Time>,
+    button_colors: Res<ButtonColors>,
+) {
+    if let Some(timer) = popup_state.timer.as_mut() {
+        timer.tick(time.delta());
+        // If is finished:
+        if timer.finished() {
+            // Spawn a tutorial popup:
+            make_tutorial_popup(popup_state.tutorial_text.clone(), &mut commands, &font_assets, &button_colors);
+            // Remove the timer:
+            // commands.remove_resource::<TutorialPopupTimer>();
+            popup_state.timer = None;
+        }
+    }
+}
+
+
+// Cleanup tutorial system: every time a button with component TutorialPopupButton is clicked, every entity with TutorialPopup is despawned
+pub fn cleanup_tutorial(
+    mut commands: Commands,
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<TutorialPopupButton>)>,
+    tutorial_query: Query<Entity, With<TutorialPopup>>,
+) {
+    for interaction in interaction_query.iter_mut() {
+        if *interaction == Interaction::Clicked {
+            for tutorial_id in tutorial_query.iter() {
+                if let Some(entity) = commands.get_entity(tutorial_id) { 
+                    entity.despawn_recursive();
+                }
+            }
+        }
+    }
+}
+
 
 
 
@@ -506,9 +561,100 @@ pub fn make_text(
 }
 
 
+pub fn make_tutorial_popup(
+    text: String,
+    commands: &mut Commands,
+    font_assets: &FontAssets,
+    button_colors: &ButtonColors,
+)
+{
+    let font_size = 20.;
+// A fixed positioned popup rectangle with sides at 10% to 90& of screen width, and 45% to 55% of screen height. nside, print text.
+    commands.spawn((NodeBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            size: Size::new(Val::Percent(80.), Val::Percent(25.)),
+            margin: UiRect::all(Val::Auto),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center, // I have to say, this was cool ....
+            position: UiRect {
+                top: Val::Percent(35.),
+                left: Val::Percent(10.),
+                ..default()
+            },
+            ..default()
+        },
+        background_color: Color::rgb(0.1, 0.1, 0.1).into(),
+        ..default()
+    }, TutorialPopup{}))
+    .with_children(|parent| {
+        parent.spawn(TextBundle {
+            text: Text {
+                sections: vec![TextSection {
+                    value: text,
+                    style: TextStyle {
+                        font: font_assets.fira_sans.clone(),
+                        font_size: font_size,
+                        color: Color::rgba(0.9, 0.9, 0.9, 0.9),
+                    },
+                }],
+                alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center },
+            },
+            style: Style {
+                margin: UiRect{top: Val::Percent(-10.), ..default()},
+                ..default()
+            },
+            ..default()
+        });
+        let mut but = parent.spawn(
+            (ButtonBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    margin: UiRect::all(Val::Auto),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center, // I have to say, this was cool ....
+                    position: UiRect {
+                        // Button (centered horizontally, 40% of width., bottom vertically) 
+                        bottom: Val::Percent(5.),
+                        left: Val::Percent(35.),
+                        right: Val::Percent(35.),
+                        top: Val::Percent(75.),
+                    },
+                    ..default()
+                },
+                background_color: button_colors.normal.into(),
+                ..default()
+            },
+            ButtonData{text: "Got it.".to_string()})
+        );
+        but.with_children(|parent| {
+            parent.spawn(TextBundle {
+                text: Text {
+                    sections: vec![TextSection {
+                        value: "Got it".to_string(),
+                        style: TextStyle {
+                            font: font_assets.fira_sans.clone(),
+                            font_size: font_size * 0.66,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                        },
+                    }],
+                    alignment: default(),
+                },
+                ..default()
+            });
+        });
+        but.insert(TutorialPopupButton{});
+    });
+}
 
 
-pub fn make_border(commands: &mut Commands, color: Color) {
+
+pub fn make_border(
+    commands: &mut Commands, 
+    color: Color, 
+    // an arg implementing both Bundle and Clone:
+    component_to_add: impl Bundle + Clone,
+) {
     // Draw a UiImage that has only a border, no fill. The border is yellow. It should be AS BIG AS THE SCREEN.
     // Do it by creating 4 different narrow rectangles, at each side of the screen:
     // Left rectangle:
@@ -529,7 +675,8 @@ pub fn make_border(commands: &mut Commands, color: Color) {
             background_color: color.into(),
             ..default()
         })
-        .insert(BorderElem);
+        .insert(BorderElem)
+        .insert(component_to_add.clone());
     // Right rectangle:
     commands
         .spawn(ImageBundle {
@@ -548,7 +695,8 @@ pub fn make_border(commands: &mut Commands, color: Color) {
             background_color: color.into(),
             ..default()
         })
-        .insert(BorderElem);
+        .insert(BorderElem)
+        .insert(component_to_add.clone());
     // Top rectangle:
     commands
         .spawn(ImageBundle {
@@ -567,7 +715,8 @@ pub fn make_border(commands: &mut Commands, color: Color) {
             background_color: color.into(),
             ..default()
         })
-        .insert(BorderElem);
+        .insert(BorderElem)
+        .insert(component_to_add.clone());
     // Bottom rectangle:
     commands
         .spawn(ImageBundle {
@@ -586,7 +735,8 @@ pub fn make_border(commands: &mut Commands, color: Color) {
             background_color: color.into(),
             ..default()
         })
-        .insert(BorderElem);
+        .insert(BorderElem)
+        .insert(component_to_add.clone());
 }
 
 

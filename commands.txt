@@ -52,10 +52,10 @@ TODO:
  - DONE Extra Tick on tile transition
  - DONE Bug: 9 start tiles
  - DONE Level solutions menu..
+ - DONE tutorial, in theory......
  - z index of split and start and stop
  - Music
  - Particle effect .....
- - tutorial, in theory......
  - cometic status button when running
  - Cosmetic score in title when hovering
  - Cosmetic Won menu overlayed
@@ -63,6 +63,7 @@ TODO:
  - Zindex start
  - Ghost train direction in stop (+start?) and split
  - You MIGHT WANT to fix the 3-collision problem..
-
+ - FIX: Despawn borders by tagging them w GameScreenTag
+ - FIX: Run tick=0 lag (Again...)
 
  - Remember: animations: https://github.com/jcornaz/benimator/blob/main/examples/bevy.rs
