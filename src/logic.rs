@@ -5,8 +5,10 @@ use bevy::prelude::*;
 pub struct Player;
 
 use crate::data_saving::*;
+use crate::loading::TrainAssets;
 use crate::menu_utils::{PopupTimer, PopupType};
 use crate::simulator::*;
+use crate::train::make_train;
 
 use bevy::utils::Instant;
 // use std::time::Instant;
@@ -310,13 +312,15 @@ pub fn listen_to_game_state_changes(
 
 pub fn logic_tick(
     // windows: Res<Windows>,
-    mut board_q: Query<(&mut BoardTileMap, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
+    mut board_q: Query<(Entity, &BoardDimensions, &mut BoardTileMap, &mut BoardGameState, &mut BoardTickStatus), With<Board>>,
     tick_params: ResMut<TicksInATick>,
     mut change_gamestate_event_writer: EventWriter<ChangeGameStateEvent>,
-    game_tick: Local<u16>,
+    // mut commands: Commands,
+    // trains_q: Query<(Entity, &Train)>,
+    // train_assets: Res<TrainAssets>,
     ) {
         
-    for (mut board_tilemap, mut game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
+    for (board_id, board_dimensions, mut board_tilemap, mut game_state, mut tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
         // if NoteEvenBegun, set game_tick to 0:
         // If board_hoverable.game_state is NOT running, continue:
         match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
@@ -329,11 +333,37 @@ pub fn logic_tick(
             (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, &mut game_state, &mut change_gamestate_event_writer).clone();
             // println!("Tick now 0");
             tick_status.first_half = Section::First;
+
+            // >> RESPAWN TRAINS:
+            // for (train_entity, _) in trains_q.iter() {
+            //     if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
+            // }
+            // match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
+            // for train in board_tilemap.current_trains.iter() {
+            //     let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, tick_status.current_tick_in_a_tick as f32 / tick_params.ticks as f32);
+            //     commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
+            // }
+            // >> END RESPAWN TRAINS
+
+
         } else if tick_status.current_tick_in_a_tick >= ((tick_params.ticks as f32 / 2.) as u32)  && tick_status.first_half == Section::First {
             tick_status.first_half = Section::Second;
             (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle, &mut game_state, &mut change_gamestate_event_writer);
+            // >> RESPAWN TRAINS:
+            // for (train_entity, _) in trains_q.iter() {
+            //     if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
+            // }
+            // match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
+            // for train in board_tilemap.current_trains.iter() {
+            //     let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, tick_status.current_tick_in_a_tick as f32 / tick_params.ticks as f32);
+            //     commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
+            // }
+            // >> END RESPAWN TRAINS
         }
         tick_status.current_tick_in_a_tick += 1;
+        // else {
+        //     tick_status.current_tick_in_a_tick += 1;
+        // }
     }
 }
 

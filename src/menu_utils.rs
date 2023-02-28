@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use crate::loading::FontAssets;
+use crate::menu_game_screen::MainGameBotton;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -616,7 +617,7 @@ pub fn make_tutorial_popup(
         },
         background_color: Color::rgb(0.1, 0.1, 0.1).into(),
         ..default()
-    }, Popup{})).id();
+    }, Popup{}, MainGameBotton{})).id();
     let text_id = commands.spawn(TextBundle {
         text: Text {
             sections: vec![TextSection {
@@ -704,7 +705,7 @@ pub fn make_victory_popup(
         },
         background_color: Color::rgb(0.1, 0.1, 0.1).into(),
         ..default()
-    }, Popup{})).id();
+    }, Popup{}, MainGameBotton{})).id();
     let text_id = commands.spawn(TextBundle {
         text: Text {
             sections: vec![TextSection {

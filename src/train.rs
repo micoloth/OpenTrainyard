@@ -64,26 +64,25 @@ pub fn move_trains(
 
 pub fn spawn_trains(
     mut commands: Commands,
+    trains_q: Query<(Entity, &Train)>,
     train_assets: Res<TrainAssets>,
     tick_params: ResMut<TicksInATick>,
     mut board_q: Query<(Entity, &BoardDimensions, &BoardTileMap, &Children, &BoardGameState, &BoardTickStatus), (With<Board>, Changed<BoardTileMap>)>,
-    trains_q: Query<(Entity, &Train)>,
 ) {
     for (board_id, board_dimensions, board_tilemap, children, game_state, board_tick_status) in board_q.iter_mut() {
         // `children` is a collection of Entity IDs
-        for &child in children.iter() {
-            // get the health of each child unit
-            if let Ok((train_entity, train)) = trains_q.get(child)
-            {
-                let mut board_entity = commands.entity(board_id);  // Get entity by id:
-                board_entity.remove_children(&[train_entity]);
-                if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
-            }
+        // for &child in children.iter() {
+        //     if let Ok((train_entity, train)) = trains_q.get(child)
+        //     {
+        //         let mut board_entity = commands.entity(board_id);  // Get entity by id:
+        //         board_entity.remove_children(&[train_entity]);
+        //     }
+        // }
+        for (train_entity, _) in trains_q.iter() {
+            if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
         }
         match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
-        // spawnn all trains:
         for train in board_tilemap.current_trains.iter() {
-            // println!("SPAWING train: {:?},  at tick: {:?}", train, board_tick_status.current_tick);
             let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, board_tick_status.current_tick_in_a_tick as f32 / tick_params.ticks as f32);
             commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
         }
