@@ -425,7 +425,7 @@ pub fn make_tile(
         child
             .with_children(|parent| 
             {
-                let inner = get_asset("e_base_inner.png".to_string(), assets);
+                let inner = get_asset("s_base_inner.png".to_string(), assets);
                 parent.spawn(SpriteBundle {texture: inner,transform: Transform::from_xyz(0., 0., 4.),..default()});
             })
             .with_children(
