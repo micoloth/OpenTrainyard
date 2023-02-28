@@ -147,8 +147,24 @@ fn setup_solutions_menu(
     selected_level: ResMut<SelectedLevel>, 
     // Resource CarouselState:
     mut redraw_carousel_event_writer: EventWriter<RedrawCarouselEvent>,
+    tile_assets: Res<TileAssets>,
 ) 
 {
+    let width = windows.get_primary().unwrap().width();
+    let height = windows.get_primary().unwrap().height();
+    commands.spawn(
+        // NodeBundle{..default()}).with_children(|parent| {parent.spawn(
+        SpriteBundle {
+            texture: tile_assets.background_solutions.clone(),
+            // transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(width, height)),
+                ..default()
+            },
+            // Scale down to 50% of the width:
+            // transform: Transform::from_xyz(0., 0., -10.),
+            ..default()
+    });
     let level_name = selected_level.level.clone();
     // Print the game name:
     println!("LAUNCHED: {}", level_name.clone());

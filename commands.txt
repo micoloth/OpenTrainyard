@@ -55,15 +55,15 @@ TODO:
  - DONE tutorial, in theory......
  - DONE z index of split and start and stop
  - DONE Zindex start
+ - DONE FIX: Despawn borders by tagging them w GameScreenTag
+ - DONE Background
  - Music
  - Particle effect .....
  - cometic status button when running
  - Cosmetic score in title when hovering
  - Cosmetic Won menu overlayed
- - Background
  - Ghost train direction in stop (+start?) and split
  - You MIGHT WANT to fix the 3-collision problem..
- - FIX: Despawn borders by tagging them w GameScreenTag
  - FIX: Run tick=0 lag (Again...)
 
  - Remember: animations: https://github.com/jcornaz/benimator/blob/main/examples/bevy.rs
