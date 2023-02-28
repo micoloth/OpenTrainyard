@@ -162,7 +162,7 @@ fn add_color_minitiles_children(
                     //     custom_size: Some(Vec2::splat(small_tile_size as f32)),
                     //     ..default()
                     // },
-                    transform: Transform::from_xyz(pos_x, pos_y, 1.),
+                    transform: Transform::from_xyz(pos_x, pos_y, 5.),
                     texture: child_asset,
                     ..default()
                 });
@@ -368,7 +368,7 @@ fn add_funnels_minitile_children(
 ) {
     // let scale = big_tile_size / 45.;
     let funnel = get_asset("e_funnel_elem_rigth.png".to_string(), assets);
-    let mut t = Transform::from_xyz(0., 0., 1.);
+    let mut t = Transform::from_xyz(0., 0., 0.5);
     let pos_x: f32;
     let pos_y: f32;
     if r_ {
@@ -423,6 +423,11 @@ pub fn make_tile(
     });
     if let Tile::StartTile { dir, elems , orig_len} = t {
         child
+            .with_children(|parent| 
+            {
+                let inner = get_asset("e_base_inner.png".to_string(), assets);
+                parent.spawn(SpriteBundle {texture: inner,transform: Transform::from_xyz(0., 0., 4.),..default()});
+            })
             .with_children(
                 partial!(add_color_minitiles_children => _, elems, orig_len, true, assets, big_tile_size),
             )
@@ -430,6 +435,11 @@ pub fn make_tile(
     } else if let Tile::EndTile { t_, b_, l_, r_, elems, orig_len} = t
     {
         child
+            .with_children(|parent| 
+            {
+                let inner = get_asset("e_base_inner.png".to_string(), assets);
+                parent.spawn(SpriteBundle {texture: inner,transform: Transform::from_xyz(0., 0., 4.),..default()});
+            })
             .with_children(
                 partial!(add_color_minitiles_children => _, elems, orig_len, false, assets, big_tile_size),
             )

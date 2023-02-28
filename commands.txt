@@ -53,14 +53,14 @@ TODO:
  - DONE Bug: 9 start tiles
  - DONE Level solutions menu..
  - DONE tutorial, in theory......
- - z index of split and start and stop
+ - DONE z index of split and start and stop
+ - DONE Zindex start
  - Music
  - Particle effect .....
  - cometic status button when running
  - Cosmetic score in title when hovering
  - Cosmetic Won menu overlayed
  - Background
- - Zindex start
  - Ghost train direction in stop (+start?) and split
  - You MIGHT WANT to fix the 3-collision problem..
  - FIX: Despawn borders by tagging them w GameScreenTag
