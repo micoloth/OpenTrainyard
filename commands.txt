@@ -57,6 +57,7 @@ TODO:
  - DONE Zindex start
  - DONE FIX: Despawn borders by tagging them w GameScreenTag
  - DONE Background
+ - DONE FIX: Run tick=0 lag (Again...)
  - Music
  - Particle effect .....
  - cometic status button when running
@@ -64,6 +65,6 @@ TODO:
  - Cosmetic Won menu overlayed
  - Ghost train direction in stop (+start?) and split
  - You MIGHT WANT to fix the 3-collision problem..
- - FIX: Run tick=0 lag (Again...)
+ - Copy (text) all around ...
 
  - Remember: animations: https://github.com/jcornaz/benimator/blob/main/examples/bevy.rs

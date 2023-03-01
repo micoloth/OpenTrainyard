@@ -48,10 +48,24 @@ fn setup_menu(
     button_colors: Res<ButtonColors>,
     textures: Res<TileAssets>,
     windows: Res<Windows>,
+    tile_assets: Res<TileAssets>,
 ) {
-    println!("YES IM HERE. good...");
     let width = windows.get_primary().unwrap().width();
     let height = windows.get_primary().unwrap().height();
+    println!("YES IM HERE. good...");
+    commands.spawn(
+        // NodeBundle{..default()}).with_children(|parent| {parent.spawn(
+        SpriteBundle {
+            texture: tile_assets.background_solutions.clone(),
+            // transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(width, height)),
+                ..default()
+            },
+            // Scale down to 50% of the width:
+            transform: Transform::from_xyz(0., 0., 0.),
+            ..default()
+    });
 
     let rect_width = 120.;
     let rect_height = 50.;
