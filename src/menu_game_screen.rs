@@ -52,9 +52,8 @@ impl Plugin for MainGamePlugin {
                 //////////// MAIN LOGIC:
                 SystemSet::on_update(GameState::Playing)
                 .with_system(spawn_tile)
-                .with_system(spawn_trains.after(logic_tick))
-                .with_system(move_trains.after(spawn_trains))
-                .with_system(move_trains)
+                // .with_system(move_trains.after(spawn_trains))
+                .with_system(spawn_and_move_trains)
                 .with_system(create_board)
                 .with_system(change_tick_speed)
                 .with_system(listen_to_game_state_changes)
@@ -70,13 +69,13 @@ impl Plugin for MainGamePlugin {
                 .with_system(advance_tick)
                 .with_system(add_borders)
                 .with_system(style_run_button)
-                .with_system(logic_tick)   
             )
             /////////////// MOVE TRAINS:
-            // .add_system_set(
-            //     SystemSet::on_update(GameState::Playing)
-            //     .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-            // )
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing)
+                .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
+                .with_system(logic_tick)   
+            )
             .add_event::<DoubleClickEvent>()
             .add_event::<TileHoverEvent>()
             .add_event::<ScrollBarLimits>()

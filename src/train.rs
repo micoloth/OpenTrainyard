@@ -44,53 +44,44 @@ impl Default for TrainBundle {
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-pub fn move_trains(
-    mut trains_q: Query<(&mut Train, &mut Transform)>, 
-    // windows: Res<Windows>,
-    mut board_q: Query<(&BoardDimensions, &BoardGameState, &mut BoardTickStatus), With<Board>>,
-    tick_params: ResMut<TicksInATick>,
-    ) {
-        
-    for (board_dimensions, game_state, tick_status) in board_q.iter_mut() {    // Really, there's just 1 board
-        match game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
-        for (train, mut transform) in trains_q.iter_mut() {
-            *transform = get_train_transform(*train, board_dimensions, (tick_status.current_tick_in_a_tick as f32) / (tick_params.ticks as f32));
-            // println!("Getting train transform: {:?},  at tick: {:?}", train, tick_status.current_tick);
-        }
-    }
-}
-
-
-
-pub fn spawn_trains(
+pub fn spawn_and_move_trains(
     mut commands: Commands,
-    trains_q: Query<(Entity, &Train)>,
+    mut trains_q: Query<(Entity, &Train, &mut Transform)>,
     train_assets: Res<TrainAssets>,
     tick_params: ResMut<TicksInATick>,
-    mut board_q: Query<(Entity, &BoardDimensions, &BoardTileMap, &Children, &BoardGameState, &BoardTickStatus), (With<Board>, Changed<BoardTileMap>)>,
+    mut board_q: Query<(Entity, &BoardDimensions, &BoardTileMap, &Children, &BoardGameState, &BoardTickStatus, ChangeTrackers<BoardTileMap>), With<Board>>,
 ) {
-    for (board_id, board_dimensions, board_tilemap, children, game_state, board_tick_status) in board_q.iter_mut() {
-        // `children` is a collection of Entity IDs
-        // for &child in children.iter() {
-        //     if let Ok((train_entity, train)) = trains_q.get(child)
-        //     {
-        //         let mut board_entity = commands.entity(board_id);  // Get entity by id:
-        //         board_entity.remove_children(&[train_entity]);
-        //     }
-        // }
-        for (train_entity, _) in trains_q.iter() {
-            if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
+    for (board_id, board_dimensions, board_tilemap, children, game_state, board_tick_status, tilemap_tracker) in board_q.iter_mut() {
+        if tilemap_tracker.is_changed()  // Respawn the trains
+        {
+            for (train_entity, _, _) in trains_q.iter() {
+                if let Some(train) = commands.get_entity(train_entity) {train.despawn_recursive();}
+            }
+            // match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}} // Is an if else faster than an empty for loop, really ...
+            for train in board_tilemap.current_trains.iter() {
+                let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, board_tick_status.current_tick_in_a_tick as f32 / tick_params.ticks as f32);
+                commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
+            }
         }
-        match *game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
-        for train in board_tilemap.current_trains.iter() {
-            let child_id = make_train(*train, &mut commands, &train_assets, &board_dimensions, board_tick_status.current_tick_in_a_tick as f32 / tick_params.ticks as f32);
-            commands.entity(board_id).push_children(&[child_id]);// add the child to the parent
+        else {  // Just move the trains
+            // match game_state { BoardGameState::Running(_) => {}, _ => {continue;}}
+            for (_, train, mut transform) in trains_q.iter_mut() {
+                *transform = get_train_transform(*train, board_dimensions, (board_tick_status.current_tick_in_a_tick as f32) / (tick_params.ticks as f32));
+                // println!("Getting train transform: {:?},  at tick: {:?}", train, tick_status.current_tick);
+            }
         }
     }
 }
 
-
-
+// >> With more than 1 board, you would need this:
+// `children` is a collection of Entity IDs
+// for &child in children.iter() {
+//     if let Ok((train_entity, train)) = trains_q.get(child)
+//     {
+//         let mut board_entity = commands.entity(board_id);  // Get entity by id:
+//         board_entity.remove_children(&[train_entity]);
+//     }
+// }
 
 
 
