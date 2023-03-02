@@ -457,7 +457,7 @@ pub fn set_towards_side(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<T
                 new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(out_side_from_in(train.pos.side, tile).unwrap())}});
             },
             Tile::PaintTile{c, track:_} => {
-                new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(out_side_from_in(train.pos.side, tile).unwrap())}});
+                new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(flip_side(train.pos.side))}});
             },
             Tile::SplitTile{side_in:_} => {
                 new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(flip_side(train.pos.side))}});
@@ -492,8 +492,19 @@ pub fn do_center_coloring_things(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (
     for train in trains.iter(){
         let tile = &field[train.pos.py][train.pos.px];
         match tile{
-            Tile::PaintTile{c, track:_} => {
-                new_trains.push(Train{c: *c, pos: train.pos});
+            Tile::PaintTile{c, track: Track { t_, b_, l_, r_ }} => {
+                // Get the train pos:
+                let train_arriving_side = train.pos.side;
+                // In track, only 2 sides should be True. Get the one that is NOT train_arriving_side:
+                let mut out_side = None;
+                if *t_ && train_arriving_side != Side::T_ {out_side = Some(Side::T_);}
+                else if *b_ && train_arriving_side != Side::B_ {out_side = Some(Side::B_);}
+                else if *l_ && train_arriving_side != Side::L_ {out_side = Some(Side::L_);}
+                else if *r_ && train_arriving_side != Side::R_ {out_side = Some(Side::R_);}
+                // Assert that out_side is not None:
+                if out_side.is_none() {panic!("out_side is None!")}
+                let newpos = Pos{px: train.pos.px, py: train.pos.py, side: flip_side(out_side.unwrap()), going_in: train.pos.going_in, towards_side: out_side};
+                new_trains.push(Train{c: *c, pos: newpos});
             },
             Tile::SplitTile{side_in:_} => {
                 let (t1, t2) = out_trains_from_split(*train);
