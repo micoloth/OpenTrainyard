@@ -4,6 +4,7 @@ use crate::data_saving::SolutionData;
 use crate::data_saving::SolutionsSavedData;
 use crate::loading::FontAssets;
 use crate::GameState;
+use crate::simulator::{count_double_tracks, count_tracks};
 use bevy::prelude::*;
 use bevy::reflect::NamedField;
 
@@ -69,6 +70,7 @@ impl Plugin for MainGamePlugin {
                 .with_system(advance_tick)
                 .with_system(add_borders)
                 .with_system(add_running_status_indicator)
+                .with_system(show_track_number_in_title_text)
                 .with_system(style_run_button)
             )
             /////////////// MOVE TRAINS:
@@ -498,6 +500,35 @@ fn add_running_status_indicator(
 }
 
 
+fn show_track_number_in_title_text(
+    board_q: Query<(&BoardTileMap, &BoardGameState, &BoardHoverable), (With<Board>, Changed<BoardHoverable>)>, 
+    mut text_query: Query<&mut Text, With<TextElem>>,
+    selected_level: Res<SelectedLevel>,
+) {
+    for (board_tilemap, board_game_state, board_hoverable) in board_q.iter() {
+        for mut text in text_query.iter_mut() {
+            match board_hoverable {
+                BoardHoverable {hovered_pos_1: Some(_), hovered_pos_2: Some(_), history: _} 
+                 | BoardHoverable {hovered_pos_1: Some(_), hovered_pos_2: None, history: _}
+                 | BoardHoverable {hovered_pos_1: None, hovered_pos_2: Some(_) , history: _}
+                 => {
+                    let track_number = count_tracks(&board_tilemap.map);
+                    let double_track_number = count_double_tracks(&board_tilemap.map);
+                    let level_name = selected_level.level.clone();
+                    
+                    let newtext = format!("{} ({}/{})", level_name, track_number, double_track_number);
+                    text.sections[0].value = newtext;
+                },
+                _ => {
+                    let level_name = selected_level.level.clone();
+                    text.sections[0].value = level_name;
+                }
+            }
+        }
+    }
+}
+
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -531,7 +562,6 @@ fn change_level(
     for mut text in text_query.iter_mut() {
         text.sections[0].value = level_name.clone();
     }
-
 }
 
 fn _get_event_to_serialize_current_map(board_tilemap_q: &Query<(&BoardTileMap, &BoardGameState, &BoardTickStatus), With<Board>>, selected_level: &mut ResMut<SelectedLevel>) -> Option<SelectedLevelSolvedDataEvent> {
