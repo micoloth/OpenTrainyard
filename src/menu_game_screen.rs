@@ -68,6 +68,7 @@ impl Plugin for MainGamePlugin {
                 .with_system(cleanup_popup)
                 .with_system(advance_tick)
                 .with_system(add_borders)
+                .with_system(add_running_status_indicator)
                 .with_system(style_run_button)
             )
             /////////////// MOVE TRAINS:
@@ -128,6 +129,9 @@ pub struct NextLevelButton;
 #[derive(Component)]
 pub struct BackButton;
 
+#[derive(Component)]
+pub struct RunningGameStateDisplay;
+
 
 
 #[derive(Component)]
@@ -158,9 +162,9 @@ fn setup_game_menu(
 ) {
     let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
 
-    let erase_id = make_button("Erase".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right, top - heigh - margin, bottom - heigh - margin, EraseStateButton, Some(MainGameBotton));
-    let undo_id = make_button("Undo".to_string(), &mut commands, &font_assets, &button_colors, 35., left, right , top, bottom, UndoButton, Some(MainGameBotton));
-    let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
+    let erase_id = make_button("Erase".to_string(), &mut commands, &font_assets, &button_colors, 30., left, right, top - heigh - margin, bottom - heigh - margin, EraseStateButton, Some(MainGameBotton));
+    let undo_id = make_button("Undo".to_string(), &mut commands, &font_assets, &button_colors, 30., left, right , top, bottom, UndoButton, Some(MainGameBotton));
+    let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 30., width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
     let scrollbar_id = make_scrollbar(&mut commands, &textures, 
         ScrollBarLimits { max: 2000., min: 4., current: 0., step: 0.01},
         &button_colors,  // ^ IMPORTANT note: This is now REVERSED!! (max is on the Left and min is on the Right)
@@ -194,7 +198,6 @@ fn cleanup_menu(
     for button in buttons.iter() { // It's never more than 1, but can very well be 0
         if let Some(id) = commands.get_entity(button) { id.despawn_recursive();};
     }
-
 }
 
 
@@ -435,13 +438,10 @@ pub fn style_run_button(
 // Listen to CHANGES in the GameScreenState:
 fn add_borders(
     mut commands: Commands,
-    // use Option, not to panic if the resource doesn't exist yet
     board_q: Query<&BoardGameState, (With<Board>, Changed<BoardGameState>)>,
-    // Query borders:
     elems: Query<Entity, With<BorderElem>>,
 ) {
     for hovering_state in board_q.iter() {
-        // println!("TRIGGEREDDDDDDD, {:?}", hovering_state);
         // Despawn all the borders:
         for elem in elems.iter() {
             if let Some(id) = commands.get_entity(elem) { id.despawn_recursive();}
@@ -462,7 +462,40 @@ fn add_borders(
     }
 }
 
+// Listen to CHANGES in the GameScreenState:
+fn add_running_status_indicator(
+    mut commands: Commands,
+    // use Option, not to panic if the resource doesn't exist yet
+    board_q: Query<&BoardGameState, (With<Board>, Changed<BoardGameState>)>,
+    // Query borders:
+    elems: Query<Entity, With<RunningGameStateDisplay>>,
+    font_assets: Res<FontAssets>,
+    button_colors: Res<ButtonColors>,
+    windows: Res<Windows>,
+) {
+    for hovering_state in board_q.iter() {
+        // Despawn all entities of type RunningGameStateDisplay:
+        for elem in elems.iter() {
+            if let Some(id) = commands.get_entity(elem) { id.despawn_recursive();}
+        }
+        // Make new ones:
+        match *hovering_state {
+            BoardGameState::Running(RunningState::Crashed) => {
+                let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
+                make_rect_with_colored_text("status:\n".to_string(), "CRASHED".to_string(), Color::RED, &mut commands, &font_assets, &button_colors, 30., left, right, top - heigh - margin, bottom  - 2. *heigh - margin, RunningGameStateDisplay, Some(MainGameBotton));
+            },
+            BoardGameState::Running(RunningState::Won) => {
+                let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
+                make_rect_with_colored_text("status:\n".to_string(), "COMPLETED".to_string(), Color::GREEN, &mut commands, &font_assets, &button_colors, 30., left, right, top - heigh - margin, bottom  - 2. *heigh - margin, RunningGameStateDisplay, Some(MainGameBotton));
+            },
+            BoardGameState::Running(RunningState::Started) => {
+                let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
+                make_rect_with_colored_text("status:\n".to_string(), "RUNNING".to_string(), Color::GREEN, &mut commands, &font_assets, &button_colors, 30., left, right, top - heigh - margin, bottom  - 2. *heigh - margin, RunningGameStateDisplay, Some(MainGameBotton));            }
 
+            _ => {}
+        };           
+    }
+}
 
 
 

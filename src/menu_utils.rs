@@ -535,6 +535,67 @@ pub fn make_button(
 }
 
 
+pub fn make_rect_with_colored_text(
+    text1: String,
+    text2: String,
+    textcolor: Color,
+    commands: &mut Commands,
+    font_assets: &FontAssets,
+    button_colors: &ButtonColors,
+    font_size: f32,
+    pleft: f32,
+    pright: f32,
+    ptop: f32,
+    pbottom: f32,
+    type1: impl Bundle,
+    type2: Option<impl Bundle>,
+) -> Entity {
+    let mut ec = commands.spawn(ImageBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            size: Size::new(Val::Px(pright - pleft), Val::Px(ptop - pbottom)),
+            margin: UiRect::all(Val::Auto),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center, // I have to say, this was cool ....
+            position: UiRect {
+                top: Val::Px(ptop),
+                left: Val::Px(pleft),
+                ..default()
+            },
+            ..default()
+        },
+        background_color: button_colors.normal.into(),
+        ..default()
+    }
+    );
+    ec.with_children(|parent| {
+        parent.spawn(TextBundle {
+            text: Text {
+                sections: vec![TextSection {
+                    value: text1,
+                    style: TextStyle {font: font_assets.fira_sans.clone(),font_size: font_size,color: Color::rgb(0.9, 0.9, 0.9),},
+                },
+                TextSection {
+                    value: text2,
+                    style: TextStyle {font: font_assets.fira_sans.clone(),font_size: font_size,color: textcolor,},
+                }
+                ],
+                alignment: TextAlignment{
+                    vertical: VerticalAlign::Center,
+                    horizontal: HorizontalAlign::Center,
+                },
+            },
+            ..default()
+        });
+    });
+    ec.insert(type1);
+    if let Some(type2) = type2 {
+        ec.insert(type2);
+    }
+    return ec.id();
+}
+
+
 pub fn make_text(
     text: String,
     commands: &mut Commands,
