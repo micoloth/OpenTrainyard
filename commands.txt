@@ -59,9 +59,9 @@ TODO:
  - DONE Background
  - DONE FIX: Run tick=0 lag (Again...)
  - DONE cometic status button when running
+ - DONE Cosmetic score in title when hovering
  - Music
  - Particle effect .....
- - Cosmetic score in title when hovering
  - Cosmetic Won menu overlayed
  - Ghost train direction in stop (+start?) and split
  - You MIGHT WANT to fix the 3-collision problem..
