@@ -270,6 +270,7 @@ pub fn listen_to_game_state_changes(
                 ChangeGameStateEvent{old_state: BoardGameState::Running(RunningState::Started), new_state: BoardGameState::Running(RunningState::Won)} => {
                     // serialize submitted solution:
                     let solution_data = SolutionData::new_from_tiles(&board_tilemap.submitted_map, tick_status.current_game_tick);
+                    let popup_text = "You solved it! \n Track count: ".to_string() + &solution_data.tracks.to_string() + "/" + &solution_data.second_tracks.to_string() + " \n Time: " + &solution_data.time.to_string();
                     let index = selected_level.current_index.clone();
                     if index >= selected_level.player_maps.len() as u16 { selected_level.player_maps.push(solution_data); }
                     else { selected_level.player_maps[index as usize] = solution_data; }
@@ -278,7 +279,7 @@ pub fn listen_to_game_state_changes(
                     // Trigger a popup:
                     commands.insert_resource(PopupTimer {
                         timer: Some(Timer::from_seconds(0.5, TimerMode::Once)),
-                        popup_text: "Welcome to Trainyard! \nDraw a train track from the source (+)\n to the destination (o)".to_string(),
+                        popup_text: popup_text,
                         popup_type: PopupType::Victory,
                     });
 

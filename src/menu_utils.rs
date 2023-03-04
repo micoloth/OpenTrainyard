@@ -765,22 +765,23 @@ pub fn make_victory_popup(
             ..default()
         },
         background_color: Color::rgb(0.1, 0.1, 0.1).into(),
+        z_index: ZIndex::Global(10),
         ..default()
     }, Popup{}, MainGameBotton{})).id();
     let text_id = commands.spawn(TextBundle {
         text: Text {
             sections: vec![TextSection {
-                value: "You won!".to_string(),
+                value: text.to_string(),
                 style: TextStyle {
                     font: font_assets.fira_sans.clone(),
                     font_size: font_size,
                     color: Color::rgba(0.9, 0.9, 0.9, 0.9),
                 },
             }],
-            alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center },
+            alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Left },
         },
         style: Style {
-            position: UiRect{left: Val::Percent(15.), ..default()},
+            position: UiRect{left: Val::Percent(35.), ..default()},
             margin: UiRect{top: Val::Percent(-10.), ..default()},
             ..default()
         },
@@ -808,7 +809,7 @@ pub fn make_victory_popup(
     let but_text_id = commands.spawn(TextBundle {
         text: Text {
             sections: vec![TextSection {
-                value: "Got it".to_string(),
+                value: "Replay solution".to_string(),
                 style: TextStyle { font: font_assets.fira_sans.clone(), font_size: font_size * 0.66, color: Color::rgb(0.9, 0.9, 0.9), },
             }],
             alignment: default(),
@@ -837,7 +838,7 @@ pub fn make_victory_popup(
     let but_nexttext_id = commands.spawn(TextBundle {
         text: Text {
             sections: vec![TextSection {
-                value: "Got it 2".to_string(),
+                value: "Next level".to_string(),
                 style: TextStyle { font: font_assets.fira_sans.clone(), font_size: font_size * 0.66, color: Color::rgb(0.9, 0.9, 0.9), },
             }],
             alignment: default(),
@@ -846,45 +847,50 @@ pub fn make_victory_popup(
     }).id();
     commands.entity(but_id_nextlevel).push_children(&[but_nexttext_id]);// add the child to the parent
 
-    let old_pos = UiRect{left: Val::Percent(30.), top: Val::Percent(50.), right: Val::Percent(60.), bottom: Val::Percent(50.)};
-    let new_pos = UiRect{left: Val::Percent(-10.), top: Val::Percent(5.), right: Val::Percent(50.), bottom: Val::Percent(30.)};
-
-    // Spawn a Tick sprite:
-    commands.spawn(
-        (SpriteBundle {
-            texture: tile_assets.tick.clone(),
-            // Scale down to 50% of the width:
-            transform: Transform{..default()}.with_translation(Vec3::new(0., 0., 100.)).with_scale(Vec3::splat(5.45)),
+    let tick_id = commands.spawn(
+        // NodeBundle{..default()}).with_children(|parent| {parent.spawn(
+        (ImageBundle {
+            image: UiImage(tile_assets.tick.clone()),
+            style: Style { 
+                position: UiRect{left: Val::Percent(3.), top: Val::Percent(28.), right: Val::Percent(40.), bottom: Val::Percent(40.)},
+                ..default()
+            },
+            transform: Transform{..default()}.with_scale(Vec3 { x: 0., y: 0., z: 10. },),
             ..default()
         },
-        Popup{},
-        // Animator::new(Tween::new(
-        //     EaseFunction::QuadraticIn, Duration::from_millis(0.6 as u64), 
-        //     TransformScaleLens {start: Vec3 { x: 0., y: 0., z: 5. }, end: Vec3 { x: 1., y: 1., z: 5. },},
-        //     // UiPositionLens{start: old_pos, end: new_pos,},
-        // ))
-    )
-    );
-
-    // let tick_id = commands.spawn(
-    //     // NodeBundle{..default()}).with_children(|parent| {parent.spawn(
-    //     (ImageBundle {
-    //         image: UiImage(tile_assets.tick.clone()),
-    //         style: Style { 
-    //             position_type: PositionType::Absolute,
-    //             margin: UiRect{ bottom: Val::Percent(35.), left: Val::Percent(5.), right: Val::Percent(75.), top: Val::Percent(10.),},
-    //             ..default()
-    //         },
-    //         // Scale down to 50% of the width:
-    //         transform: Transform{..default()}.with_scale(Vec3::splat(1.45)),
-    //         ..default()
-    //     },
-    //     ))
-    // )).id();  
-    // commands.entity(popup_id).push_children(&[tick_id]);// add the child to the parent
+        Animator::new(Tween::new(
+                EaseFunction::QuadraticIn, Duration::from_millis(400 as u64), 
+                TransformScaleLens {start: Vec3 { x: 0., y: 0., z: 10. }, end: Vec3 { x: 1.1, y: 1.1, z: 10. },},
+            )
+        )
+    )).id();  
+    commands.entity(popup_id).push_children(&[tick_id]);// add the child to the parent
     
 }
 
+
+// If you ever ACTUALLY needed to animate the style > scale property:
+//  // In main  // .add_system(component_animator_system::<Style>) 
+// // In the tweening: // //MyUiScaleLens{start: Val::Percent(0.), end: Val::Percent(100.),},
+// fn _lerp_val(start: &Val, end: &Val, ratio: f32) -> Val {
+//     match (start, end) {
+//         (Val::Percent(start), Val::Percent(end)) => {
+//             Val::Percent((end - start).mul_add(ratio, *start))
+//         }
+//         (Val::Px(start), Val::Px(end)) => Val::Px((end - start).mul_add(ratio, *start)),
+//         _ => *start,
+//     }
+// }
+// struct MyUiScaleLens {
+//     start: Val,
+//     end: Val,
+// }
+// impl Lens<Style> for MyUiScaleLens {
+//     fn lerp(&mut self, target: &mut Style, ratio: f32) {
+//         target.size = Size::new(_lerp_val(&self.start, &self.end, ratio), Val::Auto);
+//         println!("CALLED !! lerp: {:?}", target.size);
+//     }
+// }
 
 
 
