@@ -76,6 +76,18 @@
         "notes": "FOR SIMPLE JOIN BLUE"
     },
     {
+        "local_filename_map": "The First.png",
+        "name": "The First",
+        "solutions_url": "http://www.trainyard.ca/solutions/theFirst",
+        "city": "Fredericton Puzzles",
+        "parsed_map": "00 00 00 Sr_r 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_y 00 00 00 00 00 E1000_o\n00 00 00 00 00 00 00\n00 00 00 E0010_o 00 00 00\n00 00 00 00 00 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 7+2",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2794758_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/theFirst_thumb.png",
+        "to_include_in_game": true
+    },
+    {
         "local_filename_map": "Embrace.png",
         "name": "Embrace",
         "solutions_url": "http://www.trainyard.ca/solutions/embrace",
@@ -152,18 +164,6 @@
         "notes": "FOR JOINING"
     },
     {
-        "local_filename_map": "Nine Men's Morris.png",
-        "name": "Nine Men's Morris",
-        "solutions_url": "http://www.trainyard.ca/solutions/nineMensMorris",
-        "city": "Fredericton Puzzles",
-        "parsed_map": "Sb_y 00 00 00 00 00 E1001_o\n00 00 00 00 00 00 00\n00 00 MM MM MM 00 00\n00 00 MM MM MM 00 00\n00 00 MM MM MM 00 00\n00 00 00 00 00 00 00\nE0110_o 00 00 00 00 00 St_r",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 15+2",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797262_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/nineMensMorris_thumb.png",
-        "to_include_in_game": true
-    },
-    {
         "local_filename_map": "Green Line.png",
         "name": "Green Line",
         "solutions_url": "http://www.trainyard.ca/solutions/greenLine",
@@ -209,7 +209,7 @@
         "trackCount": "Best track count: 11+4",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797385_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/aroundTheBack_thumb.png",
-        "to_include_in_game": true
+        "to_include_in_game": false
     },
     {
         "local_filename_map": "Yorple lines.png",
@@ -581,7 +581,7 @@
         "trackCount": "Best track count: 14+3",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798767_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/combinellow_thumb.png",
-        "to_include_in_game": true,
+        "to_include_in_game": false,
         "notes": "FOR JOINING"
     },
     {
@@ -609,6 +609,18 @@
         "to_include_in_game": false
     },
     {
+        "local_filename_map": "Match Up.png",
+        "name": "Match Up",
+        "solutions_url": "http://www.trainyard.ca/solutions/matchUp",
+        "city": "New Brunswick Puzzles",
+        "parsed_map": "E0100_p 00 00 00 00 00 E1000_p\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 Sl_b 00 00 00\n00 00 00 Sb_rr 00 00 00\n00 00 00 00 00 00 00\nE0100_o 00 00 00 00 00 St_y",
+        "type_": "Express puzzles",
+        "trackCount": "Best track count: 18+6",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798095_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/matchUp_thumb.png",
+        "to_include_in_game": true
+    },
+    {
         "local_filename_map": "Pee Gee.png",
         "name": "Pee Gee",
         "solutions_url": "http://www.trainyard.ca/solutions/peeGee",
@@ -621,18 +633,6 @@
         "to_include_in_game": true
     },
     {
-        "local_filename_map": "Preenies.png",
-        "name": "Preenies",
-        "solutions_url": "http://www.trainyard.ca/solutions/preenies",
-        "city": "Delson Puzzles",
-        "parsed_map": "Sr_pgpgpgpgp MM 00 00 00 00 E1001_gggg\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM MM MM 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 00 00 MM 00 00 E1010_ppppp",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 23+1",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797122_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/preenies_thumb.png",
-        "to_include_in_game": true
-    },
-    {
         "local_filename_map": "Autumn.png",
         "name": "Autumn",
         "solutions_url": "http://www.trainyard.ca/solutions/autumn",
@@ -642,7 +642,7 @@
         "trackCount": "Best track count: 11+6",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797334_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/autumn_thumb.png",
-        "to_include_in_game": true
+        "to_include_in_game": false
     },
     {
         "local_filename_map": "Unscathed.png",
@@ -798,7 +798,7 @@
         "trackCount": "Best track count: 21+7",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797975_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/scarab_thumb.png",
-        "to_include_in_game": true
+        "to_include_in_game": false
     },
     {
         "local_filename_map": "Micro Mix.png",
@@ -813,31 +813,7 @@
         "to_include_in_game": false
     },
     {
-        "local_filename_map": "Prancing.png",
-        "name": "Prancing",
-        "solutions_url": "http://www.trainyard.ca/solutions/prancing",
-        "city": "New Brunswick Puzzles",
-        "parsed_map": "Sr_b 00 00 00 00 00 Sr_y\n00 00 00 00 00 Sl_g 00\n00 00 00 00 00 00 00\n00 00 00 E0011_pg 00 00 00\n00 00 00 00 00 00 00\n00 Sr_p 00 00 00 00 00\nSl_r 00 00 00 00 00 Sl_b",
-        "type_": "Express puzzles",
-        "trackCount": "Best track count: 25+8",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797996_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/prancing_thumb.png",
-        "to_include_in_game": true
-    },
-    {
-        "local_filename_map": "The First.png",
-        "name": "The First",
-        "solutions_url": "http://www.trainyard.ca/solutions/theFirst",
-        "city": "Fredericton Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 E0001_p 00 00 00\n00 00 00 00 00 00 00\n00 Sb_b 00 00 00 St_r 00\n00 00 00 00 00 00 00\n00 00 00 E0010_p 00 00 00\n00 00 00 00 00 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 7+2",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2794758_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/theFirst_thumb.png",
-        "to_include_in_game": false
-    },
-    {
-        "local_filename_map": "Box Seven.png",
+        "local_filename_map": "Box Seven.png", 
         "name": "Box Seven",
         "solutions_url": "http://www.trainyard.ca/solutions/boxSeven",
         "city": "New Brunswick Puzzles",
@@ -846,10 +822,11 @@
         "trackCount": "Best track count: 14+4",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798403_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/boxSeven_thumb.png",
-        "to_include_in_game": true
+        "to_include_in_game": false,
+        "notes": "Not terrible actually"
     },
     {
-        "local_filename_map": "Wait Outside.png",
+        "local_filename_map": "Wait Outside.png", 
         "name": "Wait Outside",
         "solutions_url": "http://www.trainyard.ca/solutions/waitOutside",
         "city": "Fredericton Puzzles",
@@ -858,7 +835,8 @@
         "trackCount": "Best track count: 24+1",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797065_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/waitOutside_thumb.png",
-        "to_include_in_game": true
+        "to_include_in_game": false,
+        "notes": "Not terrible actually"
     },
     {
         "local_filename_map": "Sapling.png",
@@ -873,15 +851,53 @@
         "to_include_in_game": true
     },
     {
-        "local_filename_map": "Match Up.png",
-        "name": "Match Up",
-        "solutions_url": "http://www.trainyard.ca/solutions/matchUp",
+        "local_filename_map": "Prancing.png", 
+        "name": "Prancing",
+        "solutions_url": "http://www.trainyard.ca/solutions/prancing",
         "city": "New Brunswick Puzzles",
-        "parsed_map": "E0100_p 00 00 00 00 00 E1000_p\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 Sl_b 00 00 00\n00 00 00 Sb_rr 00 00 00\n00 00 00 00 00 00 00\nE0100_o 00 00 00 00 00 St_y",
+        "parsed_map": "Sr_b 00 00 00 00 00 Sr_y\n00 00 00 00 00 Sl_g 00\n00 00 00 00 00 00 00\n00 00 00 E0011_pg 00 00 00\n00 00 00 00 00 00 00\n00 Sr_p 00 00 00 00 00\nSl_r 00 00 00 00 00 Sl_b",
         "type_": "Express puzzles",
-        "trackCount": "Best track count: 18+6",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798095_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/matchUp_thumb.png",
+        "trackCount": "Best track count: 25+8",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797996_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/prancing_thumb.png",
+        "to_include_in_game": false,
+        "notes": "Not terrible actually"
+    },
+    {
+        "local_filename_map": "Red Pear.png",
+        "name": "Red Pear",
+        "solutions_url": "http://www.trainyard.ca/solutions/redPear",
+        "city": "Joliette Puzzles",
+        "parsed_map": "r6 00 00 Sr_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_r 00 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 9+2",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798559_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/redPear_thumb.png",
+        "to_include_in_game": true,
+        "notes": "HERE paint starts"
+    },
+    {
+        "local_filename_map": "Snowracer.png",
+        "name": "Snowracer",
+        "solutions_url": "http://www.trainyard.ca/solutions/snowracer",
+        "city": "Bonus: Northwest Territories Puzzles",
+        "parsed_map": "00 00 00 00 Sr_b Sr_y Sr_r\n00 00 00 MM 00 00 00\n00 MM 00 00 MM 00 00\n00 00 MM 00 MM 00 00\n00 00 MM 00 00 MM 00\n00 00 00 MM 00 00 00\nE0010_r E0010_y E0010_b 00 00 00 00",
+        "type_": "Express puzzles",
+        "trackCount": "Best track count: 24+5",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796218_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/snowracer_thumb.png",
+        "to_include_in_game": false
+    },
+    {
+        "local_filename_map": "Paint The Town.png",
+        "name": "Paint The Town",
+        "solutions_url": "http://www.trainyard.ca/solutions/paintTheTown",
+        "city": "Joliette Puzzles",
+        "parsed_map": "Sb_y 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 r2 00 00 E1000_o\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_b 00 00 00 00 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 13+1",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798547_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/paintTheTown_thumb.png",
         "to_include_in_game": true
     },
     {
@@ -907,6 +923,32 @@
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797578_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/beingGreen_thumb.png",
         "to_include_in_game": true
+    },
+    {
+        "local_filename_map": "Stuck To You.png",
+        "name": "Stuck To You",
+        "solutions_url": "http://www.trainyard.ca/solutions/stuckToYou",
+        "city": "Kamloops Puzzles",
+        "parsed_map": "00 00 Sr_p MM Sr_p 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 b2 y2 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 MM E0010_g MM 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 12+3",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2795804_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/stuckToYou_thumb.png",
+        "to_include_in_game": true,
+        "notes": "Third paint"
+    },
+    {
+        "local_filename_map": "Diagonal Mirror.png",
+        "name": "Diagonal Mirror",
+        "solutions_url": "http://www.trainyard.ca/solutions/diagonalMirror",
+        "city": "Kamloops Puzzles",
+        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 y4 00\n00 00 00 00 MM 00 00\n00 00 00 MM 00 00 00\n00 St_b MM 00 00 00 00\n00 E1001_y Sr_b 00 00 00 00\n00 00 00 00 00 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 17+5",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798676_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/diagonalMirror_thumb.png",
+        "to_include_in_game": true,
+        "notes": "Fourth paint"
     },
     {
         "local_filename_map": "Relish.png",
@@ -1041,18 +1083,6 @@
         "to_include_in_game": false
     },
     {
-        "local_filename_map": "Chromashift.png",
-        "name": "Chromashift",
-        "solutions_url": "http://www.trainyard.ca/solutions/chromaShift",
-        "city": "Nova Scotia Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\n00 00 St_g Sl_g Sb_g 00 00\n00 00 00 00 00 00 00\n00 00 r5 E0011_rr r5 00 00\n00 00 00 00 00 00 00\n00 00 St_b Sr_b Sb_b 00 00\n00 00 00 00 00 00 00",
-        "type_": "Express puzzles",
-        "trackCount": "Best track count: 22+7",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798243_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/chromaShift_thumb.png",
-        "to_include_in_game": true
-    },
-    {
         "local_filename_map": "Handlebars.png",
         "name": "Handlebars",
         "solutions_url": "http://www.trainyard.ca/solutions/handlebars",
@@ -1062,19 +1092,167 @@
         "trackCount": "Best track count: 18+4",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798125_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/handlebars_thumb.png",
+        "to_include_in_game": false
+    },
+    {
+        "local_filename_map": "Nine Men's Morris.png",
+        "name": "Nine Men's Morris",
+        "solutions_url": "http://www.trainyard.ca/solutions/nineMensMorris",
+        "city": "Fredericton Puzzles",
+        "parsed_map": "Sb_y 00 00 00 00 00 E1001_o\n00 00 00 00 00 00 00\n00 00 MM MM MM 00 00\n00 00 MM MM MM 00 00\n00 00 MM MM MM 00 00\n00 00 00 00 00 00 00\nE0110_o 00 00 00 00 00 St_r",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 15+2",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797262_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/nineMensMorris_thumb.png",
         "to_include_in_game": true
     },
     {
-        "local_filename_map": "Rainbow.png",
-        "name": "Rainbow",
-        "solutions_url": "http://www.trainyard.ca/solutions/rainbow",
-        "city": "Calgary Puzzles",
-        "parsed_map": "E0100_r 00 00 00 00 00 St_r\nSb_p 00 00 00 00 00 E1000_p\nE0100_b 00 00 00 00 00 St_b\nSb_g 00 00 00 00 00 E1000_g\nE0100_y 00 00 00 00 00 St_y\nSb_o 00 00 00 00 00 E1000_o\nE0100_r 00 00 00 00 00 St_r",
+        "local_filename_map": "Round The Twist.png",
+        "name": "Round The Twist",
+        "solutions_url": "http://www.trainyard.ca/solutions/roundTheTwist",
+        "city": "London Puzzles",
+        "parsed_map": "00 00 00 00 00 00 E1000_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 D2 00 00 St_p\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 E1000_b",
         "type_": "Regular puzzles",
-        "trackCount": "Best track count: 25+15",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797499_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/rainbow_thumb.png",
+        "trackCount": "Best track count: 12+4",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2795884_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/roundTheTwist_thumb.png",
+        "to_include_in_game": true,
+        "notes": "First scissor"
+    },
+    {
+        "local_filename_map": "More Is Merrier.png",
+        "name": "More Is Merrier",
+        "solutions_url": "http://www.trainyard.ca/solutions/moreIsMerrier",
+        "city": "London Puzzles",
+        "parsed_map": "00 00 00 Sr_gggg E0001_yyyy 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 D1 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_bb E0010_bb 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 9+2",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797918_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/moreIsMerrier_thumb.png",
+        "to_include_in_game": true,
+        "notes": "Second scissor"
+    },
+    {
+        "local_filename_map": "Warm Up.png",
+        "name": "Warm Up",
+        "solutions_url": "http://www.trainyard.ca/solutions/warmUp",
+        "city": "Mississauga Puzzles",
+        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0001_bby 00 00 00 00 00 St_byr\nD2 00 00 00 00 00 00\nE0010_rry 00 00 00 00 00 St_rby\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 7+1",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2782610_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/warmUp_thumb.png",
         "to_include_in_game": true
+    },
+    {
+        "local_filename_map": "Three Peas.png",
+        "name": "Three Peas",
+        "solutions_url": "http://www.trainyard.ca/solutions/threePeas",
+        "city": "London Puzzles",
+        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 Sl_g Sl_g Sl_g 00 00\nE0100_yyy 00 00 D4 00 00 E1000_bbb\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 12+3",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2795886_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/threePeas_thumb.png",
+        "to_include_in_game": false,
+        "notes": "Third scissor"
+    },
+    {
+        "local_filename_map": "Hookshot.png",
+        "name": "Hookshot",
+        "solutions_url": "http://www.trainyard.ca/solutions/hookshot",
+        "city": "London Puzzles",
+        "parsed_map": "00 00 00 00 00 00 00\n00 St_b 00 00 00 E0010_r 00\n00 00 00 00 00 00 00\n00 00 00 D4 00 00 00\n00 00 00 00 00 00 00\n00 E0001_g 00 00 00 Sb_o 00\n00 00 00 00 00 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 20+5",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798681_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/hookshot_thumb.png",
+        "to_include_in_game": true
+    },
+    {
+        "local_filename_map": "Ackee Tree.png",
+        "name": "Ackee Tree",
+        "solutions_url": "http://www.trainyard.ca/solutions/akeeTree",
+        "city": "London Puzzles",
+        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_g D1 E0001_b E0010_yy E0001_r D2 St_o\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 11+1",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2790464_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/akeeTree_thumb.png",
+        "to_include_in_game": false,
+        "notes": "fourth scissor"
+    },
+    {
+        "local_filename_map": "Primer.png",
+        "name": "Primer",
+        "solutions_url": "http://www.trainyard.ca/solutions/primer",
+        "city": "London Puzzles",
+        "parsed_map": "00 00 00 00 00 00 E1000_y\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_y 00 D1 00 00 00 E1000_y\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 E1000_y",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 15+3",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796605_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/primer_thumb.png",
+        "to_include_in_game": true
+    },
+    {
+        "local_filename_map": "Preenies.png",
+        "name": "Preenies",
+        "solutions_url": "http://www.trainyard.ca/solutions/preenies",
+        "city": "Delson Puzzles",
+        "parsed_map": "Sr_pgpgpgpgp MM 00 00 00 00 E1001_gggg\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM MM MM 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 00 00 MM 00 00 E1010_ppppp",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 23+1",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797122_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/preenies_thumb.png",
+        "to_include_in_game": true
+    },
+    {
+        "local_filename_map": "Reunited.png",
+        "name": "Reunited",
+        "solutions_url": "http://www.trainyard.ca/solutions/reunited",
+        "city": "London Puzzles",
+        "parsed_map": "00 00 00 00 00 00 00\nD2 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 Sl_b 00 Sr_p 00 E0010_p 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 16+7",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798691_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/reunited_thumb.png",
+        "to_include_in_game": true
+    },
+    {
+        "local_filename_map": "Pick Your Partner.png",
+        "name": "Pick Your Partner",
+        "solutions_url": "http://www.trainyard.ca/solutions/pickYourPartner",
+        "city": "London Puzzles",
+        "parsed_map": "E0001_b E0001_b E0001_b MM 00 Sr_p 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 D3 00\n00 00 D2 00 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 00 00\n00 00 E0010_r MM 00 Sl_b 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 18+4",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798809_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/pickYourPartner_thumb.png",
+        "to_include_in_game": true
+    },
+    {
+        "local_filename_map": "Star Stuck.png",
+        "name": "Star Stuck",
+        "solutions_url": "http://www.trainyard.ca/solutions/starStuck",
+        "city": "London Puzzles",
+        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 St_oooo 00 00 00 00\n00 00 00 00 b6 r1 00\n00 00 E1000_rbbr 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 14+6",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798692_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/starStuck_thumb.png",
+        "to_include_in_game": true
+    },
+    {
+        "local_filename_map": "Dousing The Flame.png",
+        "name": "Dousing The Flame",
+        "solutions_url": "http://www.trainyard.ca/solutions/dousingTheFlame",
+        "city": "Newfoundland Puzzles",
+        "parsed_map": "Sb_r 00 00 00 00 00 00\nMM Sb_r 00 00 00 00 00\nSb_r 00 00 00 00 00 00\nE0100_b 00 00 00 00 b2 00\nSb_r 00 00 00 00 00 00\nMM Sb_r 00 00 00 00 00\nSb_r 00 00 00 00 00 00",
+        "type_": "Express puzzles",
+        "trackCount": "Best track count: 19+9",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797663_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/dousingTheFlame_thumb.png",
+        "to_include_in_game": true 
     },
     {
         "local_filename_map": "Balsam.png",
@@ -1101,18 +1279,6 @@
         "to_include_in_game": false
     },
     {
-        "local_filename_map": "Boomerang.png",
-        "name": "Boomerang",
-        "solutions_url": "http://www.trainyard.ca/solutions/boomerang",
-        "city": "Nova Scotia Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\ny5 g5 b5 00 00 00 00\n00 00 00 Sb_rrr 00 00 E1000_ygb",
-        "type_": "Express puzzles",
-        "trackCount": "Best track count: 12+6",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798763_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/boomerang_thumb.png",
-        "to_include_in_game": true
-    },
-    {
         "local_filename_map": "Wailing.png",
         "name": "Wailing",
         "solutions_url": "http://www.trainyard.ca/solutions/wailing",
@@ -1134,7 +1300,7 @@
         "trackCount": "Best track count: 20+6",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798803_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/taxing_thumb.png",
-        "to_include_in_game": true
+        "to_include_in_game": false
     },
     {
         "local_filename_map": "Laser Master.png",
@@ -1146,18 +1312,6 @@
         "trackCount": "Best track count: 8+4",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798619_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/laserMaster_thumb.png",
-        "to_include_in_game": true
-    },
-    {
-        "local_filename_map": "Dousing The Flame.png",
-        "name": "Dousing The Flame",
-        "solutions_url": "http://www.trainyard.ca/solutions/dousingTheFlame",
-        "city": "Newfoundland Puzzles",
-        "parsed_map": "Sb_r 00 00 00 00 00 00\nMM Sb_r 00 00 00 00 00\nSb_r 00 00 00 00 00 00\nE0100_b 00 00 00 00 b2 00\nSb_r 00 00 00 00 00 00\nMM Sb_r 00 00 00 00 00\nSb_r 00 00 00 00 00 00",
-        "type_": "Express puzzles",
-        "trackCount": "Best track count: 19+9",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797663_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/dousingTheFlame_thumb.png",
         "to_include_in_game": true
     },
     {
@@ -1182,6 +1336,18 @@
         "trackCount": "Best track count: 18+11",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797112_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/duplex_thumb.png",
+        "to_include_in_game": true
+    },
+    {
+        "local_filename_map": "Rainbow.png",
+        "name": "Rainbow",
+        "solutions_url": "http://www.trainyard.ca/solutions/rainbow",
+        "city": "Calgary Puzzles",
+        "parsed_map": "E0100_r 00 00 00 00 00 St_r\nSb_p 00 00 00 00 00 E1000_p\nE0100_b 00 00 00 00 00 St_b\nSb_g 00 00 00 00 00 E1000_g\nE0100_y 00 00 00 00 00 St_y\nSb_o 00 00 00 00 00 E1000_o\nE0100_r 00 00 00 00 00 St_r",
+        "type_": "Regular puzzles",
+        "trackCount": "Best track count: 25+15",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797499_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/rainbow_thumb.png",
         "to_include_in_game": true
     },
     {
@@ -1329,6 +1495,30 @@
         "to_include_in_game": true
     },
     {
+        "local_filename_map": "Boomerang.png",
+        "name": "Boomerang",
+        "solutions_url": "http://www.trainyard.ca/solutions/boomerang",
+        "city": "Nova Scotia Puzzles",
+        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\ny5 g5 b5 00 00 00 00\n00 00 00 Sb_rrr 00 00 E1000_ygb",
+        "type_": "Express puzzles",
+        "trackCount": "Best track count: 12+6",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798763_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/boomerang_thumb.png",
+        "to_include_in_game": true
+    },
+    {
+        "local_filename_map": "Chromashift.png",
+        "name": "Chromashift",
+        "solutions_url": "http://www.trainyard.ca/solutions/chromaShift",
+        "city": "Nova Scotia Puzzles",
+        "parsed_map": "00 00 00 00 00 00 00\n00 00 St_g Sl_g Sb_g 00 00\n00 00 00 00 00 00 00\n00 00 r5 E0011_rr r5 00 00\n00 00 00 00 00 00 00\n00 00 St_b Sr_b Sb_b 00 00\n00 00 00 00 00 00 00",
+        "type_": "Express puzzles",
+        "trackCount": "Best track count: 22+7",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798243_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/chromaShift_thumb.png",
+        "to_include_in_game": true 
+    },
+    {
         "local_filename_map": "The Classic.png",
         "name": "The Classic",
         "solutions_url": "http://www.trainyard.ca/solutions/theClassic",
@@ -1353,40 +1543,15 @@
         "to_include_in_game": true
     },
     {
-        "local_filename_map": "Red Pear.png",
-        "name": "Red Pear",
-        "solutions_url": "http://www.trainyard.ca/solutions/redPear",
+        "local_filename_map": "Lopsided.png",
+        "name": "Lopsided",
+        "solutions_url": "http://www.trainyard.ca/solutions/lopsided",
         "city": "Joliette Puzzles",
-        "parsed_map": "r6 00 00 Sr_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_r 00 00 00",
+        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0010_o 00 MM MM MM y4 St_o\nE0001_o 00 MM MM MM r6 St_o\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
         "type_": "Regular puzzles",
-        "trackCount": "Best track count: 9+2",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798559_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/redPear_thumb.png",
-        "to_include_in_game": true,
-        "notes": "HERE paint starts"
-    },
-    {
-        "local_filename_map": "Snowracer.png",
-        "name": "Snowracer",
-        "solutions_url": "http://www.trainyard.ca/solutions/snowracer",
-        "city": "Bonus: Northwest Territories Puzzles",
-        "parsed_map": "00 00 00 00 Sr_b Sr_y Sr_r\n00 00 00 MM 00 00 00\n00 MM 00 00 MM 00 00\n00 00 MM 00 MM 00 00\n00 00 MM 00 00 MM 00\n00 00 00 MM 00 00 00\nE0010_r E0010_y E0010_b 00 00 00 00",
-        "type_": "Express puzzles",
-        "trackCount": "Best track count: 24+5",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796218_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/snowracer_thumb.png",
-        "to_include_in_game": false
-    },
-    {
-        "local_filename_map": "Paint The Town.png",
-        "name": "Paint The Town",
-        "solutions_url": "http://www.trainyard.ca/solutions/paintTheTown",
-        "city": "Joliette Puzzles",
-        "parsed_map": "Sb_y 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 r2 00 00 E1000_o\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_b 00 00 00 00 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 13+1",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798547_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/paintTheTown_thumb.png",
+        "trackCount": "Best track count: 14+2",
+        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2784517_large.png",
+        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/lopsided_thumb.png",
         "to_include_in_game": true
     },
     {
@@ -1399,18 +1564,6 @@
         "trackCount": "Best track count: 19+9",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798026_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/rightOfPassage_thumb.png",
-        "to_include_in_game": true
-    },
-    {
-        "local_filename_map": "Lopsided.png",
-        "name": "Lopsided",
-        "solutions_url": "http://www.trainyard.ca/solutions/lopsided",
-        "city": "Joliette Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0010_o 00 MM MM MM y4 St_o\nE0001_o 00 MM MM MM r6 St_o\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 14+2",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2784517_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/lopsided_thumb.png",
         "to_include_in_game": true
     },
     {
@@ -1435,7 +1588,7 @@
         "trackCount": "Best track count: 15+4",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2793669_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/plus_thumb.png",
-        "to_include_in_game": true,
+        "to_include_in_game": false,
         "notes": "Second paint"
     },
     {
@@ -1547,32 +1700,6 @@
         "to_include_in_game": true
     },
     {
-        "local_filename_map": "Stuck To You.png",
-        "name": "Stuck To You",
-        "solutions_url": "http://www.trainyard.ca/solutions/stuckToYou",
-        "city": "Kamloops Puzzles",
-        "parsed_map": "00 00 Sr_p MM Sr_p 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 b2 y2 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 MM E0010_g MM 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 12+3",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2795804_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/stuckToYou_thumb.png",
-        "to_include_in_game": true,
-        "notes": "Third paint"
-    },
-    {
-        "local_filename_map": "Diagonal Mirror.png",
-        "name": "Diagonal Mirror",
-        "solutions_url": "http://www.trainyard.ca/solutions/diagonalMirror",
-        "city": "Kamloops Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 y4 00\n00 00 00 00 MM 00 00\n00 00 00 MM 00 00 00\n00 St_b MM 00 00 00 00\n00 E1001_y Sr_b 00 00 00 00\n00 00 00 00 00 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 17+5",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798676_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/diagonalMirror_thumb.png",
-        "to_include_in_game": true,
-        "notes": "Fourth paint"
-    },
-    {
         "local_filename_map": "Niner.png",
         "name": "Niner",
         "solutions_url": "http://www.trainyard.ca/solutions/niner",
@@ -1594,7 +1721,7 @@
         "trackCount": "Best track count: 16+4",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797520_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/teamwork_thumb.png",
-        "to_include_in_game": true
+        "to_include_in_game": false
     },
     {
         "local_filename_map": "Return Policing.png",
@@ -1690,130 +1817,6 @@
         "trackCount": "Best track count: 26+8",
         "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798253_large.png",
         "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/fireballIsland_thumb.png",
-        "to_include_in_game": true
-    },
-    {
-        "local_filename_map": "Round The Twist.png",
-        "name": "Round The Twist",
-        "solutions_url": "http://www.trainyard.ca/solutions/roundTheTwist",
-        "city": "London Puzzles",
-        "parsed_map": "00 00 00 00 00 00 E1000_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 D2 00 00 St_p\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 E1000_b",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 12+4",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2795884_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/roundTheTwist_thumb.png",
-        "to_include_in_game": true,
-        "notes": "First scissor"
-    },
-    {
-        "local_filename_map": "More Is Merrier.png",
-        "name": "More Is Merrier",
-        "solutions_url": "http://www.trainyard.ca/solutions/moreIsMerrier",
-        "city": "London Puzzles",
-        "parsed_map": "00 00 00 Sr_gggg E0001_yyyy 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 D1 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_bb E0010_bb 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 9+2",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797918_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/moreIsMerrier_thumb.png",
-        "to_include_in_game": true,
-        "notes": "Second scissor"
-    },
-    {
-        "local_filename_map": "Three Peas.png",
-        "name": "Three Peas",
-        "solutions_url": "http://www.trainyard.ca/solutions/threePeas",
-        "city": "London Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 Sl_g Sl_g Sl_g 00 00\nE0100_yyy 00 00 D4 00 00 E1000_bbb\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 12+3",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2795886_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/threePeas_thumb.png",
-        "to_include_in_game": true,
-        "notes": "Third scissor"
-    },
-    {
-        "local_filename_map": "Ackee Tree.png",
-        "name": "Ackee Tree",
-        "solutions_url": "http://www.trainyard.ca/solutions/akeeTree",
-        "city": "London Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_g D1 E0001_b E0010_yy E0001_r D2 St_o\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 11+1",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2790464_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/akeeTree_thumb.png",
-        "to_include_in_game": true,
-        "notes": "fourth scissor"
-    },
-    {
-        "local_filename_map": "Hookshot.png",
-        "name": "Hookshot",
-        "solutions_url": "http://www.trainyard.ca/solutions/hookshot",
-        "city": "London Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\n00 St_b 00 00 00 E0010_r 00\n00 00 00 00 00 00 00\n00 00 00 D4 00 00 00\n00 00 00 00 00 00 00\n00 E0001_g 00 00 00 Sb_o 00\n00 00 00 00 00 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 20+5",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798681_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/hookshot_thumb.png",
-        "to_include_in_game": true
-    },
-    {
-        "local_filename_map": "Pick Your Partner.png",
-        "name": "Pick Your Partner",
-        "solutions_url": "http://www.trainyard.ca/solutions/pickYourPartner",
-        "city": "London Puzzles",
-        "parsed_map": "E0001_b E0001_b E0001_b MM 00 Sr_p 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 D3 00\n00 00 D2 00 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 00 00\n00 00 E0010_r MM 00 Sl_b 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 18+4",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798809_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/pickYourPartner_thumb.png",
-        "to_include_in_game": true
-    },
-    {
-        "local_filename_map": "Primer.png",
-        "name": "Primer",
-        "solutions_url": "http://www.trainyard.ca/solutions/primer",
-        "city": "London Puzzles",
-        "parsed_map": "00 00 00 00 00 00 E1000_y\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_y 00 D1 00 00 00 E1000_y\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 E1000_y",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 15+3",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796605_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/primer_thumb.png",
-        "to_include_in_game": true
-    },
-    {
-        "local_filename_map": "Reunited.png",
-        "name": "Reunited",
-        "solutions_url": "http://www.trainyard.ca/solutions/reunited",
-        "city": "London Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\nD2 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 Sl_b 00 Sr_p 00 E0010_p 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 16+7",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798691_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/reunited_thumb.png",
-        "to_include_in_game": true
-    },
-    {
-        "local_filename_map": "Star Stuck.png",
-        "name": "Star Stuck",
-        "solutions_url": "http://www.trainyard.ca/solutions/starStuck",
-        "city": "London Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 St_oooo 00 00 00 00\n00 00 00 00 b6 r1 00\n00 00 E1000_rbbr 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 14+6",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798692_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/starStuck_thumb.png",
-        "to_include_in_game": true
-    },
-    {
-        "local_filename_map": "Warm Up.png",
-        "name": "Warm Up",
-        "solutions_url": "http://www.trainyard.ca/solutions/warmUp",
-        "city": "Mississauga Puzzles",
-        "parsed_map": "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0001_bby 00 00 00 00 00 St_byr\nD2 00 00 00 00 00 00\nE0010_rry 00 00 00 00 00 St_rby\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00",
-        "type_": "Regular puzzles",
-        "trackCount": "Best track count: 7+1",
-        "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2782610_large.png",
-        "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/warmUp_thumb.png",
         "to_include_in_game": true
     },
     {

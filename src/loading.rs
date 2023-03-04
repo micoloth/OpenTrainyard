@@ -61,6 +61,7 @@ pub struct TileAssets {
     #[asset(path = "samples/tick.png")] pub tick: Handle<Image>,
     #[asset(path = "samples/star.png")] pub star: Handle<Image>,
     #[asset(path = "samples/background_solutions.png")] pub background_solutions: Handle<Image>,
+    #[asset(path = "samples/icon_crop.png")] pub icon_crop: Handle<Image>,
     #[asset(path = "samples/s_elem_1_blue.png")] pub s_elem_1_blue: Handle<Image>,
     #[asset(path = "samples/s_base.png")] pub s_base: Handle<Image>,
     #[asset(path = "samples/s_base_inner.png")] pub s_base_inner: Handle<Image>,
@@ -134,6 +135,7 @@ pub fn get_asset(name: String, asset_server: &TileAssets)-> Handle<Image> {
     // Match name over the 2 possible string "s_elem_1_blue" and "s_base" :
     match &name[..] {
        "s_elem_1_blue.png" => {asset_server.s_elem_1_blue.clone()},
+       "icon_crop.png" => {asset_server.icon_crop.clone()},
         "s_base.png" => {asset_server.s_base.clone()},
         "s_base_inner.png" => {asset_server.s_base_inner.clone()},
         "e_elem_9_yellow.png" => {asset_server.e_elem_9_yellow.clone()},

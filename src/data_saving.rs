@@ -10,10 +10,12 @@ use bevy_pkv::PkvStore;
 use crate::{simulator::{count_tracks, count_double_tracks, pretty_print_map, Tile, parse_map}, all_puzzles_clean::PuzzlesData, utils::SelectedLevel};
 
 
+
 /////////////////////////////////////////////////////////////////////////////////////
 // COMPONENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
+pub const LOCAL_STORAGE_DATA_KEY: &str = "solved_levels_v3";
 
 // Struct with a string and 2 ints:
 
@@ -73,6 +75,28 @@ impl SolutionsSavedData {
             None => Vec::<SolutionData>::new(),
         }
     }
+
+    pub fn just_begun_level(&self, level_name: &String) -> bool {
+        match self.levels.get(level_name) {
+            Some(data) => {
+                if data.len() == 0 { true }
+                else {
+                    // If ALL solutions have time ==0, true:
+                    let mut all_unsolved = true;
+                    for sol in data {
+                        if sol.time != 0 {
+                            all_unsolved = false;
+                            break;
+                        }
+                    }
+                    all_unsolved
+                }},
+            None => true,
+        }
+    }
+    pub fn just_begun(&self) -> bool {
+        self.levels.len() == 0
+    }
 }
 
 
@@ -114,7 +138,7 @@ pub fn save_player_data(
             Some(solutions) => { *solutions = maps; }
             None => { solution_data_map.levels.insert(level_name, maps); }
         }
-        pkv.set("solved_levels_v2", &solution_data_map.clone()).expect("failed to store level data");
+        pkv.set(LOCAL_STORAGE_DATA_KEY, &solution_data_map.clone()).expect("failed to store level data");
     }
 }
 

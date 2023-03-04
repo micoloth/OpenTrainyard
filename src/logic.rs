@@ -280,6 +280,7 @@ pub fn listen_to_game_state_changes(
                     commands.insert_resource(PopupTimer {
                         timer: Some(Timer::from_seconds(0.5, TimerMode::Once)),
                         popup_text: popup_text,
+                        popup_text_2: None,
                         popup_type: PopupType::Victory,
                     });
 

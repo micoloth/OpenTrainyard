@@ -1,6 +1,6 @@
 
 
-path = "/Users/michele.tasca/My Stuff/Coding stuff/Julia/Trainyard/assets/all_puzzles_clean_ordered.json"
+path = "/Users/michele.tasca/My Stuff/Coding stuff/OpenTrainyard/assets/all_puzzles_clean_ordered.json"
 
 import json
 from pathlib import Path
@@ -61,7 +61,7 @@ names = [d['name'] for d in data_reordered]
 
 # Read all_puzzles_ordered
 
-path = "/Users/michele.tasca/My Stuff/Coding stuff/Julia/Trainyard/assets/all_puzzles_clean_ordered.json"
+path = "/Users/michele.tasca/My Stuff/Coding stuff/OpenTrainyard/assets/all_puzzles_clean_ordered.json"
 
 import json
 from pathlib import Path
@@ -132,7 +132,7 @@ for i, name in enumerate(names):
 
 import json
 from pathlib import Path
-out_path = "/Users/michele.tasca/My Stuff/Coding stuff/Julia/Trainyard/assets/all_puzzles_clean_ordered.json"
+out_path = "/Users/michele.tasca/My Stuff/Coding stuff/OpenTrainyard/assets/all_puzzles_clean_ordered.json"
 Path(out_path).write_text(json.dumps(data_reordered, indent=4))
 
 

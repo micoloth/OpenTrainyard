@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crate::loading::FontAssets;
-use crate::menu_game_screen::MainGameBotton;
+use crate::menu_game_screen::{MainGameBotton, NextLevelButton};
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -134,6 +134,7 @@ impl Default for PopupType {
 pub struct PopupTimer {
     pub timer: Option<Timer>,
     pub popup_text: String,
+    pub popup_text_2: Option<String>,
     pub popup_type: PopupType,
 }
 
@@ -233,7 +234,7 @@ pub fn scrollbar_dragging_handler(
         if sbstatus.dragging {
             let window = windows.get_primary().expect("no primary window");
             if let Some(pos) = window.cursor_position() {
-                let handle_x = (sbpos.max_x - sbpos.min_x) * 0.12;
+                let handle_x = (sbpos.max_x - sbpos.min_x) * 0.30;
 
                 let relposx = pos.x - sbpos.min_x - handle_x / 2.;
                 let relposx = relposx.clamp(0., sbpos.max_x - sbpos.min_x - handle_x);
@@ -318,7 +319,7 @@ pub fn advance_tick(
             // Spawn a tutorial popup:
             match popup_state.popup_type {
                 PopupType::Tutorial => {
-                    make_tutorial_popup(popup_state.popup_text.clone(), &mut commands, &font_assets, &button_colors);
+                    make_tutorial_popup(popup_state.popup_text.clone(), popup_state.popup_text_2.clone(), &mut commands, &font_assets, &button_colors);
                 }
                 PopupType::Victory => {
                     make_victory_popup(popup_state.popup_text.clone(), &mut commands, &font_assets, &button_colors, &tile_assets);
@@ -409,6 +410,8 @@ fn _touch_event_handler(
 pub fn make_scrollbar(
     mut commands: &mut Commands,
     assets: &TileAssets,
+    font_assets: &FontAssets,
+    font_size: f32,
     scroll_bar_limits: ScrollBarLimits,
     button_colors: &ButtonColors,
     pleft: f32,
@@ -419,26 +422,47 @@ pub fn make_scrollbar(
     type_: impl Bundle,
 ) -> Entity {
     // let arrow = assets.s_arrow_elem_rigth.clone();
-    let back = commands
-        .spawn(ImageBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                size: Size::new(Val::Px(pright - pleft), Val::Px(ptop - pbottom)),
-                margin: UiRect::all(Val::Auto),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center, // I have to say, this was cool ....
-                position: UiRect {
-                    top: Val::Px(ptop),
-                    left: Val::Px(pleft),
-                    ..default()
-                },
+    let back_id = commands.spawn(ImageBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            size: Size::new(Val::Px(pright - pleft), Val::Px(ptop - pbottom)),
+            margin: UiRect::all(Val::Auto),
+            // justify_content: JustifyContent::Center,
+            // align_items: AlignItems::Center, // I have to say, this was cool ....
+            position: UiRect {
+                top: Val::Px(ptop),
+                left: Val::Px(pleft),
                 ..default()
             },
-            background_color: Color::rgb(1.0, 1.0, 1.0).into(),
             ..default()
-        })
-        .insert(type_)
-        .id();
+        },
+        z_index: ZIndex::Global(5),
+        background_color: Color::rgb(147. / 255.,  170. / 255.,  180. / 255., ).into(),
+        ..default()
+    })
+    .insert(type_)
+    .id();
+    let text_id = commands.spawn(TextBundle {
+        text: Text {
+            sections: vec![TextSection {
+                value: "SPEED".to_string(),
+                style: TextStyle {
+                    font: font_assets.fira_sans.clone(),
+                    font_size: font_size,
+                    color: Color::rgb(0.9, 0.9, 0.9),
+                },
+            }],
+            alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center },
+        },
+        style: Style {
+            // position: UiRect{left: Val::Percent(35.), ..default()},
+            margin: UiRect{left: Val::Percent(5.), ..default()},
+            ..default()
+        },
+        z_index: ZIndex::Global(20),
+        ..default()
+    }).id();
+
     // get the fraction from (scroll_bar_limits.current - min) / (scroll_bar_limits.max- min)
     // and apply it to ScrollBarPosition{ max_x: pright, min_x: pleft} to get the current_x:
     let fraction = (scroll_bar_limits.current - scroll_bar_limits.min)
@@ -451,32 +475,35 @@ pub fn make_scrollbar(
         current: current_val,
         step: scroll_bar_limits.step,
     };
-    let handle = commands
-        .spawn(ScrollBarHandleBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                size: Size::new(Val::Percent(12.), Val::Percent(100.)),
-                position: UiRect {
-                    top: Val::Px(0.),
-                    left: Val::Px(current_x),
-                    ..default()
-                },
+    let handle_id = commands.spawn(ScrollBarHandleBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            size: Size::new(Val::Percent(30.), Val::Percent(100.)),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center, // I have to say, this was cool ....
+            position: UiRect {
+                top: Val::Px(0.),
+                left: Val::Px(current_x),
                 ..default()
             },
-            // texture: UiImage(arrow),
-            background_color: BackgroundColor(Color::rgb(1., 1.0, 1.0)),
-            scroll_bar_limits: scroll_bar_limits,
-            scroll_bar_position: ScrollBarPosition {
-                max_x: pright,
-                min_x: pleft,
-                current_x: current_x,
-                step_x: 1.,
-            },
             ..default()
-        })
-        .id();
-    commands.entity(back).push_children(&[handle]); // add the child to the parent
-    return back;
+        },
+        // texture: UiImage(arrow),
+        background_color: BackgroundColor(Color::rgb(0.9, 0.90, 0.90)),
+        scroll_bar_limits: scroll_bar_limits,
+        scroll_bar_position: ScrollBarPosition {
+            max_x: pright,
+            min_x: pleft,
+            current_x: current_x,
+            step_x: 1.,
+        },
+        z_index: ZIndex::Global(10),
+        ..default()
+    })
+    .id();
+    commands.entity(handle_id).push_children(&[text_id]);// add the child to the parent
+    commands.entity(back_id).push_children(&[handle_id]); // add the child to the parent
+    return back_id;
 }
 
 pub fn make_button(
@@ -609,7 +636,7 @@ pub fn make_text(
     type1: impl Bundle,
     type2: Option<impl Bundle>,
 ) -> Entity {
-    let mut ec = commands.spawn((NodeBundle {
+    let mut ec = commands.spawn(NodeBundle {
         style: Style {
             position_type: PositionType::Absolute,
             size: Size::new(Val::Px(pright - pleft), Val::Px(ptop - pbottom)),
@@ -626,8 +653,7 @@ pub fn make_text(
         },
         // background_color: button_colors.normal.into(),
         ..default()
-    },
-    ButtonData{text: text.clone()})
+    }
     );
     ec.with_children(|parent| {
         parent.spawn((TextBundle {
@@ -655,6 +681,7 @@ pub fn make_text(
 
 pub fn make_tutorial_popup(
     text: String,
+    text_2: Option<String>,
     commands: &mut Commands,
     font_assets: &FontAssets,
     button_colors: &ButtonColors,
@@ -685,19 +712,48 @@ pub fn make_tutorial_popup(
                 value: text,
                 style: TextStyle {
                     font: font_assets.fira_sans.clone(),
-                    font_size: font_size,
+                    font_size: 15.,
                     color: Color::rgba(0.9, 0.9, 0.9, 0.9),
                 },
             }],
             alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center },
         },
         style: Style {
-            margin: UiRect{top: Val::Percent(-10.), ..default()},
+            margin: UiRect{top: Val::Percent(-13.), ..default()},
             ..default()
         },
         ..default()
     }).id();
     commands.entity(popup_id).push_children(&[text_id]);// add the child to the parent
+    if let Some(text_2_) = text_2 {
+        let text2_id = commands.spawn(TextBundle {
+            text: Text {
+                sections: vec![TextSection {
+                    value: text_2_,
+                    style: TextStyle {
+                        font: font_assets.fira_sans.clone(),
+                        font_size: 12.,
+                        color: Color::rgb(0.6, 0.6, 0.6),
+                    },
+                }],
+                alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center },
+            },
+            style: Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    // Button (centered horizontally, 40% of width., bottom vertically) 
+                    bottom: Val::Auto,
+                    left: Val::Auto,
+                    right: Val::Auto,
+                    top: Val::Percent(60.),
+                },
+                ..default()
+            },
+            ..default()
+        }).id();
+        commands.entity(popup_id).push_children(&[text2_id]);// add the child to the parent
+    
+    }
 
     let but_id = commands.spawn(
         (ButtonBundle {
@@ -725,7 +781,7 @@ pub fn make_tutorial_popup(
     let but_text_id = commands.spawn(TextBundle {
         text: Text {
             sections: vec![TextSection {
-                value: "Got it".to_string(),
+                value: "GOT IT".to_string(),
                 style: TextStyle {
                     font: font_assets.fira_sans.clone(),
                     font_size: font_size * 0.66,
@@ -753,14 +809,15 @@ pub fn make_victory_popup(
     let popup_id = commands.spawn((NodeBundle {
         style: Style {
             position_type: PositionType::Absolute,
-            size: Size::new(Val::Percent(80.), Val::Percent(25.)),
+            // size: Size::new(Val::Percent(80.), Val::Percent(25.)),
             margin: UiRect::all(Val::Auto),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center, // I have to say, this was cool ....
             position: UiRect {
-                top: Val::Percent(35.),
-                left: Val::Percent(10.),
-                ..default()
+                top: Val::Percent(30.),
+                left: Val::Percent(7.),
+                right: Val::Percent(7.),
+                bottom: Val::Percent(35.),
             },
             ..default()
         },
@@ -796,7 +853,7 @@ pub fn make_victory_popup(
                 margin: UiRect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center, // I have to say, this was cool ....
-                position: UiRect { bottom: Val::Percent(5.), left: Val::Percent(15.), right: Val::Percent(55.), top: Val::Percent(75.),},
+                position: UiRect { bottom: Val::Percent(5.), left: Val::Percent(12.), right: Val::Percent(55.), top: Val::Percent(75.),},
                 ..default()
             },
             background_color: button_colors.normal.into(),
@@ -809,8 +866,8 @@ pub fn make_victory_popup(
     let but_text_id = commands.spawn(TextBundle {
         text: Text {
             sections: vec![TextSection {
-                value: "Replay solution".to_string(),
-                style: TextStyle { font: font_assets.fira_sans.clone(), font_size: font_size * 0.66, color: Color::rgb(0.9, 0.9, 0.9), },
+                value: "REPLAY SOLUTION".to_string(),
+                style: TextStyle { font: font_assets.fira_sans.clone(), font_size: font_size * 0.9, color: Color::rgb(0.9, 0.9, 0.9), },
             }],
             alignment: default(),
         },
@@ -825,21 +882,21 @@ pub fn make_victory_popup(
                 margin: UiRect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center, // I have to say, this was cool ....
-                position: UiRect { bottom: Val::Percent(5.), left: Val::Percent(55.), right: Val::Percent(15.), top: Val::Percent(75.),},
+                position: UiRect { bottom: Val::Percent(5.), left: Val::Percent(55.), right: Val::Percent(12.), top: Val::Percent(75.),},
                 ..default()
             },
             background_color: button_colors.normal.into(),
             ..default()
         }, 
-        NextLevelPopupButton{})
+        NextLevelButton{})
     ).id();
     commands.entity(popup_id).push_children(&[but_id_nextlevel]);// add the child to the parent
 
     let but_nexttext_id = commands.spawn(TextBundle {
         text: Text {
             sections: vec![TextSection {
-                value: "Next level".to_string(),
-                style: TextStyle { font: font_assets.fira_sans.clone(), font_size: font_size * 0.66, color: Color::rgb(0.9, 0.9, 0.9), },
+                value: "NEXT LEVEL".to_string(),
+                style: TextStyle { font: font_assets.fira_sans.clone(), font_size: font_size * 0.9, color: Color::rgb(0.9, 0.9, 0.9), },
             }],
             alignment: default(),
         },
@@ -859,8 +916,8 @@ pub fn make_victory_popup(
             ..default()
         },
         Animator::new(Tween::new(
-                EaseFunction::QuadraticIn, Duration::from_millis(400 as u64), 
-                TransformScaleLens {start: Vec3 { x: 0., y: 0., z: 10. }, end: Vec3 { x: 1.1, y: 1.1, z: 10. },},
+                EaseFunction::CubicIn, Duration::from_millis(400 as u64), 
+                TransformScaleLens {start: Vec3 { x: 0., y: 0., z: 10. }, end: Vec3 { x: 2., y: 2., z: 10. },},
             )
         )
     )).id();  
@@ -986,7 +1043,7 @@ pub fn make_border(
 
 
 fn _get_scrollbar_value(fraction: f32, sblimits: &ScrollBarLimits) -> f32 {
-    let fraction = (1. - fraction).powf(6.);
+    let fraction = (1. - fraction).powf(4.);
                 
     // New value using the fraction with  ScrollBarLimits { pub max: f32, pub min: f32, pub current: f32, pub step: f32,}:
     let newval = sblimits.min + (sblimits.max - sblimits.min) * fraction;

@@ -34,6 +34,7 @@ impl Plugin for MenuLevelsPlugin {
                 .with_system(handle_gesture_touch)
                 .with_system(handle_full_click)
                 .with_system(click_play_button_levels)
+                .with_system(click_back_button_levels)
             )
             // ButtonColors resource:
             .insert_resource(MenuLimits{..default()})
@@ -50,6 +51,9 @@ pub struct LevelButton{}
 
 #[derive(Component)]
 pub struct Banner{}
+
+#[derive(Component)]
+pub struct BackButtonLevels{}
 
 
 // Resource with fields max_firstbutton_heigh amd min_firstbutton_heigh:
@@ -82,21 +86,11 @@ fn setup_menu_levels(
     mut selected_level: ResMut<SelectedLevel>,
     levels: Res<PuzzlesData>,
     windows: Res<Windows>,
-    pkv: Res<PkvStore>,
-    mut solution_data_map: ResMut<SolutionsSavedData>,
+    solution_data_map: Res<SolutionsSavedData>,
     tile_assets: Res<TileAssets>,
     // Resourvce:
     mut menu_limits: ResMut<MenuLimits>,
 ) {
-
-    if let Ok(all_solutions) = pkv.get::<SolutionsSavedData>("solved_levels_v2") {
-        // Set resource:
-        *solution_data_map = all_solutions;
-    } else {
-        // Setsolution_data_map.levels to  an empty hashmap
-        *solution_data_map = SolutionsSavedData::default();
-    }
-
     println!("YES IM HERE. good...");
     println!("Fingerss?????????");
     let width = windows.get_primary().unwrap().width();
@@ -189,6 +183,20 @@ fn setup_menu_levels(
     }
 }
 
+
+fn click_back_button_levels(
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<BackButtonLevels>)>,
+    mut game_state: ResMut<State<GameState>>,
+) {
+    for (interaction) in &mut interaction_query {
+        match *interaction {
+            Interaction::Clicked => {
+                game_state.set(GameState::MenuTitle);
+            }
+            _ => {}
+        }
+    }
+}
 
 
 
@@ -342,43 +350,53 @@ pub fn make_top_banner(
             position: UiRect {
                 top: Val::Px(0.),
                 left: Val::Px(pleft),
-                ..Default::default()
+                ..default()
             },
 
-            ..Default::default()
+            ..default()
         },
         background_color: BackgroundColor(button_colors.hovered),
-        transform: Transform::from_xyz(0., 0., 4.),
-        ..Default::default()
+        transform: Transform::from_xyz(0., 0., 2.),
+        ..default()
     });
     ec.insert(Banner{});
+    let ec_id = ec.id();
     // Add a child TextBundle that says "Pick level:"
-    ec.with_children(|parent| {
-            parent.spawn(TextBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
-                    margin: UiRect::all(Val::Auto),
-                    ..Default::default()
+    let text_id = commands.spawn(TextBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            margin: UiRect::all(Val::Auto),
+            ..default()
+        },
+        text: Text {
+            sections: vec![TextSection {
+                value: "Pick level:".to_string(),
+                style: TextStyle {
+                    font: font_assets.fira_sans.clone(),
+                    font_size: font_size,
+                    color: Color::rgb(0.9, 0.9, 0.9),
                 },
-                text: Text {
-                    sections: vec![TextSection {
-                        value: "Pick level:".to_string(),
-                        style: TextStyle {
-                            font: font_assets.fira_sans.clone(),
-                            font_size: font_size,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                        },
-                    }],
-                    alignment: TextAlignment{
-                        vertical: VerticalAlign::Center,
-                        horizontal: HorizontalAlign::Center,
-                },
-                ..Default::default()
-            },
-            ..Default::default()
-            });
-        });
-    ec.id()
+            }],
+            alignment: TextAlignment{
+                vertical: VerticalAlign::Center,
+                horizontal: HorizontalAlign::Center,
+        },
+        ..default()
+    },
+    ..default()
+    }).id();
+    commands.entity(ec_id) .push_children(&[text_id]);
+
+    // Make a "Back" button at the left of  the banner, centered vertically:
+    let margin = 10.; // Margin around the "Back" button
+    let button_width = 50.;
+    let back_bottom = margin *3.  - height;
+    let back_top =  margin;
+    let back_left = margin;
+    let back_right = margin + button_width;
+    let back_id = make_button("BACK".to_string(), commands, &font_assets, &button_colors, 20., back_left, back_right, back_top, back_bottom, BackButtonLevels{}, None::<Banner>);
+    commands.entity(ec_id) .push_children(&[back_id]);
+    ec_id
 }
 
 

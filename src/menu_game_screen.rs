@@ -6,7 +6,6 @@ use crate::loading::FontAssets;
 use crate::GameState;
 use crate::simulator::{count_double_tracks, count_tracks};
 use bevy::prelude::*;
-use bevy::reflect::NamedField;
 
 use crate::menu_utils::*;
 
@@ -18,13 +17,10 @@ use crate::train::*;
 use crate::tile::*;
 use crate::board::*;
 use crate::logic::*;
-use crate::logic::TicksInATick;
-use crate::menu_utils::*;
 use crate::all_puzzles_clean::*;
 
 use crate::utils::SelectedLevel;
 
-use crate::data_saving::save_player_data;
 
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 120.0;
@@ -33,7 +29,7 @@ const TIME_STEP: f32 = 1.0 / 120.0;
 // COMPONENTS
 /////////////////////////////////////////////////////////////////////////////////////
 
-
+const FONT_SIZE : f32 = 22.0;
 
 pub struct MainGamePlugin;
 
@@ -141,7 +137,6 @@ pub struct LevelNameElem;
 
 
 
-
 /////////////////////////////////////////////////////////////////////////////////////
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -164,10 +159,11 @@ fn setup_game_menu(
 ) {
     let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
 
-    let erase_id = make_button("Erase".to_string(), &mut commands, &font_assets, &button_colors, 30., left, right, top - heigh - margin, bottom - heigh - margin, EraseStateButton, Some(MainGameBotton));
-    let undo_id = make_button("Undo".to_string(), &mut commands, &font_assets, &button_colors, 30., left, right , top, bottom, UndoButton, Some(MainGameBotton));
-    let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 30., width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
+    let erase_id = make_button("ERASE".to_string(), &mut commands, &font_assets, &button_colors, FONT_SIZE, left, right, top - heigh - margin, bottom - heigh - margin, EraseStateButton, Some(MainGameBotton));
+    let undo_id = make_button("UNDO".to_string(), &mut commands, &font_assets, &button_colors, FONT_SIZE, left, right , top, bottom, UndoButton, Some(MainGameBotton));
+    let run_id = make_button("SRTART THE TRAINS!".to_string(), &mut commands, &font_assets, &button_colors, FONT_SIZE, width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
     let scrollbar_id = make_scrollbar(&mut commands, &textures, 
+        &font_assets, FONT_SIZE,
         ScrollBarLimits { max: 2000., min: 4., current: 0., step: 0.01},
         &button_colors,  // ^ IMPORTANT note: This is now REVERSED!! (max is on the Left and min is on the Right)
         width * percent_left_right + margin/2., width - margin , top - heigh - margin, bottom - heigh - margin,
@@ -175,10 +171,10 @@ fn setup_game_menu(
         MainGameBotton);
     // Next level:
     let (_, _, (left_, right_, bottom_, top_)) = get_upper_coordinates(&windows);
-    let next_level_id = make_button("Next level".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(NextLevelButton));
+    let next_level_id = make_button("NEXT LEVEL".to_string(), &mut commands, &font_assets, &button_colors, FONT_SIZE * 0.80, left_, right_, top_, bottom_, MainGameBotton, Some(NextLevelButton));
     // Back:
     let ((left_, right_, bottom_, top_), _, _) = get_upper_coordinates(&windows);
-    let back_id = make_button("Back".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(BackButton));
+    let back_id = make_button("BACK".to_string(), &mut commands, &font_assets, &button_colors, FONT_SIZE * 0.80, left_, right_, top_, bottom_, MainGameBotton, Some(BackButton));
 
 
 }
@@ -222,23 +218,16 @@ fn init_gmae(
     // Button colors:
     button_colors: Res<ButtonColors>,
     mut text_query: Query<&mut Text, With<TextElem>>,
-    tutorial_popup_timer: Res<PopupTimer>,
-
+    mut popup_query: Query<Entity, With<Popup>>,
+    puzzles: Res<SolutionsSavedData>,
+    solution_data_map: Res<SolutionsSavedData>,
 ) {
     // Spawn the level name BUTTON:
     let (_, (left_, right_, bottom_, top_), _) = get_upper_coordinates(&windows);
-    let name_id = make_text(selected_level.level.clone(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, MainGameBotton, Some(LevelNameElem));
+    let name_id = make_text(selected_level.level.clone(), &mut commands, &font_assets, &button_colors, FONT_SIZE, left_, right_, top_, bottom_, MainGameBotton, Some(LevelNameElem));
     
-    change_level(selected_level.level.clone(), selected_level.current_map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
+    change_level(&selected_level, &solution_data_map,  &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &mut text_query, &mut popup_query);
 
-    // if selected_level.level.clone() == "Red Line",  add a tutorial_popup_timer of 1 second:
-    if selected_level.level.clone() == "Red Line" {
-        commands.insert_resource(PopupTimer {
-            timer: Some(Timer::from_seconds(1., TimerMode::Once)),
-            popup_text: "Welcome to Trainyard! \nDraw a train track from the source (+)\n to the destination (o)".to_string(),
-            popup_type: PopupType::Tutorial,
-        });
-    }
 }
 
 
@@ -264,6 +253,7 @@ fn click_nextlevel_button(
     mut text_query: Query<&mut Text, With<TextElem>>,
     solution_data_map: Res<SolutionsSavedData>,
     mut solved_data_event_writer: EventWriter<SelectedLevelSolvedDataEvent>,
+    mut popup_query: Query<Entity, With<Popup>>,
 
 ) {
     for interaction in &mut interaction_query {
@@ -288,7 +278,7 @@ fn click_nextlevel_button(
                         vanilla_map: empty_map,
                         city: "".to_string(),
                     };
-                    change_level(selected_level.level.clone(), selected_level.current_map.clone(), &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &font_assets, &button_colors, &mut text_query);
+                    change_level(&selected_level, &solution_data_map, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &mut text_query,  &mut popup_query);
                 }
             }
             _ => {}
@@ -421,7 +411,7 @@ pub fn style_run_button(
                 }
                 // Rebuild:
                 let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                let run_id = make_button("Stop".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
+                let run_id = make_button("BACK TO THE DRAWING BOARD".to_string(), &mut commands, &font_assets, &button_colors, FONT_SIZE, width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
                     
             },
             _ => {
@@ -431,7 +421,7 @@ pub fn style_run_button(
                 }
                 // Rebuild:
                 let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                let run_id = make_button("Run!".to_string(), &mut commands, &font_assets, &button_colors, 35., width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
+                let run_id = make_button("START THE TRAINS!".to_string(), &mut commands, &font_assets, &button_colors, FONT_SIZE, width * percent_left_right + margin/2., width - margin , top, bottom, RunButton, Some(MainGameBotton));
             }
         }
     }
@@ -484,15 +474,15 @@ fn add_running_status_indicator(
         match *hovering_state {
             BoardGameState::Running(RunningState::Crashed) => {
                 let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                make_rect_with_colored_text("status:\n".to_string(), "CRASHED".to_string(), Color::RED, &mut commands, &font_assets, &button_colors, 30., left, right, top - heigh - margin, bottom  - 2. *heigh - margin, RunningGameStateDisplay, Some(MainGameBotton));
+                make_rect_with_colored_text("status:\n".to_string(), "CRASHED".to_string(), Color::RED, &mut commands, &font_assets, &button_colors, FONT_SIZE, left, right, top - heigh - margin, bottom  - 2. *heigh - margin, RunningGameStateDisplay, Some(MainGameBotton));
             },
             BoardGameState::Running(RunningState::Won) => {
                 let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                make_rect_with_colored_text("status:\n".to_string(), "COMPLETED".to_string(), Color::GREEN, &mut commands, &font_assets, &button_colors, 30., left, right, top - heigh - margin, bottom  - 2. *heigh - margin, RunningGameStateDisplay, Some(MainGameBotton));
+                make_rect_with_colored_text("status:\n".to_string(), "COMPLETED".to_string(), Color::GREEN, &mut commands, &font_assets, &button_colors, FONT_SIZE, left, right, top - heigh - margin, bottom  - 2. *heigh - margin, RunningGameStateDisplay, Some(MainGameBotton));
             },
             BoardGameState::Running(RunningState::Started) => {
                 let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-                make_rect_with_colored_text("status:\n".to_string(), "RUNNING".to_string(), Color::GREEN, &mut commands, &font_assets, &button_colors, 30., left, right, top - heigh - margin, bottom  - 2. *heigh - margin, RunningGameStateDisplay, Some(MainGameBotton));            }
+                make_rect_with_colored_text("status:\n".to_string(), "RUNNING".to_string(), Color::GREEN, &mut commands, &font_assets, &button_colors, FONT_SIZE, left, right, top - heigh - margin, bottom  - 2. *heigh - margin, RunningGameStateDisplay, Some(MainGameBotton));            }
 
             _ => {}
         };           
@@ -537,31 +527,97 @@ fn show_track_number_in_title_text(
 
 
 fn change_level(
-        level_name: String, 
-        map: String, 
+        selected_level: &SelectedLevel, 
+        solution_data_map: &Res<SolutionsSavedData>, 
         board_q: &Query<Entity, With<Board>>, 
         commands: &mut Commands, 
         board_event_writer: &mut EventWriter<BoardEvent>, 
         level_name_query: &Query<Entity,  With<LevelNameElem>>, 
         windows: &Windows, 
         // Query mut TextElem:
-        font_assets: &FontAssets, 
-        button_colors: &ButtonColors,
         mut text_query: &mut Query<&mut Text, With<TextElem>>,
-    ) {
+        popup_query: &mut Query<Entity, With<Popup>>,
+) {
     // Delete board:
     for board_id in board_q.iter() {
         if let Some(id) = commands.get_entity(board_id) { id.despawn_recursive();}
     }
-    // Set the name of the game:
+    // Delete popups:
+    for popup_id in popup_query.iter() {
+        if let Some(entity) = commands.get_entity(popup_id) { entity.despawn_recursive(); }
+    }
 
     // Send the event to create the board:
-    println!("LAUNCHED: {}", level_name.clone());
-    board_event_writer.send(BoardEvent::Make{map_name: level_name.clone(), map: map.clone(), scale: 1., position: None, index: None});
+    println!("LAUNCHED: {}", selected_level.level.clone());
+    board_event_writer.send(BoardEvent::Make{map_name: selected_level.level.clone(), map: selected_level.current_map.clone(), scale: 1., position: None, index: None});
     
     for mut text in text_query.iter_mut() {
-        text.sections[0].value = level_name.clone();
+        text.sections[0].value = selected_level.level.clone();
     }
+
+    let just_begun_level = solution_data_map.just_begun_level(&selected_level.level);
+
+    // if selected_level.level.clone() == "Red Line",  add a tutorial_popup_timer of 1 second:
+    if selected_level.level == "Red Line" && just_begun_level{
+        commands.insert_resource(PopupTimer {
+            timer: Some(Timer::from_seconds(1., TimerMode::Once)),
+            popup_text: "Welcome to Trainyard! \nDraw a train track from the source (+)\n to the destination (o)".to_string(),
+            popup_text_2: None,
+            popup_type: PopupType::Tutorial,
+        });
+    }
+    else if selected_level.level == "Colour Theory" && just_begun_level{
+        commands.insert_resource(PopupTimer {
+            timer: Some(Timer::from_seconds(1., TimerMode::Once)),
+            popup_text: "MERGE two trains to get a new one".to_string(),
+            // popup_text_2: Some("(2/4)".to_string()),
+            popup_text_2: None,
+            popup_type: PopupType::Tutorial,
+        });
+    }
+    else if selected_level.level == "The First" && just_begun_level{
+        commands.insert_resource(PopupTimer {
+            timer: Some(Timer::from_seconds(1., TimerMode::Once)),
+            popup_text: "COLLIDE two trains in any way to mix their colors".to_string(),
+            // popup_text_2: Some("(3/4)".to_string()),
+            popup_text_2: None,
+            popup_type: PopupType::Tutorial,
+        });
+    }
+    else if selected_level.level == "Prellow" && just_begun_level{
+        commands.insert_resource(PopupTimer {
+            timer: Some(Timer::from_seconds(1., TimerMode::Once)),
+            popup_text: "The most important thing: \nwhen a train passes over an exchange, it FLIPS it".to_string(),
+            // popup_text_2: Some("(4/4)".to_string()),
+            popup_text_2: None,
+            popup_type: PopupType::Tutorial,
+        });
+    }
+    else if selected_level.level == "Around the Bend" && just_begun_level{
+        commands.insert_resource(PopupTimer {
+            timer: Some(Timer::from_seconds(1., TimerMode::Once)),
+            popup_text: "One last tip: when you are drawing, \nflip an exchange by DOUBLE CLICKING it".to_string(),
+            popup_text_2: None,
+            popup_type: PopupType::Tutorial,
+        });
+    }
+    else if selected_level.level == "Red Pear" && just_begun_level{
+        commands.insert_resource(PopupTimer {
+            timer: Some(Timer::from_seconds(1., TimerMode::Once)),
+            popup_text: "Use the PAINT tile to color trains".to_string(),
+            popup_text_2: None,
+            popup_type: PopupType::Tutorial,
+        });
+    }
+    else if selected_level.level == "Round The Twist" && just_begun_level{
+        commands.insert_resource(PopupTimer {
+            timer: Some(Timer::from_seconds(1., TimerMode::Once)),
+            popup_text: "Use the SCISSOR tile to SPLIT the trains".to_string(),
+            popup_text_2: None,
+            popup_type: PopupType::Tutorial,
+        });
+    }
+
 }
 
 fn _get_event_to_serialize_current_map(board_tilemap_q: &Query<(&BoardTileMap, &BoardGameState, &BoardTickStatus), With<Board>>, selected_level: &mut ResMut<SelectedLevel>) -> Option<SelectedLevelSolvedDataEvent> {

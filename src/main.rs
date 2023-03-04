@@ -7,6 +7,7 @@ use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
 use data_saving::{SolutionsSavedData, SelectedLevelSolvedDataEvent, save_player_data};
+use menu_credits::MenuCredits;
 use menu_solutions::MenuSolutionsPlugin;
 // use trainyard::GamePlugin;
 use std::io::Cursor;
@@ -26,6 +27,7 @@ mod menu_utils;
 mod all_puzzles_clean;
 mod data_saving;
 mod menu_solutions;
+mod menu_credits;
 
 // use crate::audio::InternalAudioPlugin;
 use crate::loading::LoadingPlugin;
@@ -74,6 +76,7 @@ enum GameState {
     MenuTitle,
     MenuLevels,
     MenuSolutions,
+    MenuCredits,
     // During this State the actual game logic is executed
     Playing,
 }
@@ -108,6 +111,7 @@ fn main() {
         .add_plugin(MenuLevelsPlugin)
         .add_plugin(MenuSolutionsPlugin)
         .add_plugin(MenuMainGame)
+        .add_plugin(MenuCredits)
         // .add_plugin(InternalAudioPlugin)
         .add_plugin(MainGamePlugin)
         .add_state(GameState::Loading)
@@ -120,7 +124,7 @@ fn main() {
 // Sets the icon on windows and X11
 fn set_window_icon(windows: NonSend<WinitWindows>) {
     let primary = windows.get_window(WindowId::primary()).unwrap();
-    let icon_buf = Cursor::new(include_bytes!("../assets/textures/app_icon.png"));
+    let icon_buf = Cursor::new(include_bytes!("../assets/samples/icon_crop.png"));
     if let Ok(image) = image::load(icon_buf, image::ImageFormat::Png) {
         let image = image.into_rgba8();
         let (width, height) = image.dimensions();

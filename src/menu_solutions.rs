@@ -84,7 +84,7 @@ pub struct CarouselState {
 pub struct SolutionsMenuBotton;
 
 #[derive(Component)]
-pub struct NextLevelButton;
+pub struct NextLevelButtonSolutions;
 
 #[derive(Component)]
 pub struct PrevLevelButton;
@@ -99,13 +99,16 @@ pub struct NewSolutionButton;
 pub struct DeleteSolutionButton;
 
 #[derive(Component)]
-pub struct BackButton;
+pub struct BackButtonSolutions;
 
 #[derive(Component)]
 pub struct CloneButton;
 
 #[derive(Component)]
 pub struct LevelNameElem;
+
+#[derive(Component)]
+pub struct BestScoreElem;
 
 #[derive(Component)]
 pub struct CarouselTextNode;
@@ -153,11 +156,12 @@ fn setup_solutions_menu(
     // Print the game name:
     println!("LAUNCHED: {}", level_name.clone());
     redraw_carousel_event_writer.send(RedrawCarouselEvent { maps: None, level_name: level_name, index: None});
+    let font_size = 22.;
 
     
     let (width, margin, heigh, percent_left_right, left, right, bottom, top) = get_coordinates(&windows);
-    let prev_id = make_button("Previous Level".to_string(), &mut commands, &font_assets, &button_colors, 25., left, right , top, bottom, PrevLevelButton, Some(SolutionsMenuBotton));
-    let next_id = make_button("Next Level".to_string(), &mut commands, &font_assets, &button_colors, 25., width * percent_left_right + margin/2., width - margin , top, bottom, SolutionsMenuBotton, Some(NextLevelButton));
+    let prev_id = make_button("PREVIOUS LEVEL".to_string(), &mut commands, &font_assets, &button_colors, font_size, left, right , top, bottom, PrevLevelButton, Some(SolutionsMenuBotton));
+    let next_id = make_button("NEXT LEVEL".to_string(), &mut commands, &font_assets, &button_colors, font_size, width * percent_left_right + margin/2., width - margin , top, bottom, SolutionsMenuBotton, Some(NextLevelButtonSolutions));
     
     
     let ((l1, r1, b1, t1), (l2, r2, b2, t2), (l3, r3, b3, t3)) = get_sol_commands_coordinates(&windows);
@@ -165,16 +169,14 @@ fn setup_solutions_menu(
     println!("l2: {}, r2: {}, b2: {}, t2: {}", l2, r2, b2, t2);
     println!("l3: {}, r3: {}, b3: {}, t3: {}", l3, r3, b3, t3);
 
-    let new_id = make_button("Delete".to_string(), &mut commands, &font_assets, &button_colors, 25., l1, r1, t1, b1, SolutionsMenuBotton, Some(DeleteSolutionButton));
-    let new_id = make_button("New Solution".to_string(), &mut commands, &font_assets, &button_colors, 25., l2, r2, t2, b2, SolutionsMenuBotton, Some(NewSolutionButton));
-    let clone_id = make_button("Clone".to_string(), &mut commands, &font_assets, &button_colors, 25., l3, r3, t3, b3, SolutionsMenuBotton, Some(CloneButton));
-    
-
+    let new_id = make_button("DELETE".to_string(), &mut commands, &font_assets, &button_colors, font_size, l1, r1, t1, b1, SolutionsMenuBotton, Some(DeleteSolutionButton));
+    let new_id = make_button("NEW SOLUTION".to_string(), &mut commands, &font_assets, &button_colors, font_size, l2, r2, t2, b2, SolutionsMenuBotton, Some(NewSolutionButton));
+    let clone_id = make_button("CLONE".to_string(), &mut commands, &font_assets, &button_colors, font_size, l3, r3, t3, b3, SolutionsMenuBotton, Some(CloneButton));
 
 
     // Upper::
     let ((left_, right_, bottom_, top_), _, _) = get_upper_coordinates(&windows);
-    let back_id = make_button("Back".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, SolutionsMenuBotton, Some(BackButton));
+    let back_id = make_button("BACK".to_string(), &mut commands, &font_assets, &button_colors, 22.*0.8, left_, right_, top_, bottom_, SolutionsMenuBotton, Some(BackButtonSolutions));
 }
 
 
@@ -254,7 +256,7 @@ pub fn scroll_events_solution_touch(
 
 
 fn click_back_button_solution(
-    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<BackButton>)>,
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<BackButtonSolutions>)>,
     mut game_state: ResMut<State<GameState>>,
     mut selected_level: ResMut<SelectedLevel>,
 ) {
@@ -345,7 +347,7 @@ fn click_deletesolution_button_solution(
 
 
 fn click_nextlevel_button_solution(
-    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<NextLevelButton>, With<SolutionsMenuBotton>)>,
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>, With<NextLevelButtonSolutions>, With<SolutionsMenuBotton>)>,
     mut selected_level: ResMut<SelectedLevel>,
     levels: Res<PuzzlesData>,
     mut redraw_carousel_event_writer: EventWriter<RedrawCarouselEvent>,
@@ -429,6 +431,7 @@ fn make_board_and_title(
     levels: Res<PuzzlesData>, 
     solution_data_map: Res<SolutionsSavedData>,
     level_name_query: Query<Entity, With<LevelNameElem>>, 
+    // best_score_text_query: Query<Entity, With<BestScoreElem>>, 
     mut board_event_writer: EventWriter<BoardEvent>, 
     mut redraw_carousel_event_reader: EventReader<RedrawCarouselEvent>,
     font_assets: Res<FontAssets>, 
@@ -453,7 +456,10 @@ fn make_board_and_title(
         for text in texts.iter() { // It's never more than 1, but can very well be 0
             if let Some(id) = commands.get_entity(text) { id.despawn_recursive();};
         }
-
+        // For button in query:
+        // for text in texts.iter() { // It's never more than 1, but can very well be 0
+        //     if let Some(id) = commands.get_entity(text) { id.despawn_recursive();};
+        // }
 
         // Get the maps:
         let empty_map = levels.puzzles.iter().find(|p| p.name == ev.level_name.clone()).unwrap().parsed_map.clone();
@@ -488,6 +494,10 @@ fn make_board_and_title(
         // Spawn the level name BUTTON:
         let (_, (left_, right_, bottom_, top_), _) = get_upper_coordinates(&windows);
         let name_id = make_text(ev.level_name.clone(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, SolutionsMenuBotton, Some(LevelNameElem));
+
+        // Spawn the "pick solution" text:
+        let text_id = make_text("PICK A SOLUTION".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_  + width * SCALE * 1.5 + 50., bottom_  + width * SCALE * 1.5 + 50., SolutionsMenuBotton, Some(BestScoreElem));
+
 
         // Set the name of the game:
         // Get the solved maps, if there are any:
