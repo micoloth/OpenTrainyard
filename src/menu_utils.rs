@@ -27,9 +27,9 @@ pub struct ButtonColors {
 impl Default for ButtonColors {
     fn default() -> Self {
         ButtonColors {
-            normal: Color::rgb(0.15, 0.15, 0.15).into(),
-            hovered: Color::rgb(0.25, 0.25, 0.25).into(),
-            pressed: Color::rgb(0.35, 0.35, 0.35).into(),
+            normal: Color::rgb(55./255., 65./255., 64./255.).into(),
+            hovered: Color::rgb(72./255., 79./255., 80./255.).into(),
+            pressed: Color::rgb(95./255., 105./255., 106./255.).into(),
         }
     }
 }

@@ -585,8 +585,8 @@ fn get_coordinates(windows: &Windows) -> (f32, f32, f32, f32, f32, f32, f32, f32
     let left = margin;
     let right = width * percent_left_right - margin/2.;
     // Make the button 40 px high FROM THE BOTTOM:
-    let bottom = height / 2. + width / 2. - 1.5 * margin ;
-    let top = height / 2. + width / 2. - 1.5 * margin + button_height;
+    let bottom = height / 2. + width / 2. - 1.5 * margin +3.;
+    let top = height / 2. + width / 2. - 1.5 * margin + button_height +3.;
     (width, margin, button_height, percent_left_right, left, right, bottom, top)
 }
 
@@ -620,8 +620,8 @@ fn get_sol_commands_coordinates(windows: &Windows) -> ((f32, f32, f32, f32), (f3
     let left = margin;
     let right = width * percent_left_right + margin/2.;
     // Make the button 40 px high FROM THE BOTTOM:
-    let bottom = height / 2. + width / 2. - 1.5 * margin  - button_height - margin;
-    let top = height / 2. + width / 2. - 1.5 * margin + button_height - button_height - margin;
+    let bottom = height / 2. + width / 2. - 1.5 * margin  - button_height - margin + 3.;
+    let top = height / 2. + width / 2. - 1.5 * margin + button_height - button_height - margin + 3.;
     return ((left, right - margin, bottom, top), (right, width - right, bottom, top), (width - right + margin, width - left, bottom, top));
 }
 
