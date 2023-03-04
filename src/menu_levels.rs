@@ -79,6 +79,7 @@ fn setup_menu_levels(
     mut commands: Commands,
     font_assets: Res<FontAssets>,
     button_colors: Res<ButtonColors>,
+    mut selected_level: ResMut<SelectedLevel>,
     levels: Res<PuzzlesData>,
     windows: Res<Windows>,
     pkv: Res<PkvStore>,
@@ -104,6 +105,14 @@ fn setup_menu_levels(
     // Get name of first level:
     let names = levels.puzzles.iter().map(|x| x.name.clone()).collect::<Vec<String>>();
 
+    // Get index in names of selected_level.level:
+    let index_selected_level = if selected_level.level != ""{
+        names.iter().position(|x| x == &selected_level.level).unwrap()
+    }
+    else {
+        0
+    };
+
     let rect_width = 320.;
     let rect_height = 40.;
     let banner_height = 50.;
@@ -117,6 +126,27 @@ fn setup_menu_levels(
     // Set resource:
     menu_limits.max_firstbutton_heigh = max_firstbutton_heigh;
     menu_limits.min_firstbutton_heigh = min_firstbutton_heigh;
+
+    println!("max_firstbutton_heigh: {}", max_firstbutton_heigh);
+    println!("min_firstbutton_heigh: {}", min_firstbutton_heigh);
+
+
+    // LET'S SAY SELECTED_LEVEL = LAST. 
+    // # Currently, its rect ('s top) has coordinates:
+    // max_firstbutton_heigh + (i as f32) * rect_height
+    // While i want it to be:
+    // max_firstbutton_heigh
+
+    // so we have to SUBTRACT:
+    let starting_offset_for_selected_level = - (index_selected_level as f32) * rect_height + height / 2.;
+
+    println!("starting_offset_for_selected_level: {}", starting_offset_for_selected_level);
+
+    // BUT: it cannot be BIGGER THAN max_firstbutton_heigh
+    let starting_offset_for_selected_level = starting_offset_for_selected_level.min(0.);
+    // OR SMALLER THAN min_firstbutton_heigh
+    let starting_offset_for_selected_level = starting_offset_for_selected_level.max(min_firstbutton_heigh - banner_height);
+
 
     
     // One button per level name, stacked vertically:
@@ -142,7 +172,7 @@ fn setup_menu_levels(
 
         let offset_x = 0.;
         // Vertical offset:
-        let offset_y = (i as f32) * rect_height;
+        let offset_y = (i as f32) * rect_height + starting_offset_for_selected_level;
         // Boundaries (left right top bottom) of a Rectangle that is Centered in the window:
         let left = width / 2. - rect_width / 2. + offset_x;
         let right = width / 2. + rect_width / 2. + offset_x;
@@ -155,6 +185,7 @@ fn setup_menu_levels(
         }
 
         make_menu_elem(name.to_string(), score, i as u16, &mut commands, &font_assets, &button_colors, 25., left, right, top, bottom, &tile_assets);
+        selected_level.level = "".to_string();
     }
 }
 
@@ -180,8 +211,8 @@ fn click_play_button_levels(
 
 
 // Set constan SCROLLWHEEL_SPEED_MULTIPLIER:
-const SCROLLWHEEL_SPEED_MULTIPLIER: f32 = - 0.03;
-const TRACKPAD_SPEED_MULTIPLIER: f32 = - 0.8;
+const SCROLLWHEEL_SPEED_MULTIPLIER: f32 = 0.03;
+const TRACKPAD_SPEED_MULTIPLIER: f32 = 0.8;
 
 // Listen to scrollwheenl events:
 fn scroll_events_levels_mouse(
@@ -196,12 +227,14 @@ fn scroll_events_levels_mouse(
             MouseScrollUnit::Line => {ev.y * SCROLLWHEEL_SPEED_MULTIPLIER}
             MouseScrollUnit::Pixel => {ev.y * TRACKPAD_SPEED_MULTIPLIER}
         };
-        if menu_limits.current_firstbutton_heigh - vy > menu_limits.max_firstbutton_heigh || menu_limits.current_firstbutton_heigh - vy < menu_limits.min_firstbutton_heigh {return;}
-        menu_limits.current_firstbutton_heigh -= vy;
-
-        for (mut style, level_button_data) in button_query.iter_mut() {
-            style.position.top.try_sub_assign(Val::Px(vy));
+        let delta = vy.clamp(menu_limits.min_firstbutton_heigh - menu_limits.current_firstbutton_heigh, menu_limits.max_firstbutton_heigh - menu_limits.current_firstbutton_heigh);
+        if delta != 0. {
+            menu_limits.current_firstbutton_heigh += delta;
+            for (mut style, _) in button_query.iter_mut() {
+                style.position.top.try_add_assign(Val::Px(delta));
+            }
         }
+
     }
 }
 
@@ -231,11 +264,13 @@ fn scroll_events_levels_touch(
         *current_vy = Some(ev.vy);
     }
     if let Some(vy) = current_vy.as_ref() {
-        if menu_limits.current_firstbutton_heigh - vy > menu_limits.max_firstbutton_heigh || menu_limits.current_firstbutton_heigh - vy < menu_limits.min_firstbutton_heigh {return;}
-        menu_limits.current_firstbutton_heigh -= vy;
-        
-        for (mut style, level_button_data) in button_query.iter_mut() {
-            style.position.top.try_sub_assign(Val::Px(*vy));
+        let vy = -vy;
+        let delta = vy.clamp(menu_limits.min_firstbutton_heigh - menu_limits.current_firstbutton_heigh, menu_limits.max_firstbutton_heigh - menu_limits.current_firstbutton_heigh);
+        if delta != 0. {
+            menu_limits.current_firstbutton_heigh += delta;
+            for (mut style, _) in button_query.iter_mut() {
+                style.position.top.try_add_assign(Val::Px(delta));
+            }
         }
     }
 }

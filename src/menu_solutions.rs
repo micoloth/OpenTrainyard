@@ -261,7 +261,9 @@ fn click_back_button_solution(
     for (interaction) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
+                let level_name = selected_level.level.clone();
                 *selected_level = SelectedLevel::default();
+                selected_level.level = level_name;
                 game_state.set(GameState::MenuLevels);
             }
             _ => {}
