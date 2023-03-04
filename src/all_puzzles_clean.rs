@@ -66,7 +66,7 @@ pub fn get_prev_puzzle(current_puzzle: String, pluzzles: &PuzzlesData) -> Option
 
 
 pub fn load_puzzles_data() -> PuzzlesData {
-    let puzzles: [PuzzleData; 231] = [
+    let puzzles: [PuzzleData; 167] = [
 
     
     PuzzleData {
@@ -81,72 +81,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/redLine_thumb.png"
     },
     PuzzleData {
-        // "local_filename_map": "Green Line.png",
-        name: "Green Line".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/greenLine",
-        city: "British Columbia Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 Sr_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_g 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "3/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798808_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/greenLine_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Grorange lines.png",
-        name: "Grorange lines".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/grorangeLines",
-        city: "Abbotsford Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 Sb_g 00 00 00 E1000_g 00\n00 00 00 00 00 Sr_o 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 E0010_o 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "5/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798482_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/grorangeLines_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "The Three.png",
-        name: "The Three".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/theThree",
-        city: "British Columbia Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 Sb_r 00 00 00 E1000_r 00\nSb_y 00 00 00 00 00 E1000_y\n00 Sb_b 00 00 00 E1000_b 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "10/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798711_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/theThree_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Yorple lines.png",
-        name: "Yorple lines".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/yorpleLines",
-        city: "Abbotsford Puzzles".to_string(),
-        parsed_map: "E0001_p 00 00 00 00 00 Sr_p\n00 00 Sb_y 00 E1000_y 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 E0100_y 00 St_y 00 00\nSl_p 00 00 00 00 00 E0010_p".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "12/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2795538_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/yorpleLines_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Pure Magic.png",
-        name: "Pure Magic".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/pureMagic",
-        city: "British Columbia Puzzles".to_string(),
-        parsed_map: "00 00 00 Sr_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_g 00 00 00 00 00 E1000_g\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_g 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "9/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798727_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/pureMagic_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Magical Trains.png",
-        name: "Magical Trains".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/magicalTrains",
-        city: "Abbotsford Puzzles".to_string(),
-        parsed_map: "00 00 00 Sr_p 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_p 00 00 00 00 00 St_p\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_p 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "9/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797260_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/magicalTrains_thumb.png"
-    },
-    PuzzleData {
         // "local_filename_map": "Two Liner.png",
         name: "Two Liner".to_string(),
         // "solutions_url": "http://www.trainyard.ca/solutions/twoLiner",
@@ -156,578 +90,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "6/0".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798848_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/twoLiner_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "The Red Corner.png",
-        name: "The Red Corner".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/theRedCorner",
-        city: "Abbotsford Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 Sb_r 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 E0010_r 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "7/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798844_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/theRedCorner_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "The Little One.png",
-        name: "The Little One".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/theLittleOne",
-        city: "British Columbia Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 St_p E0100_p 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "6/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798587_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/theLittleOne_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Purpablu.png",
-        name: "Purpablu".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/purpablu",
-        city: "Abbotsford Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 Sl_p 00 00 00 Sb_b 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 E0001_p 00 00 00 E1000_b 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "16/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797882_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/purpablu_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "A Hard Place.png",
-        name: "A Hard Place".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/aHardPlace",
-        city: "Alberta Puzzles".to_string(),
-        parsed_map: "00 00 00 Sr_r 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_r 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "7/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798611_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/aHardPlace_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "A Rock in the Way.png",
-        name: "A Rock in the Way".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/aRockInTheWay",
-        city: "Brampton Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_g 00 00 MM 00 00 St_g\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "7/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798539_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/aRockInTheWay_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "You Did.png",
-        name: "You Did".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/youDid",
-        city: "Alberta Puzzles".to_string(),
-        parsed_map: "E0001_y MM Sr_y 00 00 00 00\n00 MM 00 00 00 MM 00\n00 MM 00 00 00 MM 00\n00 MM 00 00 00 MM 00\n00 MM 00 00 00 MM 00\n00 MM 00 00 00 MM 00\n00 00 00 00 E0010_r MM Sl_r".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "25/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798349_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/youDid_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Green Wally.png",
-        name: "Green Wally".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/greenWally",
-        city: "Brampton Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 E0100_g 00 00 00 00 00\n00 00 00 00 00 00 00\n00 MM MM MM MM MM MM\n00 00 00 00 00 00 00\n00 Sb_g 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "9/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796267_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/greenWally_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Traveller.png",
-        name: "Traveller".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/traveller",
-        city: "Alberta Puzzles".to_string(),
-        parsed_map: "Sr_b 00 00 00 00 00 00\n00 00 MM 00 00 00 00\n00 00 00 00 00 MM 00\nMM 00 00 00 00 00 00\n00 00 00 MM 00 00 00\n00 MM 00 00 MM 00 00\n00 00 00 00 00 00 E1010_b".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798333_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/traveller_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Yellow Snake.png",
-        name: "Yellow Snake".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/yellowSnake",
-        city: "Brampton Puzzles".to_string(),
-        parsed_map: "00 00 00 MM 00 00 E0001_y\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\nSl_y MM 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "23/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797784_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/yellowSnake_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "In The Middle.png",
-        name: "In The Middle".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/inTheMiddle",
-        city: "Alberta Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 St_p 00 00 00 00 00\n00 00 Sr_y 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 E0010_y 00 00\n00 00 00 00 00 E0100_p 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798833_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/inTheMiddle_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "U-Turn.png",
-        name: "U-Turn".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/uTurn",
-        city: "Brampton Puzzles".to_string(),
-        parsed_map: "Sb_p 00 00 00 00 00 00\nMM MM MM MM MM MM 00\nE0100_p 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_r 00 00 00 00 00 00\nMM MM MM MM MM MM 00\nSb_r 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "24/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2789430_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/uTurn_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Foray.png",
-        name: "Foray".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/foray",
-        city: "Alberta Puzzles".to_string(),
-        parsed_map: "Sr_y 00 00 00 00 00 Sr_b\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E1111_yrbg 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSl_r 00 00 00 00 00 Sl_g".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "16/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798835_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/foray_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Journey.png",
-        name: "Journey".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/journey",
-        city: "Brampton Puzzles".to_string(),
-        parsed_map: "MM 00 00 00 00 00 St_o\n00 00 MM 00 00 00 00\n00 00 00 00 00 MM 00\n00 MM 00 00 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 00 00 00 MM\nE0100_o 00 00 00 MM 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "11/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798551_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/journey_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "No Touching.png",
-        name: "No Touching".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/noTouching",
-        city: "Alberta Puzzles".to_string(),
-        parsed_map: "00 00 00 E0001_y 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_r 00 00 00 00 00 E1000_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 Sl_y 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "10/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798671_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/noTouching_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Rainbow.png",
-        name: "Rainbow".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/rainbow",
-        city: "Calgary Puzzles".to_string(),
-        parsed_map: "E0100_r 00 00 00 00 00 St_r\nSb_p 00 00 00 00 00 E1000_p\nE0100_b 00 00 00 00 00 St_b\nSb_g 00 00 00 00 00 E1000_g\nE0100_y 00 00 00 00 00 St_y\nSb_o 00 00 00 00 00 E1000_o\nE0100_r 00 00 00 00 00 St_r".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "25/15".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797499_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/rainbow_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Two For Two.png",
-        name: "Two For Two".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/twoForTwo",
-        city: "Alberta Puzzles".to_string(),
-        parsed_map: "00 MM 00 MM 00 00 E1000_gg\n00 00 00 00 00 00 00\n00 MM 00 00 MM MM 00\n00 00 00 MM 00 00 MM\n00 00 MM 00 00 00 00\n00 00 00 00 00 00 00\nMM 00 00 00 MM 00 St_gg".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "15/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798592_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/twoForTwo_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Innie Outie.png",
-        name: "Innie Outie".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/innieOutie",
-        city: "Calgary Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 E0010_r 00\n00 00 00 00 E0010_b 00 00\n00 00 00 00 00 00 00\n00 00 Sr_b 00 00 00 00\n00 Sr_r 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "11/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798738_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/innieOutie_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Bluesy.png",
-        name: "Bluesy".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/bluesy",
-        city: "Saskatchewan Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 E0010_b 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 St_bb 00\n00 00 00 00 00 00 00\n00 E0001_b 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798398_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/bluesy_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Around the Back.png",
-        name: "Around the Back".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/aroundTheBack",
-        city: "Calgary Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 Sr_r 00 Sr_y 00 Sr_b 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 E0010_b 00 E0010_r 00 E0010_y 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "11/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797385_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/aroundTheBack_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Lantern.png",
-        name: "Lantern".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/lantern",
-        city: "Saskatchewan Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 E0100_o 00 E1000_g Sb_og 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "6/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798816_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/lantern_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Multicolor.png",
-        name: "Multicolor".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/multiColor",
-        city: "Calgary Puzzles".to_string(),
-        parsed_map: "00 00 00 Sr_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_b 00 00 E1111_gbry 00 00 St_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 Sl_y 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "8/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798089_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/multiColor_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Boom Bah.png",
-        name: "Boom Bah".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/boomBah",
-        city: "Saskatchewan Puzzles".to_string(),
-        parsed_map: "00 00 00 Sb_yr 00 00 E1000_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E1111_yy 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_r 00 00 St_ry 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "10/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798245_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/boomBah_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Squiggle.png",
-        name: "Squiggle".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/squiggle",
-        city: "Calgary Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 St_o E0011_go Sb_g 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "8/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796921_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/squiggle_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Red Green.png",
-        name: "Red Green".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/redGreen",
-        city: "Saskatchewan Puzzles".to_string(),
-        parsed_map: "E0100_r 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_g 00 00 00 00 00 00\n00 00 00 00 00 00 St_rggr\nE0100_r 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_g 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798640_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/redGreen_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Two Two.png",
-        name: "Two Two".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/twoTwo",
-        city: "Calgary Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_rr 00 00 00 00 00 St_rr\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "5/0".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798757_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/twoTwo_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Yellow Triangle.png",
-        name: "Yellow Triangle".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/yellowTriangle",
-        city: "Manitoba Puzzles".to_string(),
-        parsed_map: "Sb_y 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_y 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_y 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "9/2".to_string(),
-        // "big_image_url": "https://trainyard.ca/system/content/images/blueprintsByID/png/2798180_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/yellowTriangle_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Crossover.png",
-        name: "Crossover".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/crossover",
-        city: "Calgary Puzzles".to_string(),
-        parsed_map: "00 00 00 Sr_r 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_b 00 00 00 00 00 E1000_b\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0001_r 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "10/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798577_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/crossover_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Purpeller.png",
-        name: "Purpeller".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/purpeller",
-        city: "Manitoba Puzzles".to_string(),
-        parsed_map: "Sb_p 00 00 00 00 MM MM\n00 00 00 00 00 00 MM\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nMM 00 00 00 00 00 00\nMM MM 00 00 Sl_p E0100_p 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "13/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798194_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/purpeller_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Mellow Yellow.png",
-        name: "Mellow Yellow".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/mellowYellow",
-        city: "Delson Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 E0001_y 00\n00 00 00 00 00 00 00\n00 E0100_y 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 Sl_yy 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "6/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797943_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/mellowYellow_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Reflection.png",
-        name: "Reflection".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/reflection",
-        city: "Manitoba Puzzles".to_string(),
-        parsed_map: "Sb_r 00 Sb_r 00 00 00 E1001_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0110_b 00 00 00 St_b 00 St_b".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "16/6".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798669_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/reflection_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Delivering Oranges.png",
-        name: "Delivering Oranges".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/deliveringOranges",
-        city: "Delson Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 St_oo E0100_o 00 E1000_o\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "6/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798365_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/deliveringOranges_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Combinellow.png",
-        name: "Combinellow".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/combinellow",
-        city: "Manitoba Puzzles".to_string(),
-        parsed_map: "MM MM Sr_y MM Sr_y MM MM\n00 00 00 00 00 00 MM\n00 00 00 00 00 00 St_y\n00 00 00 00 00 00 MM\n00 00 00 00 00 00 St_y\n00 00 00 00 00 00 MM\nE0100_y 00 00 00 00 00 MM".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "14/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798767_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/combinellow_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Purple Parcels.png",
-        name: "Purple Parcels".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/purpleParcels",
-        city: "Delson Puzzles".to_string(),
-        parsed_map: "Sb_ppp 00 00 00 00 00 E1001_p\n00 00 00 MM 00 00 00\n00 00 00 00 00 00 00\n00 MM 00 MM 00 MM 00\n00 00 00 00 00 00 00\n00 00 00 MM 00 00 00\nE0110_p 00 00 00 00 00 E1010_p".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "15/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798662_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/purpleParcels_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Colourize.png",
-        name: "Colourize".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/colourize",
-        city: "Manitoba Puzzles".to_string(),
-        parsed_map: "Sb_r 00 00 00 00 00 00\n00 St_b 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 E1010_p".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "14/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798846_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/colourize_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Prellow.png",
-        name: "Prellow".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/prellow",
-        city: "Delson Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 E0001_p 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 St_py 00\n00 00 00 00 00 00 00\n00 E0010_y 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "6/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798510_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/prellow_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Weighted Top.png",
-        name: "Weighted Top".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/weightedTop",
-        city: "Manitoba Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 Sl_bb 00 00 00\nE0100_g 00 00 MM 00 00 E1000_g\n00 00 00 Sr_yy 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "13/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797204_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/weightedTop_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Around the Bend.png",
-        name: "Around the Bend".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/aroundTheBend",
-        city: "Delson Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 E0100_o 00 00 00\n00 00 00 St_ob MM MM 00\n00 00 00 E0100_b 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "18/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797977_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/aroundTheBend_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Embrace.png",
-        name: "Embrace".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/embrace",
-        city: "Ontario Puzzles".to_string(),
-        parsed_map: "Sb_b 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_p 00 00 00 00 00 E1000_p\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 St_r".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798326_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/embrace_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Preenies.png",
-        name: "Preenies".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/preenies",
-        city: "Delson Puzzles".to_string(),
-        parsed_map: "Sr_pgpgpgpgp MM 00 00 00 00 E1001_gggg\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM MM MM 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 00 00 MM 00 00 E1010_ppppp".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "23/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797122_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/preenies_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Pee Gee.png",
-        name: "Pee Gee".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/peeGee",
-        city: "Ontario Puzzles".to_string(),
-        parsed_map: "Sr_y 00 E0001_p 00 E0001_p 00 Sr_b\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSl_b 00 00 E0010_g 00 00 Sl_r".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "20/6".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798819_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/peeGee_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Yield.png",
-        name: "Yield".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/yield",
-        city: "Edmonton Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 Sr_y 00 00 00 Sr_y 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_y 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "7/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796325_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/yield_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Autumn.png",
-        name: "Autumn".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/autumn",
-        city: "Ontario Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_r 00 00 00 00 00 St_y\n00 00 00 00 00 00 00\nE0100_o 00 00 00 00 00 St_o\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/6".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797334_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/autumn_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Blue Boys.png",
-        name: "Blue Boys".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/blueBoys",
-        city: "Edmonton Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 Sb_b 00 00 00 E1000_b 00\n00 00 00 00 00 00 00\n00 00 00 Sl_b 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "4/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796326_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/blueBoys_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Unscathed.png",
-        name: "Unscathed".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/unscathed",
-        city: "Ontario Puzzles".to_string(),
-        parsed_map: "00 E0001_r Sr_b MM Sr_r E0001_b 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 00 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798768_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/unscathed_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Timing Test.png",
-        name: "Timing Test".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/timingTest",
-        city: "Edmonton Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 Sr_r 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 E0010_r\n00 00 00 00 00 00 00\n00 Sr_r 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "12/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798075_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/timingTest_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Challenger.png",
-        name: "Challenger".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/challenger",
-        city: "Ontario Puzzles".to_string(),
-        parsed_map: "00 00 00 E0001_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_br 00 00 00 00 00 St_yy\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_o 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798227_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/challenger_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Grimace Town.png",
-        name: "Grimace Town".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/grimaceTown",
-        city: "Edmonton Puzzles".to_string(),
-        parsed_map: "00 00 00 E0001_p 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_p 00 00 00 00 00 St_ppp\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_p 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "10/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798739_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/grimaceTown_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Please Wait.png",
-        name: "Please Wait".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/pleaseWait",
-        city: "Ontario Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 Sl_r 00 00 00 00 00\n00 MM 00 00 00 00 00\n00 MM 00 00 00 00 00\n00 MM 00 00 00 00 E0010_p\n00 MM MM MM MM MM MM\n00 00 00 00 00 00 St_b".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "23/5".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798769_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/pleaseWait_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Lemon Latency.png",
-        name: "Lemon Latency".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/lemonLatency",
-        city: "Edmonton Puzzles".to_string(),
-        parsed_map: "E0100_y 00 00 00 00 00 00\nSb_y 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 Sl_y\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "11/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796329_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/lemonLatency_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Berlin.png",
-        name: "Berlin".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/berlin",
-        city: "Quebec Puzzles".to_string(),
-        parsed_map: "00 00 00 MM 00 00 00\n00 E0100_p 00 MM 00 St_g 00\n00 00 00 MM 00 00 00\n00 E0100_r 00 00 00 St_p 00\n00 00 00 MM 00 00 00\n00 E0100_g 00 MM 00 St_r 00\n00 00 00 MM 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "21/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798774_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/berlin_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Three Reds.png",
-        name: "Three Reds".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/threeReds",
-        city: "Edmonton Puzzles".to_string(),
-        parsed_map: "Sb_r 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_r 00 00 00 00 00 00\n00 00 00 00 00 00 E1000_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_r 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "12/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797750_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/threeReds_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Golem.png",
-        name: "Golem".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/golem",
-        city: "Quebec Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 Sl_g 00 00 00\n00 00 St_y MM Sb_b 00 00\n00 00 00 E0001_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "16/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798822_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/golem_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Colour Theory.png",
@@ -741,6 +103,149 @@ pub fn load_puzzles_data() -> PuzzlesData {
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/colourTheory_thumb.png"
     },
     PuzzleData {
+        // "local_filename_map": "Blue Boys.png",
+        name: "Blue Boys".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/blueBoys",
+        city: "Edmonton Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 Sb_b 00 00 00 E1000_b 00\n00 00 00 00 00 00 00\n00 00 00 Sl_b 00 00 00\n00 00 00 00 00 00 00".to_string(),
+        type_: "Regular puzzles".to_string(),
+        track_count: "4/1".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796326_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/blueBoys_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Embrace.png",
+        name: "Embrace".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/embrace",
+        city: "Ontario Puzzles".to_string(),
+        parsed_map: "Sb_b 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nE0100_p 00 00 00 00 00 E1000_p\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 St_r".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "11/2".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798326_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/embrace_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Prellow.png",
+        name: "Prellow".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/prellow",
+        city: "Delson Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 00\n00 E0001_p 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 St_py 00\n00 00 00 00 00 00 00\n00 E0010_y 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
+        type_: "Regular puzzles".to_string(),
+        track_count: "6/1".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798510_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/prellow_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Around the Bend.png",
+        name: "Around the Bend".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/aroundTheBend",
+        city: "Delson Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 E0100_o 00 00 00\n00 00 00 St_ob MM MM 00\n00 00 00 E0100_b 00 00 00".to_string(),
+        type_: "Regular puzzles".to_string(),
+        track_count: "18/1".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797977_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/aroundTheBend_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Challenger.png",
+        name: "Challenger".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/challenger",
+        city: "Ontario Puzzles".to_string(),
+        parsed_map: "00 00 00 E0001_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_br 00 00 00 00 00 St_yy\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_o 00 00 00".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "11/3".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798227_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/challenger_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Nine Men's Morris.png",
+        name: "Nine Men's Morris".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/nineMensMorris",
+        city: "Fredericton Puzzles".to_string(),
+        parsed_map: "Sb_y 00 00 00 00 00 E1001_o\n00 00 00 00 00 00 00\n00 00 MM MM MM 00 00\n00 00 MM MM MM 00 00\n00 00 MM MM MM 00 00\n00 00 00 00 00 00 00\nE0110_o 00 00 00 00 00 St_r".to_string(),
+        type_: "Regular puzzles".to_string(),
+        track_count: "15/2".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797262_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/nineMensMorris_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Around the Back.png",
+        name: "Around the Back".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/aroundTheBack",
+        city: "Calgary Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 00\n00 Sr_r 00 Sr_y 00 Sr_b 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 E0010_b 00 E0010_r 00 E0010_y 00\n00 00 00 00 00 00 00".to_string(),
+        type_: "Regular puzzles".to_string(),
+        track_count: "11/4".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797385_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/aroundTheBack_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Combinellow.png",
+        name: "Combinellow".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/combinellow",
+        city: "Manitoba Puzzles".to_string(),
+        parsed_map: "MM MM Sr_y MM Sr_y MM MM\n00 00 00 00 00 00 MM\n00 00 00 00 00 00 St_y\n00 00 00 00 00 00 MM\n00 00 00 00 00 00 St_y\n00 00 00 00 00 00 MM\nE0100_y 00 00 00 00 00 MM".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "14/3".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798767_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/combinellow_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Pee Gee.png",
+        name: "Pee Gee".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/peeGee",
+        city: "Ontario Puzzles".to_string(),
+        parsed_map: "Sr_y 00 E0001_p 00 E0001_p 00 Sr_b\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSl_b 00 00 E0010_g 00 00 Sl_r".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "20/6".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798819_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/peeGee_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Preenies.png",
+        name: "Preenies".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/preenies",
+        city: "Delson Puzzles".to_string(),
+        parsed_map: "Sr_pgpgpgpgp MM 00 00 00 00 E1001_gggg\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM MM MM 00\n00 MM 00 MM 00 00 00\n00 MM 00 MM 00 00 00\n00 00 00 MM 00 00 E1010_ppppp".to_string(),
+        type_: "Regular puzzles".to_string(),
+        track_count: "23/1".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797122_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/preenies_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Autumn.png",
+        name: "Autumn".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/autumn",
+        city: "Ontario Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_r 00 00 00 00 00 St_y\n00 00 00 00 00 00 00\nE0100_o 00 00 00 00 00 St_o\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "11/6".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797334_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/autumn_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Please Wait.png",
+        name: "Please Wait".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/pleaseWait",
+        city: "Ontario Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 00\n00 Sl_r 00 00 00 00 00\n00 MM 00 00 00 00 00\n00 MM 00 00 00 00 00\n00 MM 00 00 00 00 E0010_p\n00 MM MM MM MM MM MM\n00 00 00 00 00 00 St_b".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "23/5".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798769_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/pleaseWait_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Berlin.png",
+        name: "Berlin".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/berlin",
+        city: "Quebec Puzzles".to_string(),
+        parsed_map: "00 00 00 MM 00 00 00\n00 E0100_p 00 MM 00 St_g 00\n00 00 00 MM 00 00 00\n00 E0100_r 00 00 00 St_p 00\n00 00 00 MM 00 00 00\n00 E0100_g 00 MM 00 St_r 00\n00 00 00 MM 00 00 00".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "21/4".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798774_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/berlin_thumb.png"
+    },
+    PuzzleData {
         // "local_filename_map": "Sunburst.png",
         name: "Sunburst".to_string(),
         // "solutions_url": "http://www.trainyard.ca/solutions/sunburst",
@@ -750,39 +255,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "13/7".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798357_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/sunburst_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Secondary.png",
-        name: "Secondary".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/secondary",
-        city: "Edmonton Puzzles".to_string(),
-        parsed_map: "Sb_r 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_y 00 00 00 00 00 E1000_o".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "12/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798797_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/secondary_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Pea Shooter.png",
-        name: "Pea Shooter".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/peaShooter",
-        city: "Quebec Puzzles".to_string(),
-        parsed_map: "00 00 00 St_b 00 00 00\n00 00 00 St_b 00 00 00\n00 00 00 Sb_y 00 00 00\n00 00 00 Sb_y 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_gg 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798770_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/peaShooter_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Nurple.png",
-        name: "Nurple".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/nurple",
-        city: "Edmonton Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 Sb_r 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E1111_p 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 St_b 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "8/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798336_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/nurple_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Scarab.png",
@@ -796,17 +268,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/scarab_thumb.png"
     },
     PuzzleData {
-        // "local_filename_map": "Micro Mix.png",
-        name: "Micro Mix".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/microMix",
-        city: "Fredericton Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 Sr_b 00 00 00 Sl_y 00\n00 00 00 00 00 E0001_g 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "9/1".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796334_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/microMix_thumb.png"
-    },
-    PuzzleData {
         // "local_filename_map": "Prancing.png",
         name: "Prancing".to_string(),
         // "solutions_url": "http://www.trainyard.ca/solutions/prancing",
@@ -816,17 +277,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "25/8".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797996_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/prancing_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "The First.png",
-        name: "The First".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/theFirst",
-        city: "Fredericton Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 E0001_p 00 00 00\n00 00 00 00 00 00 00\n00 Sb_b 00 00 00 St_r 00\n00 00 00 00 00 00 00\n00 00 00 E0010_p 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "7/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2794758_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/theFirst_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Box Seven.png",
@@ -862,17 +312,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/sapling_thumb.png"
     },
     PuzzleData {
-        // "local_filename_map": "Nine Men's Morris.png",
-        name: "Nine Men's Morris".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/nineMensMorris",
-        city: "Fredericton Puzzles".to_string(),
-        parsed_map: "Sb_y 00 00 00 00 00 E1001_o\n00 00 00 00 00 00 00\n00 00 MM MM MM 00 00\n00 00 MM MM MM 00 00\n00 00 MM MM MM 00 00\n00 00 00 00 00 00 00\nE0110_o 00 00 00 00 00 St_r".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "15/2".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797262_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/nineMensMorris_thumb.png"
-    },
-    PuzzleData {
         // "local_filename_map": "Match Up.png",
         name: "Match Up".to_string(),
         // "solutions_url": "http://www.trainyard.ca/solutions/matchUp",
@@ -882,17 +321,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "18/6".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798095_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/matchUp_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Eee Tee.png",
-        name: "Eee Tee".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/eeeTee",
-        city: "Fredericton Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 St_r 00 Sl_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 E1000_op\n00 00 00 00 00 00 00\n00 00 00 00 St_y 00 Sr_b\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "15/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2795165_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/eeeTee_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Being Green.png",
@@ -906,17 +334,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/beingGreen_thumb.png"
     },
     PuzzleData {
-        // "local_filename_map": "Relish.png",
-        name: "Relish".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/relish",
-        city: "Fredericton Puzzles".to_string(),
-        parsed_map: "MM Sb_g 00 00 00 00 00\nSr_y E0100_g 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 MM MM\n00 00 00 00 00 MM Sr_b\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "16/6".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797712_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/relish_thumb.png"
-    },
-    PuzzleData {
         // "local_filename_map": "Casualty.png",
         name: "Casualty".to_string(),
         // "solutions_url": "http://www.trainyard.ca/solutions/casualty",
@@ -928,149 +345,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/casualty_thumb.png"
     },
     PuzzleData {
-        // "local_filename_map": "Mirror Squad.png",
-        name: "Mirror Squad".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/mirrorSquad",
-        city: "Guelph Puzzles".to_string(),
-        parsed_map: "Sr_r 00 Sr_b MM 00 E0001_g 00\n00 00 00 MM 00 00 00\n00 MM MM MM 00 00 00\n00 00 00 MM 00 00 00\n00 00 00 MM MM MM 00\n00 00 00 MM 00 00 00\n00 E0010_p 00 MM Sl_b 00 Sl_y".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "20/6".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2793475_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/mirrorSquad_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Niner.png",
-        name: "Niner".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/niner",
-        city: "Prince Edward Island Puzzles".to_string(),
-        parsed_map: "00 00 00 E0001_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 y2 00 00 00\n00 00 St_r MM Sb_r 00 00\n00 00 00 b2 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_g 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "14/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798345_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/niner_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Cute Loop.png",
-        name: "Cute Loop".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/cuteLoop",
-        city: "Guelph Puzzles".to_string(),
-        parsed_map: "Sr_r MM 00 00 00 00 00\n00 00 00 00 00 00 00\n00 MM 00 00 00 00 00\n00 MM 00 00 00 00 00\n00 MM MM MM MM MM 00\n00 MM 00 00 00 00 00\nSl_b MM E0010_p 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "20/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796660_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/cuteLoop_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Teamwork.png",
-        name: "Teamwork".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/teamwork",
-        city: "Prince Edward Island Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 Sl_b\np5 E0011_p 00 00 00 St_g MM\n00 00 00 00 00 00 Sr_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "16/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797520_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/teamwork_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Hourglass.png",
-        name: "Hourglass".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/hourglass",
-        city: "Guelph Puzzles".to_string(),
-        parsed_map: "Sr_r 00 00 00 00 00 Sr_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 E1000_p MM E0100_o 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSl_y 00 00 00 00 00 Sl_b".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "18/6".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796579_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/hourglass_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Return Policing.png",
-        name: "Return Policing".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/returnPolicing",
-        city: "Prince Edward Island Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 MM\n00 00 00 00 00 MM 00\n00 00 00 00 MM 00 00\n00 00 00 b5 00 00 00\n00 00 MM 00 00 00 00\n00 MM 00 00 00 00 E0010_bbbb\nMM 00 00 00 00 00 St_rrrr".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798105_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/returnPolicing_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Gauss.png",
-        name: "Gauss".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/gauss",
-        city: "Guelph Puzzles".to_string(),
-        parsed_map: "00 00 Sr_r MM Sr_b 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 Sl_p MM E0010_p 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "10/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798485_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/gauss_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Formatic.png",
-        name: "Formatic".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/formatic",
-        city: "Prince Edward Island Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 y2 00 00 00\n00 00 00 St_rrrr E0111_gg 00 00\n00 00 00 b2 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "10/5".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798758_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/formatic_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Third Wheel.png",
-        name: "Third Wheel".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/thirdWheel",
-        city: "Guelph Puzzles".to_string(),
-        parsed_map: "00 00 00 St_y 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSb_o 00 00 00 00 00 E1000_o\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 St_r 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "14/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798443_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/thirdWheel_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Rainbow Arrow.png",
-        name: "Rainbow Arrow".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/rainbowArrow",
-        city: "Prince Edward Island Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 r5 y5 MM g5 b5 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 E0010_b E0010_g Sl_pppp E0010_y E0010_r 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "16/12".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798027_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/rainbowArrow_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Turtles.png",
-        name: "Turtles".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/turtles",
-        city: "Guelph Puzzles".to_string(),
-        parsed_map: "00 00 00 00 Sr_g 00 Sr_g\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 Sl_g 00 Sl_g\n00 MM MM MM MM MM MM\n00 00 00 00 00 00 E1000_g".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "20/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798831_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/turtles_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "One Way.png",
-        name: "One Way".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/oneWay",
-        city: "Nova Scotia Puzzles".to_string(),
-        parsed_map: "00 00 00 E0001_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 r5 00 00 00\n00 00 00 y5 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 Sl_b 00 Sl_b 00 Sl_b 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "12/6".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798765_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/oneWay_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Royals.png",
-        name: "Royals".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/royals",
-        city: "Guelph Puzzles".to_string(),
-        parsed_map: "Sb_p 00 00 00 MM 00 E1000_p\n00 00 00 00 MM 00 MM\n00 00 00 00 MM 00 Sr_p\n00 00 00 00 MM 00 00\n00 00 00 00 MM 00 00\n00 00 00 00 MM 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "20/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797933_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/royals_thumb.png"
-    },
-    PuzzleData {
         // "local_filename_map": "Roundabout.png",
         name: "Roundabout".to_string(),
         // "solutions_url": "http://www.trainyard.ca/solutions/roundabout",
@@ -1080,17 +354,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "21/5".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798764_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/roundabout_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Spiced.png",
-        name: "Spiced".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/spiced",
-        city: "Guelph Puzzles".to_string(),
-        parsed_map: "Sr_rr 00 00 00 00 00 Sr_yy\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E1111_oo 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\nSl_yy 00 00 00 00 00 Sl_rr".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "17/3".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798087_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/spiced_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Chromashift.png",
@@ -1115,6 +378,17 @@ pub fn load_puzzles_data() -> PuzzlesData {
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/handlebars_thumb.png"
     },
     PuzzleData {
+        // "local_filename_map": "Rainbow.png",
+        name: "Rainbow".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/rainbow",
+        city: "Calgary Puzzles".to_string(),
+        parsed_map: "E0100_r 00 00 00 00 00 St_r\nSb_p 00 00 00 00 00 E1000_p\nE0100_b 00 00 00 00 00 St_b\nSb_g 00 00 00 00 00 E1000_g\nE0100_y 00 00 00 00 00 St_y\nSb_o 00 00 00 00 00 E1000_o\nE0100_r 00 00 00 00 00 St_r".to_string(),
+        type_: "Regular puzzles".to_string(),
+        track_count: "25/15".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797499_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/rainbow_thumb.png"
+    },
+    PuzzleData {
         // "local_filename_map": "Balsam.png",
         name: "Balsam".to_string(),
         // "solutions_url": "http://www.trainyard.ca/solutions/balsam",
@@ -1124,17 +398,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "12/6".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798762_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/balsam_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Compact.png",
-        name: "Compact".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/compact",
-        city: "Halifax Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 E1010_o Sl_b MM 00 00\n00 00 St_r MM Sb_y 00 00\n00 00 MM Sr_r E0101_p 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "18/7".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798642_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/compact_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Boomerang.png",
@@ -1192,17 +455,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/dousingTheFlame_thumb.png"
     },
     PuzzleData {
-        // "local_filename_map": "Squads.png",
-        name: "Squads".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/squads",
-        city: "Halifax Puzzles".to_string(),
-        parsed_map: "00 Sb_b 00 00 00 00 00\nSr_r 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0100_ppoo 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 Sl_y\n00 00 00 00 00 St_r 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "15/7".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798455_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/squads_thumb.png"
-    },
-    PuzzleData {
         // "local_filename_map": "Duplex.png",
         name: "Duplex".to_string(),
         // "solutions_url": "http://www.trainyard.ca/solutions/duplex",
@@ -1245,17 +497,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "21/7".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2795826_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/underTheFence_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Refresh.png",
-        name: "Refresh".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/refresh",
-        city: "Newfoundland Puzzles".to_string(),
-        parsed_map: "00 00 E0001_p E0001_p E0001_p 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 r5 00 b5 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 Sl_y Sl_y Sl_y 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "11/8".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798838_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/refresh_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Inverse.png",
@@ -1335,17 +576,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/collider_thumb.png"
     },
     PuzzleData {
-        // "local_filename_map": "Moonbeams.png",
-        name: "Moonbeams".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/moonbeams",
-        city: "Bonus: Yukon Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 Sb_pppp 00 00\ng5 MM 00 00 00 00 00\n00 MM 00 00 00 00 00\nb5 MM 00 00 00 00 00\n00 00 00 00 E0100_gbbg 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "19/4".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797115_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/moonbeams_thumb.png"
-    },
-    PuzzleData {
         // "local_filename_map": "Starship Sandwich.png",
         name: "Starship Sandwich".to_string(),
         // "solutions_url": "http://www.trainyard.ca/solutions/starshipSandwich",
@@ -1399,17 +629,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "9/2".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798559_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/redPear_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Snowracer.png",
-        name: "Snowracer".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/snowracer",
-        city: "Bonus: Northwest Territories Puzzles".to_string(),
-        parsed_map: "00 00 00 00 Sr_b Sr_y Sr_r\n00 00 00 MM 00 00 00\n00 MM 00 00 MM 00 00\n00 00 MM 00 MM 00 00\n00 00 MM 00 00 MM 00\n00 00 00 MM 00 00 00\nE0010_r E0010_y E0010_b 00 00 00 00".to_string(),
-        type_: "Express puzzles".to_string(),
-        track_count: "24/5".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2796218_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/snowracer_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Paint The Town.png",
@@ -1586,6 +805,94 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "17/5".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798676_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/diagonalMirror_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Niner.png",
+        name: "Niner".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/niner",
+        city: "Prince Edward Island Puzzles".to_string(),
+        parsed_map: "00 00 00 E0001_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 y2 00 00 00\n00 00 St_r MM Sb_r 00 00\n00 00 00 b2 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_g 00 00 00".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "14/4".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798345_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/niner_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Teamwork.png",
+        name: "Teamwork".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/teamwork",
+        city: "Prince Edward Island Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 Sl_b\np5 E0011_p 00 00 00 St_g MM\n00 00 00 00 00 00 Sr_r\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "16/4".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797520_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/teamwork_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Return Policing.png",
+        name: "Return Policing".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/returnPolicing",
+        city: "Prince Edward Island Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 MM\n00 00 00 00 00 MM 00\n00 00 00 00 MM 00 00\n00 00 00 b5 00 00 00\n00 00 MM 00 00 00 00\n00 MM 00 00 00 00 E0010_bbbb\nMM 00 00 00 00 00 St_rrrr".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "11/4".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798105_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/returnPolicing_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Formatic.png",
+        name: "Formatic".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/formatic",
+        city: "Prince Edward Island Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 y2 00 00 00\n00 00 00 St_rrrr E0111_gg 00 00\n00 00 00 b2 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "10/5".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798758_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/formatic_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Rainbow Arrow.png",
+        name: "Rainbow Arrow".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/rainbowArrow",
+        city: "Prince Edward Island Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 r5 y5 MM g5 b5 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 E0010_b E0010_g Sl_pppp E0010_y E0010_r 00".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "16/12".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798027_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/rainbowArrow_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "One Way.png",
+        name: "One Way".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/oneWay",
+        city: "Nova Scotia Puzzles".to_string(),
+        parsed_map: "00 00 00 E0001_g 00 00 00\n00 00 00 00 00 00 00\n00 00 00 r5 00 00 00\n00 00 00 y5 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 Sl_b 00 Sl_b 00 Sl_b 00".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "12/6".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798765_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/oneWay_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Refresh.png",
+        name: "Refresh".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/refresh",
+        city: "Newfoundland Puzzles".to_string(),
+        parsed_map: "00 00 E0001_p E0001_p E0001_p 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 r5 00 b5 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 Sl_y Sl_y Sl_y 00 00".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "11/8".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798838_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/refresh_thumb.png"
+    },
+    PuzzleData {
+        // "local_filename_map": "Moonbeams.png",
+        name: "Moonbeams".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/moonbeams",
+        city: "Bonus: Yukon Puzzles".to_string(),
+        parsed_map: "00 00 00 00 00 00 00\n00 00 00 00 Sb_pppp 00 00\ng5 MM 00 00 00 00 00\n00 MM 00 00 00 00 00\nb5 MM 00 00 00 00 00\n00 00 00 00 E0100_gbbg 00 00\n00 00 00 00 00 00 00".to_string(),
+        type_: "Express puzzles".to_string(),
+        track_count: "19/4".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797115_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/moonbeams_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Four Shadowing.png",
@@ -1828,17 +1135,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "18/10".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2795039_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/candlesticks_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Argentan.png",
-        name: "Argentan".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/argentan",
-        city: "Niagara Falls Puzzles".to_string(),
-        parsed_map: "00 00 00 00 00 00 00\n00 Sr_y Sr_o Sr_y Sr_o Sr_y 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0001_yo 00 00 00\n00 00 00 00 00 00 00".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "13/5".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798280_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/argentan_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Wagon Wheels.png",

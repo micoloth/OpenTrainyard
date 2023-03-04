@@ -1,6 +1,6 @@
 
 
-path = "/Users/michele.tasca/My Stuff/Coding stuff/Julia/Trainyard/assets/all_puzzles_clean.json"
+path = "/Users/michele.tasca/My Stuff/Coding stuff/Julia/Trainyard/assets/all_puzzles_clean_ordered.json"
 
 import json
 from pathlib import Path
@@ -52,18 +52,23 @@ len(data_reordered)
 names = [d['name'] for d in data_reordered]
 
 
-# Format each data in data_reordered as a STRING of rome rust code that looks like this:
-    # PuzzleData {
-    #     // "local_filename_map": "Red Line.png",
-    #     name: "Red Line".to_string(),
-    #     // "solutions_url": "http://www.trainyard.ca/solutions/redLine",
-    #     city: "Abbotsford Puzzles".to_string(),
-    #     parsed_map: "00 00 00 00 00 00 00\n00 00 00 Sr_r 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 00 00 00 00\n00 00 00 E0010_r 00 00 00\n00 00 00 00 00 00 00".to_string(),
-    #     type_: "Regular puzzles".to_string(),
-    #     trackCount: "3/0".to_string(),
-    #     // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798688_large.png",
-    #     // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/redLine_thumb.png"
-    # },
+###########################################################
+
+
+
+##########  [ // Lanten: potential exchange // Blue Boys: alternative simple join
+
+
+# Read all_puzzles_ordered
+
+path = "/Users/michele.tasca/My Stuff/Coding stuff/Julia/Trainyard/assets/all_puzzles_clean_ordered.json"
+
+import json
+from pathlib import Path
+data_reordered = json.loads(Path(path).read_text())
+
+
+
 
 string_template_to_format = """
     PuzzleData {{
@@ -80,11 +85,12 @@ string_template_to_format = """
 
 new_codes = []
 for d in data_reordered:
-    # Escape \n as \\n in d['parsed_map']:
-    d = {k: v.replace("\n", "\\n") for k, v in d.items()}
-    # Turn trackCount from 'Best track count: 3+0'in '3/0':
-    d['trackCount'] = d['trackCount'].replace('+', '/').replace('Best track count: ', '')
-    new_codes.append(string_template_to_format.format(**d))
+    if d.pop('to_include_in_game'):
+        # Escape \n as \\n in d['parsed_map']:
+        d = {k: v.replace("\n", "\\n") for k, v in d.items()}
+        # Turn trackCount from 'Best track count: 3+0'in '3/0':
+        d['trackCount'] = d['trackCount'].replace('+', '/').replace('Best track count: ', '')
+        new_codes.append(string_template_to_format.format(**d))
 new_code = "".join(new_codes)
 
 # Read "/Users/michele.tasca/My Stuff/Coding stuff/OpenTrainyard/src/all_puzzles_clean_template.rs" astext file:
@@ -95,7 +101,7 @@ template = Path(path_template).read_text()
 # Sobstitute "{/// HEREEEE PUT THEM HERE}" with new_code
 template = template.replace("{/// HEREEEE PUT THEM HERE}", new_code)
 # {PUT HERE LENGTH} with len(data_reordered)
-template = template.replace("{PUT HERE LENGTH}", str(len(data_reordered)))
+template = template.replace("{PUT HERE LENGTH}", str(len(new_codes)))
 
 # Write the new file to "/Users/michele.tasca/My Stuff/Coding stuff/OpenTrainyard/src/all_puzzles_clean.rs"
 path_new_file = "/Users/michele.tasca/My Stuff/Coding stuff/OpenTrainyard/src/all_puzzles_clean.rs"
@@ -116,7 +122,7 @@ for i, name in enumerate(names):
 
     # save image named name as path intto "saved_images_ordered" folder, with name i_formatted_name.png 
     # (e.g. 001_Red Line.png)
-    output_path = f'{path_images}/saved_images_ordered/{i_formatted}_{name}.png'
+    output_path = f'{path_images}/saved_images_ordered_2/{i_formatted}_{name}.png'
     input_path = f'{path_images}/level_images/{name}.png'
     # !cp $input_path $output_path
     # Use a library:
@@ -124,6 +130,10 @@ for i, name in enumerate(names):
     # Or:
     shutil.copyfile(input_path, output_path)
 
+import json
+from pathlib import Path
+out_path = "/Users/michele.tasca/My Stuff/Coding stuff/Julia/Trainyard/assets/all_puzzles_clean_ordered.json"
+Path(out_path).write_text(json.dumps(data_reordered, indent=4))
 
 
 
