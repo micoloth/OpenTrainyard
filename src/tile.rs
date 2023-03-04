@@ -368,33 +368,62 @@ fn add_funnels_minitile_children(
 ) {
     // let scale = big_tile_size / 45.;
     let funnel = get_asset("e_funnel_elem_rigth.png".to_string(), assets);
-    let mut t = Transform::from_xyz(0., 0., 0.5);
-    let pos_x: f32;
-    let pos_y: f32;
     if r_ {
-        pos_x = (23. - 8. / 2.); // * scale;
-        pos_y = 0.;
-    } else if l_ {
-        t = flipmatrix_horizontal(t);
-        pos_x = -(23. - 8. / 2.); // * scale;
-        pos_y = 0.;
-    } else if t_ {
-        t = rotate_tile(t, std::f32::consts::PI / 2.);
-        pos_x = 0.;
-        pos_y = (23. - 8. + 8. / 2.); // * scale;
-    } else {
-        t = rotate_tile(t, -std::f32::consts::PI / 2.);
-        pos_x = 0.;
-        pos_y = (- 23. + 8. / 2.); // * scale;
+        let mut t = Transform::from_xyz(0., 0., 0.5);
+        let pos_x = (23. - 8. / 2.); // * scale;
+        let pos_y = 0.;
+        // Translate t to the right position:
+        t.translation.x = pos_x;
+        t.translation.y = pos_y;
+        child_cmd.spawn(SpriteBundle {
+            transform: t,
+            texture: funnel.clone(),
+            ..default()
+        });
     }
-    // Translate t to the right position:
-    t.translation.x = pos_x;
-    t.translation.y = pos_y;
-    child_cmd.spawn(SpriteBundle {
-        transform: t,
-        texture: funnel,
-        ..default()
-    });
+    if l_ {
+        let mut t = Transform::from_xyz(0., 0., 0.5);
+        t = flipmatrix_horizontal(t);
+        let pos_x = -(23. - 8. / 2.); // * scale;
+        let pos_y = 0.;
+        // Translate t to the right position:
+        t.translation.x = pos_x;
+        t.translation.y = pos_y;
+        child_cmd.spawn(SpriteBundle {
+            transform: t,
+            texture: funnel.clone(),
+            ..default()
+        });
+    }
+    if t_ {
+        let mut t = Transform::from_xyz(0., 0., 0.5);
+        t = rotate_tile(t, std::f32::consts::PI / 2.);
+        let pos_x = 0.;
+        let pos_y = (23. - 8. + 8. / 2.); // * scale;
+        // Translate t to the right position:
+        t.translation.x = pos_x;
+        t.translation.y = pos_y;
+        child_cmd.spawn(SpriteBundle {
+            transform: t,
+            texture: funnel.clone(),
+            ..default()
+        });
+    }
+    if b_ {
+        let mut t = Transform::from_xyz(0., 0., 0.5);
+        t = rotate_tile(t, -std::f32::consts::PI / 2.);
+        let pos_x = 0.;
+        let pos_y = (- 23. + 8. / 2.); // * scale;
+        // Translate t to the right position:
+        t.translation.x = pos_x;
+        t.translation.y = pos_y;
+        child_cmd.spawn(SpriteBundle {
+            transform: t,
+            texture: funnel.clone(),
+            ..default()
+        });
+    }
+
 }
 
 const START_POSS: [i32; 7] = [0, 45, 90, 135, 180, 225, 270];  // In case it's not clear, this is starts = [((0:6) .* (46 - 1))...]
