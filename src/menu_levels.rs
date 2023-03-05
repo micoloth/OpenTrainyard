@@ -86,7 +86,7 @@ fn setup_menu_levels(
     mut selected_level: ResMut<SelectedLevel>,
     levels: Res<PuzzlesData>,
     windows: Res<Windows>,
-    solution_data_map: Res<SolutionsSavedData>,
+    player_solutions_data: Res<SolutionsSavedData>,
     tile_assets: Res<TileAssets>,
     // Resourvce:
     mut menu_limits: ResMut<MenuLimits>,
@@ -146,8 +146,8 @@ fn setup_menu_levels(
     // One button per level name, stacked vertically:
     for (i, name) in names.iter().enumerate() {
 
-        // if name is in solution_data_map.levels, AND the object is of type Solved, then we have solved it, and we can make the button green
-        let score = match solution_data_map.levels.get(name)
+        // if name is in player_solutions_data.levels, AND the object is of type Solved, then we have solved it, and we can make the button green
+        let score = match player_solutions_data.levels.get(name)
         {
             Some(solutions) => {
                 // Get the solution (map, tracks, and second tracks) of the object with the MIN number of tracks:
@@ -158,7 +158,7 @@ fn setup_menu_levels(
                 }
                 else {
                     let solution = solutions.iter().min_by_key(|x| x.tracks).unwrap();
-                    format!("({}/{})", solution.tracks, solution.second_tracks)
+                    format!("({}+{})", solution.tracks, solution.second_tracks)
                 }
             },
             _ => {"".to_string()}

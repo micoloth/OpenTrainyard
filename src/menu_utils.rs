@@ -322,7 +322,7 @@ pub fn advance_tick(
                     make_tutorial_popup(popup_state.popup_text.clone(), popup_state.popup_text_2.clone(), &mut commands, &font_assets, &button_colors);
                 }
                 PopupType::Victory => {
-                    make_victory_popup(popup_state.popup_text.clone(), &mut commands, &font_assets, &button_colors, &tile_assets);
+                    make_victory_popup(popup_state.popup_text.clone(), popup_state.popup_text_2.clone(),  &mut commands, &font_assets, &button_colors, &tile_assets);
                     // make_tutorial_popup(popup_state.popup_text.clone(), &mut commands, &font_assets, &button_colors);
                 }
             }
@@ -798,6 +798,7 @@ pub fn make_tutorial_popup(
 
 pub fn make_victory_popup(
     text: String,
+    text_2: Option<String>,
     commands: &mut Commands,
     font_assets: &FontAssets,
     button_colors: &ButtonColors,
@@ -815,8 +816,8 @@ pub fn make_victory_popup(
             align_items: AlignItems::Center, // I have to say, this was cool ....
             position: UiRect {
                 top: Val::Percent(30.),
-                left: Val::Percent(7.),
-                right: Val::Percent(7.),
+                left: Val::Percent(5.),
+                right: Val::Percent(5.),
                 bottom: Val::Percent(35.),
             },
             ..default()
@@ -825,21 +826,43 @@ pub fn make_victory_popup(
         z_index: ZIndex::Global(10),
         ..default()
     }, Popup{}, MainGameBotton{})).id();
+    let winobj = TextSection {
+        value: "YOU SOLVED IT!\n".to_string(),
+        style: TextStyle {
+            font: font_assets.fira_sans.clone(),
+            font_size: font_size,
+            color: Color::rgba(0.9, 0.9, 0.9, 0.9),
+        },
+    };
+    let textscoreobj = TextSection {
+        value: "\n".to_string() + &text,
+        style: TextStyle {
+            font: font_assets.fira_sans.clone(),
+            font_size: font_size * 0.8,
+            color: Color::rgba(0.9, 0.9, 0.9, 0.9),
+        },
+    };
+    let mut text_sections = vec![winobj, textscoreobj];
+    if let Some(text2_) = text_2 {
+        let textobj2 = TextSection {
+            value: text2_.to_string(),
+            style: TextStyle {
+                font: font_assets.fira_sans.clone(),
+                font_size: font_size * 0.8,
+                // color: Color::rgb(161. / 255. , 51. / 255. , 37. / 255. ),
+                color: Color::rgb(0.6, 0.6, 0.6 ),
+            },
+        };
+        text_sections.push(textobj2);
+    }
     let text_id = commands.spawn(TextBundle {
         text: Text {
-            sections: vec![TextSection {
-                value: text.to_string(),
-                style: TextStyle {
-                    font: font_assets.fira_sans.clone(),
-                    font_size: font_size,
-                    color: Color::rgba(0.9, 0.9, 0.9, 0.9),
-                },
-            }],
+            sections: text_sections,
             alignment: TextAlignment { vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Left },
         },
         style: Style {
-            position: UiRect{left: Val::Percent(35.), ..default()},
-            margin: UiRect{top: Val::Percent(-10.), ..default()},
+            position_type: PositionType::Absolute,
+            position: UiRect{left: Val::Percent(55.), top: Val::Percent(18.), ..default()},
             ..default()
         },
         ..default()
@@ -863,7 +886,7 @@ pub fn make_victory_popup(
     ).id();
     commands.entity(popup_id).push_children(&[but_id_close]);// add the child to the parent
 
-    let but_text_id = commands.spawn(TextBundle {
+    let but_next_id = commands.spawn(TextBundle {
         text: Text {
             sections: vec![TextSection {
                 value: "REPLAY SOLUTION".to_string(),
@@ -871,9 +894,13 @@ pub fn make_victory_popup(
             }],
             alignment: default(),
         },
+        style: Style {
+            position_type: PositionType::Absolute,
+        ..default()
+        },
         ..default()
     }).id();
-    commands.entity(but_id_close).push_children(&[but_text_id]);// add the child to the parent
+    commands.entity(but_id_close).push_children(&[but_next_id]);// add the child to the parent
 
     let but_id_nextlevel = commands.spawn(
         (ButtonBundle {
@@ -909,7 +936,8 @@ pub fn make_victory_popup(
         (ImageBundle {
             image: UiImage(tile_assets.tick.clone()),
             style: Style { 
-                position: UiRect{left: Val::Percent(3.), top: Val::Percent(28.), right: Val::Percent(40.), bottom: Val::Percent(40.)},
+                position_type: PositionType::Absolute,
+                position: UiRect{left: Val::Percent(17.), top: Val::Percent(25.), right: Val::Auto, bottom: Val::Auto},
                 ..default()
             },
             transform: Transform{..default()}.with_scale(Vec3 { x: 0., y: 0., z: 10. },),
@@ -917,7 +945,7 @@ pub fn make_victory_popup(
         },
         Animator::new(Tween::new(
                 EaseFunction::CubicIn, Duration::from_millis(400 as u64), 
-                TransformScaleLens {start: Vec3 { x: 0., y: 0., z: 10. }, end: Vec3 { x: 2., y: 2., z: 10. },},
+                TransformScaleLens {start: Vec3 { x: 0., y: 0., z: 10. }, end: Vec3 { x: 1.9, y: 1.9, z: 10. },},
             )
         )
     )).id();  

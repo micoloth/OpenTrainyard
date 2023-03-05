@@ -89,7 +89,7 @@ for d in data_reordered:
         # Escape \n as \\n in d['parsed_map']:
         d = {k: v.replace("\n", "\\n") for k, v in d.items()}
         # Turn trackCount from 'Best track count: 3+0'in '3/0':
-        d['trackCount'] = d['trackCount'].replace('+', '/').replace('Best track count: ', '')
+        d['trackCount'] = d['trackCount'].replace('Best track count: ', '')
         new_codes.append(string_template_to_format.format(**d))
 new_code = "".join(new_codes)
 

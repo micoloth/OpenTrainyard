@@ -219,14 +219,13 @@ fn init_gmae(
     button_colors: Res<ButtonColors>,
     mut text_query: Query<&mut Text, With<TextElem>>,
     mut popup_query: Query<Entity, With<Popup>>,
-    puzzles: Res<SolutionsSavedData>,
-    solution_data_map: Res<SolutionsSavedData>,
+    player_solutions_data: Res<SolutionsSavedData>,
 ) {
     // Spawn the level name BUTTON:
     let (_, (left_, right_, bottom_, top_), _) = get_upper_coordinates(&windows);
     let name_id = make_text(selected_level.level.clone(), &mut commands, &font_assets, &button_colors, FONT_SIZE, left_, right_, top_, bottom_, MainGameBotton, Some(LevelNameElem));
     
-    change_level(&selected_level, &solution_data_map,  &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &mut text_query, &mut popup_query);
+    change_level(&selected_level, &player_solutions_data,  &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &mut text_query, &mut popup_query);
 
 }
 
@@ -251,7 +250,7 @@ fn click_nextlevel_button(
     // Button colors:
     button_colors: Res<ButtonColors>,
     mut text_query: Query<&mut Text, With<TextElem>>,
-    solution_data_map: Res<SolutionsSavedData>,
+    player_solutions_data: Res<SolutionsSavedData>,
     mut solved_data_event_writer: EventWriter<SelectedLevelSolvedDataEvent>,
     mut popup_query: Query<Entity, With<Popup>>,
 
@@ -267,7 +266,7 @@ fn click_nextlevel_button(
                 if let Some(next_puzzle) = get_next_puzzle(selected_level.level.clone(), &levels) {
                     let empty_map = next_puzzle.parsed_map;
                     let empty_map_data = SolutionData::new_from_string(empty_map.clone(), 0);
-                    let solved_data = solution_data_map.get(&next_puzzle.name);
+                    let solved_data = player_solutions_data.get(&next_puzzle.name);
                     let maps = if solved_data.len() == 0 { vec![empty_map_data] }  else { solved_data };
                     let index = maps.len() as u16 - 1;
                     *selected_level = SelectedLevel{
@@ -278,7 +277,7 @@ fn click_nextlevel_button(
                         vanilla_map: empty_map,
                         city: "".to_string(),
                     };
-                    change_level(&selected_level, &solution_data_map, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &mut text_query,  &mut popup_query);
+                    change_level(&selected_level, &player_solutions_data, &board_q, &mut commands, &mut board_event_writer, &level_name_query, &windows, &mut text_query,  &mut popup_query);
                 }
             }
             _ => {}
@@ -528,7 +527,7 @@ fn show_track_number_in_title_text(
 
 fn change_level(
         selected_level: &SelectedLevel, 
-        solution_data_map: &Res<SolutionsSavedData>, 
+        player_solutions_data: &Res<SolutionsSavedData>, 
         board_q: &Query<Entity, With<Board>>, 
         commands: &mut Commands, 
         board_event_writer: &mut EventWriter<BoardEvent>, 
@@ -555,7 +554,7 @@ fn change_level(
         text.sections[0].value = selected_level.level.clone();
     }
 
-    let just_begun_level = solution_data_map.just_begun_level(&selected_level.level);
+    let just_begun_level = player_solutions_data.just_begun_level(&selected_level.level);
 
     // if selected_level.level.clone() == "Red Line",  add a tutorial_popup_timer of 1 second:
     if selected_level.level == "Red Line" && just_begun_level{
@@ -613,6 +612,14 @@ fn change_level(
         commands.insert_resource(PopupTimer {
             timer: Some(Timer::from_seconds(1., TimerMode::Once)),
             popup_text: "Use the SCISSOR tile to SPLIT the trains".to_string(),
+            popup_text_2: None,
+            popup_type: PopupType::Tutorial,
+        });
+    }
+    if player_solutions_data.just_became_expert(){
+        commands.insert_resource(PopupTimer {
+            timer: Some(Timer::from_seconds(1., TimerMode::Once)),
+            popup_text: "EXPERT MODE unlocked!\n\nCongratulations.\nYou will now see the best possible\ntrack count for each level".to_string(),
             popup_text_2: None,
             popup_type: PopupType::Tutorial,
         });

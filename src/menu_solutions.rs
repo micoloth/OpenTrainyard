@@ -429,9 +429,9 @@ fn make_board_and_title(
     mut carousel_state: ResMut<CarouselState>,
     mut selected_level: ResMut<SelectedLevel>,
     levels: Res<PuzzlesData>, 
-    solution_data_map: Res<SolutionsSavedData>,
+    player_solutions_data: Res<SolutionsSavedData>,
     level_name_query: Query<Entity, With<LevelNameElem>>, 
-    // best_score_text_query: Query<Entity, With<BestScoreElem>>, 
+    best_score_text_query: Query<Entity, With<BestScoreElem>>, 
     mut board_event_writer: EventWriter<BoardEvent>, 
     mut redraw_carousel_event_reader: EventReader<RedrawCarouselEvent>,
     font_assets: Res<FontAssets>, 
@@ -456,15 +456,14 @@ fn make_board_and_title(
         for text in texts.iter() { // It's never more than 1, but can very well be 0
             if let Some(id) = commands.get_entity(text) { id.despawn_recursive();};
         }
-        // For button in query:
-        // for text in texts.iter() { // It's never more than 1, but can very well be 0
-        //     if let Some(id) = commands.get_entity(text) { id.despawn_recursive();};
-        // }
+        for best_score_text in best_score_text_query.iter() {
+            if let Some(id) = commands.get_entity(best_score_text) { id.despawn_recursive();};
+        }
 
         // Get the maps:
         let empty_map = levels.puzzles.iter().find(|p| p.name == ev.level_name.clone()).unwrap().parsed_map.clone();
         let empty_map_data = SolutionData::new_from_string(empty_map.clone(), 0);
-        let solved_data = solution_data_map.get(&ev.level_name);
+        let solved_data = player_solutions_data.get(&ev.level_name);
         let maps = match &ev.maps {
             Some(maps) => maps.clone(),
             None => {
@@ -496,7 +495,12 @@ fn make_board_and_title(
         let name_id = make_text(ev.level_name.clone(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_, bottom_, SolutionsMenuBotton, Some(LevelNameElem));
 
         // Spawn the "pick solution" text:
-        let text_id = make_text("PICK A SOLUTION".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_  + width * SCALE * 1.5 + 50., bottom_  + width * SCALE * 1.5 + 50., SolutionsMenuBotton, Some(BestScoreElem));
+        let text_id = make_text("  PICK A SOLUTION".to_string(), &mut commands, &font_assets, &button_colors, 20., left_, right_, top_  + width * SCALE * 1.5 + 45., bottom_  + width * SCALE * 1.5 + 45., SolutionsMenuBotton, Some(BestScoreElem));
+        if player_solutions_data.expert_mode() && !player_solutions_data.just_begun_level(&selected_level.level) {
+            let best_solution_data = levels.puzzles.iter().find(|p| p.name == selected_level.level.clone()).unwrap().track_count.clone();
+            let besttrack_text = " (BEST TRACK COUNT: ".to_string() + &best_solution_data +")";
+            let bestscore_id = make_text(besttrack_text, &mut commands, &font_assets, &button_colors, 17., left_, right_, top_  + width * SCALE * 1.5 + 45. + 25., bottom_  + width * SCALE * 1.5 + 45. + 25., SolutionsMenuBotton, Some(BestScoreElem));
+        }
 
 
         // Set the name of the game:
@@ -510,7 +514,7 @@ fn make_board_and_title(
 
             // Make the text:
             let duration = if map_data.time == 0 {String::from("Unsolved")} else {format!("steps: {}", map_data.time)};
-            let text = format!("{} / {}  ({})", map_data.tracks, map_data.second_tracks, duration);
+            let text = format!("{}+{}  ({})", map_data.tracks, map_data.second_tracks, duration);
             make_text(text, &mut commands, &font_assets, &button_colors, 20., left_ + carousel_state.position_delta.x * ii as f32, right_ + carousel_state.position_delta.x * ii as f32, top_+75., bottom_+75., SolutionsMenuBotton, Some(CarouselTextNode));
         }
     }

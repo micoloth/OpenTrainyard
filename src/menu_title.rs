@@ -64,17 +64,17 @@ fn setup_menu(
     tile_assets: Res<TileAssets>,
     mut pkv: ResMut<PkvStore>,
 
-    mut solution_data_map: ResMut<SolutionsSavedData>,
+    mut player_solutions_data: ResMut<SolutionsSavedData>,
 
 ) {
     // pkv.set(LOCAL_STORAGE_DAzTA_KEY, &SolutionsSavedData::default()).expect("failed to store level data");
 
     if let Ok(all_solutions) = pkv.get::<SolutionsSavedData>(LOCAL_STORAGE_DATA_KEY) {
         // Set resource:
-        *solution_data_map = all_solutions;
+        *player_solutions_data = all_solutions;
     } else {
-        // Setsolution_data_map.levels to  an empty hashmap
-        *solution_data_map = SolutionsSavedData::default();
+        // Setplayer_solutions_data.levels to  an empty hashmap
+        *player_solutions_data = SolutionsSavedData::default();
     }
 
     let width = windows.get_primary().unwrap().width();
@@ -172,14 +172,14 @@ fn click_play_button(
         (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<StartGameBotton>),
     >,
-    solution_data_map: Res<SolutionsSavedData>,
+    player_solutions_data: Res<SolutionsSavedData>,
     mut selected_level: ResMut<SelectedLevel>,
     levels: Res<PuzzlesData>,
 ) {
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                if !solution_data_map.just_begun() {
+                if !player_solutions_data.just_begun() {
                     state.set(GameState::MenuLevels).unwrap();
                 } else {
                     let level_name = levels.puzzles[0].name.clone();

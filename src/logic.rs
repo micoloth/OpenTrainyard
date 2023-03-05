@@ -4,6 +4,7 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct Player;
 
+use crate::all_puzzles_clean::PuzzlesData;
 use crate::data_saving::*;
 use crate::loading::TrainAssets;
 use crate::menu_utils::{PopupTimer, PopupType};
@@ -262,6 +263,8 @@ pub fn listen_to_game_state_changes(
     mut selected_level: ResMut<SelectedLevel>,
     mut change_board_game_state_event_reader: EventReader<ChangeGameStateEvent>,
     mut level_solved_data_event_writer: EventWriter<SelectedLevelSolvedDataEvent>,
+    player_solutions_data: Res<SolutionsSavedData>,
+    levels: Res<PuzzlesData>, 
 ) {
     // For each event:
     for ev in change_board_game_state_event_reader.iter() {
@@ -270,7 +273,14 @@ pub fn listen_to_game_state_changes(
                 ChangeGameStateEvent{old_state: BoardGameState::Running(RunningState::Started), new_state: BoardGameState::Running(RunningState::Won)} => {
                     // serialize submitted solution:
                     let solution_data = SolutionData::new_from_tiles(&board_tilemap.submitted_map, tick_status.current_game_tick);
-                    let popup_text = "You solved it! \n Track count: ".to_string() + &solution_data.tracks.to_string() + "/" + &solution_data.second_tracks.to_string() + " \n Time: " + &solution_data.time.to_string();
+                    let popup_text = "TRACK COUNT: ".to_string() + &solution_data.tracks.to_string() + "+" + &solution_data.second_tracks.to_string() + " \n TIME: " + &solution_data.time.to_string() + "\n"; 
+                    let popup_text_2: Option<String> = if player_solutions_data.expert_mode() {
+                        let best_solution_data = levels.puzzles.iter().find(|p| p.name == selected_level.level.clone()).unwrap().track_count.clone();
+                        Some(" (BEST TRACK COUNT: ".to_string() + &best_solution_data +")")
+                    }
+                    else {
+                        None
+                    };
                     let index = selected_level.current_index.clone();
                     if index >= selected_level.player_maps.len() as u16 { selected_level.player_maps.push(solution_data); }
                     else { selected_level.player_maps[index as usize] = solution_data; }
@@ -280,7 +290,7 @@ pub fn listen_to_game_state_changes(
                     commands.insert_resource(PopupTimer {
                         timer: Some(Timer::from_seconds(0.5, TimerMode::Once)),
                         popup_text: popup_text,
-                        popup_text_2: None,
+                        popup_text_2: popup_text_2,
                         popup_type: PopupType::Victory,
                     });
 

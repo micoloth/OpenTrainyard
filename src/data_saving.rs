@@ -91,11 +91,34 @@ impl SolutionsSavedData {
                     }
                     all_unsolved
                 }},
-            None => true,
+            None => {
+                true
+            },
         }
     }
     pub fn just_begun(&self) -> bool {
         self.levels.len() == 0
+    }
+
+    pub fn number_solved_solutions(&self) -> u32 {
+        let mut count = 0;
+        for (_, solutions) in self.levels.iter() {
+            for sol in solutions {
+                if sol.time > 0 {
+                    count += 1;
+                    break;
+                }
+            }
+        }
+        count
+    }
+
+    pub fn expert_mode(&self) -> bool {
+        self.number_solved_solutions() >= 40
+        // true
+    }
+    pub fn just_became_expert(&self) -> bool {
+        self.number_solved_solutions() == 40
     }
 }
 
@@ -124,7 +147,7 @@ pub struct SelectedLevelSolvedDataEvent {
 
 pub fn save_player_data(
     mut pkv: ResMut<PkvStore>,
-    mut solution_data_map: ResMut<SolutionsSavedData>,
+    mut player_solutions_data: ResMut<SolutionsSavedData>,
     mut level_solved_events: EventReader<SelectedLevelSolvedDataEvent>,
     selected_level: ResMut<SelectedLevel>,
 ) {
@@ -133,12 +156,12 @@ pub fn save_player_data(
             Some(data) => (data.level_name.clone(), data.maps.clone()),
             None => (selected_level.level.clone(), selected_level.player_maps.clone()),
         };
-        let level_solution_data = solution_data_map.levels.get_mut(&level_name);
+        let level_solution_data = player_solutions_data.levels.get_mut(&level_name);
         match level_solution_data {
             Some(solutions) => { *solutions = maps; }
-            None => { solution_data_map.levels.insert(level_name, maps); }
+            None => { player_solutions_data.levels.insert(level_name, maps); }
         }
-        pkv.set(LOCAL_STORAGE_DATA_KEY, &solution_data_map.clone()).expect("failed to store level data");
+        pkv.set(LOCAL_STORAGE_DATA_KEY, &player_solutions_data.clone()).expect("failed to store level data");
     }
 }
 
@@ -148,8 +171,8 @@ pub fn save_player_data(
 // HELPER FUNCTIONS
 /////////////////////////////////////////////////////////////////////////////////////
 
-// pub fn _add_solution_safe(solution_data_map: &mut SolutionsSavedData, level_name: String, index: u16, solution_data: SolutionData) {
-//     let level_solution_data = solution_data_map.levels.get(&level_name);
+// pub fn _add_solution_safe(player_solutions_data: &mut SolutionsSavedData, level_name: String, index: u16, solution_data: SolutionData) {
+//     let level_solution_data = player_solutions_data.levels.get(&level_name);
 //     match level_solution_data {
 //         Some(solutions) => {
 //             if index >= solutions.len() as u16 {
@@ -160,7 +183,7 @@ pub fn save_player_data(
 //             }
 //         }
 //         None => {
-//             solution_data_map.levels.insert(level_name, vec![solution_data]);
+//             player_solutions_data.levels.insert(level_name, vec![solution_data]);
 //         }
 //     }
 // }
