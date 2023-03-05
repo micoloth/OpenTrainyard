@@ -1,6 +1,6 @@
 
 
-use bevy::prelude::Component;
+use bevy::{prelude::Component, log};
 
 // wrongs:
 // lt 
@@ -419,16 +419,17 @@ pub fn check_border_collisions(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Ve
 
 //     # 4. For each train, change their >SIDE< only following track
 pub fn check_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (bool, Vec<Vec<Tile>>, Vec<Train>){
-
+    let mut new_trains: Vec<Train> = Vec::new();
     let mut crashed = false;
     for (_, train) in trains.iter().enumerate(){
         let tile = &field[train.pos.py][train.pos.px];
         if !can_pass_through(tile, train.pos.side) {crashed=true; continue;}
+        new_trains.push(train.clone());
     };
 
     // // println!(">>>> {:?}", print_tile(&new_field[3][5]));
     // println!("after 4 trains{:?}; Crashed: {:?}, Completed: {:?}", new_trains, crashed, completed);
-    return (crashed, field, trains);
+    return (crashed, field, new_trains);
 }
 
 //     # 4. For each train, change their >SIDE< only following track
@@ -488,12 +489,29 @@ pub fn check_center_colliding(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec
     for (i, t1) in trains.iter().enumerate(){
         for (j, t2) in trains[i+1..].iter().enumerate(){
             if are_colliding_center_coloring(*t1, *t2, &field) || are_colliding_center_coloring_different_tracks(*t1, *t2, &field){
-                // // println!("\n>>Center colliding! {:?} {:?}", t1, t2);
-                let newcol = mix_colors(t1.c, t2.c);
+                // Check if there is a THIRD train colliding with the first two:
+                // Get all OTHER trains that are colliding with t1:
+                let mut colliding_with_t1: Vec<usize> = Vec::new();
+                for (i2, t3) in trains.iter().enumerate(){
+                    if i2 == i || i2 == (i+1+j) {continue;}
+                    if are_colliding_center_coloring(*t1, *t3, &field) || are_colliding_center_coloring_different_tracks(*t1, *t3, &field){
+                        colliding_with_t1.push(i2);
+                    }
+                } 
+                // Log a message to console with logging library:
+                log::info!("COLLISION: {:?} {:?} {:?} {:?}", t1, t2, colliding_with_t1, trains);
+                // If not empty:
+                let newcol = if colliding_with_t1.len() > 0 { Colorz::BROWN_ }
+                else{ mix_colors(t1.c, t2.c) };
+
                 newly_collided_trains.push(Train{c: newcol, pos: t1.pos});
                 newly_collided_trains.push(Train{c: newcol, pos: t2.pos});
                 new_trains[i].c = newcol;
                 new_trains[i+j+1].c = newcol;
+                for i3 in colliding_with_t1.iter(){
+                    new_trains[*i3].c = newcol;
+                    newly_collided_trains.push(Train{c: newcol, pos: trains[*i3].pos});
+                }
                 break;
             }
         }

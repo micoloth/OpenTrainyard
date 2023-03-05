@@ -71,10 +71,11 @@ TODO:
  - DONE Back to title button + credits + icon + go directly to 1st level
  - DONE best scores
  - DONE Best Score in Won menu And solution menu..
- - Music
- - Particle effect .....
- - Ghost train direction in stop (+start?) and split
- - You MIGHT WANT to fix the 3-collision problem..
- - credit text
- - Discord link
+ - DONE Particle effect .....
+ - DONE Ghost train direction in stop (+start?) and split
+ - DONE credit text
+ - DONE Discord link
+ - DONE You MIGHT WANT to fix the 3-collision problem..
+ 
+ - WONT DO Music
     

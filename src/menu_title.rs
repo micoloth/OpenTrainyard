@@ -109,7 +109,7 @@ fn setup_menu(
     },
     MainMenuElem{}));
         
-    //Write "TrainYard" at the top of the page:
+    //Write "Trainyard" at the top of the page:
     let mut ec = commands.spawn(NodeBundle {
         style: Style {
             position_type: PositionType::Absolute,
@@ -129,7 +129,7 @@ fn setup_menu(
         style: Style { position_type: PositionType::Absolute, margin: UiRect::all(Val::Auto), ..default() },
         text: Text {
             sections: vec![TextSection {
-                value: "TrainYard".to_string(),
+                value: "Trainyard".to_string(),
                 style: TextStyle { font: font_assets.fira_sans.clone(), font_size: 45., color: Color::rgb(0.9, 0.9, 0.9), },
             }],
             alignment: TextAlignment{ vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center, },

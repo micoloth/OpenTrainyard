@@ -57,7 +57,7 @@ fn setup_menu_credits(
 ) {
     let width = windows.get_primary().unwrap().width();
     let height = windows.get_primary().unwrap().height();
-    //Write "TrainYard" at the top of the page:
+    //Write "Trainyard" at the top of the page:
     let mut ec = commands.spawn(NodeBundle {
         style: Style {
             position_type: PositionType::Absolute,
@@ -78,7 +78,7 @@ fn setup_menu_credits(
         text: Text {
             sections: vec![
             TextSection {
-                value: "Credits go entirely to the original creator of\nthis great puzzle:\n".to_string(),
+                value: "Credits go entirely to the original creator\nof this great puzzle:\n".to_string(),
                 style: TextStyle { font: font_assets.fira_sans.clone(), font_size:22., color: Color::rgb(0.9, 0.9, 0.9), },
             },
             TextSection {

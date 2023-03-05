@@ -1,6 +1,11 @@
 
 
-# TrainYard
+# Trainyard
+
+[![CreativeCommons](https://img.shields.io/github/license/micoloth/opentrainyard)](https://github.com/micoloth/OpenTrainyard/#license)
+[![Bevy.io](https://img.shields.io/crates/v/bevy.svg)](https://crates.io/crates/bevy)
+[![Rust](https://github.com/bevyengine/bevy/workflows/CI/badge.svg)](https://github.com/micoloth/OpenTrainyard/actions)
+
 
 Clone of the original iOs puzzle game, [Trainyard](https://trainyard.ca/) by [Matt Rix](https://twitter.com/MattRix).
 
@@ -8,9 +13,10 @@ Implemented in the [Bevy](https://bevyengine.org/) game engine.
 
 You can play it online here! https://micoloth.github.io/OpenTrainyard/
 
+
 # Discord
 
-Join the discord
+Join the discord to discuss the game and the engine [here](https://discord.gg/umnMwFdA) 
 
 
 # Limitations
