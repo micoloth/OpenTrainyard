@@ -114,11 +114,11 @@ impl SolutionsSavedData {
     }
 
     pub fn expert_mode(&self) -> bool {
-        self.number_solved_solutions() >= 40
+        self.number_solved_solutions() >= 28
         // true
     }
     pub fn just_became_expert(&self) -> bool {
-        self.number_solved_solutions() == 40
+        self.number_solved_solutions() == 28
     }
 }
 
