@@ -506,7 +506,7 @@ fn show_track_number_in_title_text(
                     let double_track_number = count_double_tracks(&board_tilemap.map);
                     let level_name = selected_level.level.clone();
                     
-                    let newtext = format!("{} ({}/{})", level_name, track_number, double_track_number);
+                    let newtext = format!("{} ({}+{})", level_name, track_number, double_track_number);
                     text.sections[0].value = newtext;
                 },
                 _ => {

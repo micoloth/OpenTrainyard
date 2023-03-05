@@ -6,12 +6,12 @@
 [![Bevy.io](https://img.shields.io/crates/v/bevy.svg)](https://crates.io/crates/bevy)
 [![Rust](https://github.com/bevyengine/bevy/workflows/CI/badge.svg)](https://github.com/micoloth/OpenTrainyard/actions)
 
+Play it online here! https://micoloth.github.io/OpenTrainyard/
 
 Clone of the original iOs puzzle game, [Trainyard](https://trainyard.ca/) by [Matt Rix](https://twitter.com/MattRix).
 
 Implemented in the [Bevy](https://bevyengine.org/) game engine.
 
-You can play it online here! https://micoloth.github.io/OpenTrainyard/
 
 
 # Discord

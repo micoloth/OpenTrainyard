@@ -65,6 +65,10 @@ pub struct MenuLimits {
 }
 
 
+const BANNER_HEIGHT: f32 = 50.;
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 // EVENTS
 /////////////////////////////////////////////////////////////////////////////////////
@@ -109,14 +113,13 @@ fn setup_menu_levels(
 
     let rect_width = 320.;
     let rect_height = 40.;
-    let banner_height = 50.;
 
-    make_top_banner( &mut commands, &font_assets, &button_colors, 30., width / 2. - rect_width / 2., width / 2. + rect_width / 2., banner_height);
+    make_top_banner( &mut commands, &font_assets, &button_colors, 30., width / 2. - rect_width / 2., width / 2. + rect_width / 2., BANNER_HEIGHT);
 
     // Heigh of the entire menu:
     let menu_height = (names.len() as f32) * rect_height;
-    let max_firstbutton_heigh = banner_height ;
-    let min_firstbutton_heigh = banner_height - menu_height - rect_height - rect_height + height;
+    let max_firstbutton_heigh = BANNER_HEIGHT ;
+    let min_firstbutton_heigh = BANNER_HEIGHT - menu_height - rect_height - rect_height + height;
     // Set resource:
     menu_limits.max_firstbutton_heigh = max_firstbutton_heigh;
     menu_limits.min_firstbutton_heigh = min_firstbutton_heigh;
@@ -139,7 +142,7 @@ fn setup_menu_levels(
     // BUT: it cannot be BIGGER THAN max_firstbutton_heigh
     let starting_offset_for_selected_level = starting_offset_for_selected_level.min(0.);
     // OR SMALLER THAN min_firstbutton_heigh
-    let starting_offset_for_selected_level = starting_offset_for_selected_level.max(min_firstbutton_heigh - banner_height);
+    let starting_offset_for_selected_level = starting_offset_for_selected_level.max(min_firstbutton_heigh - BANNER_HEIGHT);
 
 
     
@@ -292,9 +295,9 @@ fn handle_full_click(
     mut state: ResMut<State<GameState>>,
     selected_level: Res<SelectedLevel>,
 ) {
-    for _ in full_click_happened_reader.iter() {
+    for ev in full_click_happened_reader.iter() {
         info!("YEEEE Successfull Click!!! : ");
-        if selected_level.level != ""
+        if selected_level.level != "" && ev.pos.y > BANNER_HEIGHT
         {
             state.set(GameState::MenuSolutions).unwrap();
         }

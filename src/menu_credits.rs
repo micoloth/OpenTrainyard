@@ -90,7 +90,7 @@ fn setup_menu_credits(
                 style: TextStyle { font: font_assets.fira_sans.clone(), font_size:22., color: Color::rgb(0.9, 0.9, 0.9), },
             },
             TextSection {
-                value: "Reimplemented using the Bevy game engine\nby Micoloth\n(https://github.com/micoloth)".to_string(),
+                value: "Reimplemented using the Bevy game engine\nby Mike Tasca\n(https://github.com/micoloth)".to_string(),
                 style: TextStyle { font: font_assets.fira_sans.clone(), font_size:22., color: Color::rgb(0.9, 0.9, 0.9), },
             }
             ],
