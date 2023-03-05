@@ -341,11 +341,7 @@ pub fn logic_tick(
             tick_status.first_half = Section::First;  // println!("Tick now 0");
             
             ////////////////// Spawn events:
-            // For each train in cosmetic_trains_to_spawn, launch even:
             for train in cosmetic_trains_to_spawn { spawn_cosmetic_train_event_writer.send(SpawnCosmeticTrainEvent{train: train, board_id: board_id}); }
-            // Print the cosmetic trains:
-            // println!("Cosmetic trains: {:?}", cosmetic_trains_to_spawn);
-            // If there is a crash or a completion, set the state:
             if crashed && (*game_state != BoardGameState::Running(RunningState::Crashed)) {  // This is bc res mut trigger is fired always
                 *game_state = BoardGameState::Running(RunningState::Crashed);
             }
@@ -383,8 +379,8 @@ pub fn logic_tick_core(
 
     let mut new_tilemap: Vec<Vec<Tile>>;
     let mut new_trains: Vec<Train>;
-    let mut newly_collided = Vec::<Train>::new();
-    let mut more_newly_collided = Vec::<Train>::new();
+    let mut newly_collided: Vec<Train>;
+    let mut more_newly_collided: Vec<Train>;
     let mut crashed: bool = false;
     let mut completed: bool = false;
     
@@ -398,6 +394,8 @@ pub fn logic_tick_core(
         (new_tilemap, new_trains, more_newly_collided) = check_border_collisions(new_trains, new_tilemap);
         (crashed, completed, new_tilemap, new_trains) = check_arrived_or_crashed(new_trains, new_tilemap);
         (new_tilemap, new_trains) = set_towards_side(new_trains, new_tilemap);
+        
+        newly_collided.extend(more_newly_collided);
     }
     else if trigger_event == TickMoment::TickMiddle {
         (new_tilemap, new_trains, newly_collided) = check_center_colliding(new_trains, new_tilemap);
@@ -406,7 +404,6 @@ pub fn logic_tick_core(
     else{
         panic!("Unknown RedrawEvent: for now we dont use {:?}", trigger_event);
     }
-    newly_collided.extend(more_newly_collided);
     return (new_tilemap, new_trains, newly_collided, crashed, completed);
 
 }
