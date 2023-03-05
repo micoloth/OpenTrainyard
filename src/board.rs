@@ -2,18 +2,15 @@
 
 use bevy::prelude::*;
 
-use crate::simulator::{Tile, parse_map_rows, parse_map};
+use crate::simulator::{Tile, parse_map};
 use crate::utils::Coordinates;
 
 use crate::tile::{TileSpawnData, make_tile};
 
 use crate::simulator::Train;
 
-use crate::all_puzzles_clean::*;
-use crate::logic::TicksInATick;
 
-use crate::loading::{TrainAssets, TileAssets};
-use crate::train::make_train;
+use crate::loading::{TileAssets};
 
 
 /////////////////////////////////////////////////////////////////////////////////////

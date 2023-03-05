@@ -68,6 +68,8 @@ impl Plugin for MainGamePlugin {
                 .with_system(add_running_status_indicator)
                 .with_system(show_track_number_in_title_text)
                 .with_system(style_run_button)
+                .with_system(spawn_cosmetic_trains_event)
+                .with_system(delete_cosmetic_trains_with_finished_animations)
             )
             /////////////// MOVE TRAINS:
             .add_system_set(
@@ -80,6 +82,7 @@ impl Plugin for MainGamePlugin {
             .add_event::<ScrollBarLimits>()
             .add_event::<BoardEvent>()
             .add_event::<ChangeGameStateEvent>()
+            .add_event::<SpawnCosmeticTrainEvent>()
             ;
     }
 }

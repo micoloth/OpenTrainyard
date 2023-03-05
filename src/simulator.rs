@@ -370,8 +370,9 @@ pub fn flip_exchanges(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Til
 // # ^But, Before you follow the track, and especially BEFORE YOU CHECK FOR ENDTILES, cuz merged trains Can arrive to endtiles.
 // # So, HERE>>. Yes.
 
-pub fn check_merges(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>){
+pub fn check_merges(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>, Vec<Train>){
     let mut merged_trains : Vec<usize> = Vec::new();
+    let mut newly_merged_trains : Vec<Train> = Vec::new();
     let mut new_trains: Vec<Train> = Vec::new();
     for (i, t1) in trains.iter().enumerate(){
         if merged_trains.contains(&i){ continue; }
@@ -383,27 +384,31 @@ pub fn check_merges(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>
                 col = mix_colors(t1.c, t2.c);
                 // println!("MERGED ???????");
                 merged_trains.push(i+j+1);  // We will push t1 with col, and NOT push j when his turn will come
+                newly_merged_trains.push(Train{c: col, pos: t1.pos});
                 break;
             }
         }
         new_trains.push(Train{c: col, pos: t1.pos});
     }
     // println!("after 3 trains{:?}:", new_trains);
-    return (field, new_trains);
+    return (field, new_trains, newly_merged_trains);
 }
 
-pub fn check_border_collisions(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>){
+pub fn check_border_collisions(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>, Vec<Train>){
 
     // I claim that whever or not this is before check_arrived_or_crashed is ONLY relevant for 2 trains that meet at the exit of a SplitTile,
     // And besides being completely pointles, this is PROBABLY ALSO CORRECT.
     // 3. Collisions
     let new_field = field;
     let mut new_trains : Vec<Train> = trains.clone();
+    let mut newly_collided_trains : Vec<Train> = Vec::new();
     for (i, t1) in trains.iter().enumerate(){
         for (j, t2) in new_trains[i+1..].iter().enumerate(){
             if are_colliding_border_coloring(*t1, *t2){
                 // // println!("\n>>Border colliding! {:?} {:?}", t1, t2);
                 let newcol = mix_colors(t1.c, t2.c);
+                newly_collided_trains.push(Train{c: newcol, pos: t1.pos.clone()});
+                newly_collided_trains.push(Train{c: newcol, pos: t2.pos.clone()});
                 new_trains[i].c = newcol;
                 new_trains[i+j+1].c = newcol;
                 break;
@@ -411,7 +416,7 @@ pub fn check_border_collisions(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Ve
         }
     }
     // println!("after 3.5 trains{:?}:", new_trains);
-    return (new_field, new_trains);
+    return (new_field, new_trains, newly_collided_trains);
 
 }
 
@@ -471,20 +476,23 @@ pub fn set_towards_side(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<T
 
 
 
-pub fn check_center_colliding(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>){
+pub fn check_center_colliding(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>, Vec<Train>){
     let mut new_trains = trains.clone();
+    let mut newly_collided_trains : Vec<Train> = Vec::new();
     for (i, t1) in trains.iter().enumerate(){
         for (j, t2) in trains[i+1..].iter().enumerate(){
             if are_colliding_center_coloring(*t1, *t2, &field) || are_colliding_center_coloring_different_tracks(*t1, *t2, &field){
                 // // println!("\n>>Center colliding! {:?} {:?}", t1, t2);
                 let newcol = mix_colors(t1.c, t2.c);
+                newly_collided_trains.push(Train{c: newcol, pos: t1.pos});
+                newly_collided_trains.push(Train{c: newcol, pos: t2.pos});
                 new_trains[i].c = newcol;
                 new_trains[i+j+1].c = newcol;
                 break;
             }
         }
     }
-    return (field, new_trains);
+    return (field, new_trains, newly_collided_trains);
 }
 
 pub fn do_center_coloring_things(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>){
@@ -531,14 +539,14 @@ pub fn run_level(field:  Vec<Vec<Tile>>, stop_at_crash: bool, deepcopy_: bool, m
     while t<max_run{
         t+=1;
         println!("\n TRAINS GOING IN: {:?}:", trains);
-        (field, trains) = check_center_colliding(trains, field);
+        (field, trains, _) = check_center_colliding(trains, field);
         (field, trains) = do_center_coloring_things(trains, field);
         
         (field, trains) = go_to_towards_side(trains, field);
         (field, trains) = add_beginnings(trains, field);
         (field, trains) = flip_exchanges(trains, field);
-        (field, trains) = check_merges(trains, field);
-        (field, trains) = check_border_collisions(trains, field);
+        (field, trains, _) = check_merges(trains, field);
+        (field, trains, _) = check_border_collisions(trains, field);
         (crashed, completed, field, trains) = check_arrived_or_crashed(trains, field);
         (field, trains) = set_towards_side(trains, field);
         
