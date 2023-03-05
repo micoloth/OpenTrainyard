@@ -632,7 +632,7 @@ fn _get_event_to_serialize_current_map(board_tilemap_q: &Query<(&BoardTileMap, &
     let mut current_solution_maybe: Option<SolutionData> = None;
     for (board_tilemap, board_game_state, borad_stick_status) in board_tilemap_q.iter() {
         current_solution_maybe = match board_game_state {
-            BoardGameState::Running(Won) => { Some(SolutionData::new_from_tiles(&board_tilemap.submitted_map, borad_stick_status.current_game_tick) )},
+            BoardGameState::Running(Won) => { Some(SolutionData::new_from_tiles(&board_tilemap.submitted_map, borad_stick_status.n_ticks_when_won) )},
             BoardGameState::Drawing | BoardGameState::Erasing => { 
                 if board_tilemap.map == board_tilemap.submitted_map { None }
                 else { Some(SolutionData::new_from_tiles(&board_tilemap.map, 0)) }

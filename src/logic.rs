@@ -271,6 +271,8 @@ pub fn listen_to_game_state_changes(
         for (mut board_tilemap, mut hovering_state, mut tick_status) in board_q.iter_mut() {
             match *ev {
                 ChangeGameStateEvent{old_state: BoardGameState::Running(RunningState::Started), new_state: BoardGameState::Running(RunningState::Won)} => {
+                    // Set tiem of won:
+                    tick_status.n_ticks_when_won = tick_status.current_game_tick;
                     // serialize submitted solution:
                     let solution_data = SolutionData::new_from_tiles(&board_tilemap.submitted_map, tick_status.current_game_tick);
                     let popup_text = "TRACK COUNT: ".to_string() + &solution_data.tracks.to_string() + "+" + &solution_data.second_tracks.to_string() + " \n TIME: " + &solution_data.time.to_string() + "\n"; 

@@ -139,6 +139,7 @@ pub struct BoardTickStatus {
     pub current_game_tick: u32,
     pub current_tick_in_a_tick: u32,
     pub first_half: Section,
+    pub n_ticks_when_won: u32,
 }
 // impl default:
 impl Default for BoardTickStatus {
@@ -147,6 +148,7 @@ impl Default for BoardTickStatus {
             current_game_tick: 0,
             current_tick_in_a_tick: 0,
             first_half: Section::NotEvenBegun,
+            n_ticks_when_won: 0,
         }
     }
 }
