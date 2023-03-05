@@ -264,6 +264,7 @@ pub fn listen_to_game_state_changes(
     mut level_solved_data_event_writer: EventWriter<SelectedLevelSolvedDataEvent>,
     player_solutions_data: Res<SolutionsSavedData>,
     levels: Res<PuzzlesData>, 
+    tick_params: Res<TicksInATick>,
 ) {
     // For each event:
     for ev in change_board_game_state_event_reader.iter() {
@@ -297,9 +298,9 @@ pub fn listen_to_game_state_changes(
                 ChangeGameStateEvent{old_state: _, new_state: BoardGameState::Running(_) }=> {
                     board_tilemap.current_trains = Vec::new();
                     board_tilemap.submitted_map = board_tilemap.map.clone();
-                    tick_status.current_tick_in_a_tick = 0;
+                    tick_status.current_tick_in_a_tick = (tick_params.ticks as f32 / 2.) as u32;
                     tick_status.current_game_tick = 0;
-                    tick_status.first_half = Section::NotEvenBegun;
+                    tick_status.first_half = Section::First;
                     *hovering_state = ev.new_state;
 
                 },
@@ -388,7 +389,6 @@ pub fn logic_tick_core(
     
     if trigger_event == TickMoment::TickEnd  || trigger_event == TickMoment::TickBegin {
         (new_tilemap, new_trains) = go_to_towards_side(new_trains, new_tilemap);
-        (new_tilemap, new_trains) = add_beginnings(new_trains, new_tilemap);
         (new_tilemap, new_trains) = flip_exchanges(new_trains, new_tilemap);
         (new_tilemap, new_trains, newly_collided) = check_merges(new_trains, new_tilemap);
         (new_tilemap, new_trains, more_newly_collided) = check_border_collisions(new_trains, new_tilemap);
@@ -400,6 +400,7 @@ pub fn logic_tick_core(
     else if trigger_event == TickMoment::TickMiddle {
         (new_tilemap, new_trains, newly_collided) = check_center_colliding(new_trains, new_tilemap);
         (new_tilemap, new_trains) = do_center_coloring_things(new_trains, new_tilemap);
+        (new_tilemap, new_trains) = add_beginnings(new_trains, new_tilemap);
     }
     else{
         panic!("Unknown RedrawEvent: for now we dont use {:?}", trigger_event);

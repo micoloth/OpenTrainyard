@@ -296,19 +296,7 @@ pub fn are_merging(t1:Train, t2:Train) -> bool{
     if p1.px == p2.px && p1.py == p2.py && p1.side == p2.side {true}
     else {false}
 }
-pub fn helper_make_trains(trains: &Vec<Train>, field: &Vec<Vec<Tile>>) -> (Vec<Train>, Vec<Vec<Tile>>){
-    let mut trains = trains.clone();
-    let mut field = field.clone();
-    for x in 0..7{for y in 0..7{
-        if let Tile::StartTile{elems, dir, orig_len:_} = &mut field[y][x]{
-            if elems.len() > 0{
-                trains.push(Train{c: elems.v[0].unwrap(), pos: Pos::new(x, y, *dir, false)});
-                elems.remove(0);
-            }
-        }
-    }}
-    return (trains, field);
-}
+
 pub fn helper_check_completed(field:&Vec<Vec<Tile>>) -> bool{
     let mut completed = true;
     for row in field{
@@ -345,7 +333,16 @@ pub fn go_to_towards_side(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec
 pub fn add_beginnings(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<Tile>>, Vec<Train>){
 
     // 1. add trains from starts
-    let (new_trains, new_field) = helper_make_trains(&trains, &field);
+    let mut new_trains = trains.clone();
+    let mut new_field = field.clone();
+    for x in 0..7{for y in 0..7{
+        if let Tile::StartTile{elems, dir, orig_len:_} = &mut new_field[y][x]{
+            if elems.len() > 0{
+                new_trains.push(Train{c: elems.v[0].unwrap(), pos: Pos{px: x, py: y, side: flip_side(dir.clone()), going_in: true, towards_side: Some(*dir)}});
+                elems.remove(0);
+            }
+        }
+    }}
     // println!("after 1 ntrains{:?}:", new_trains);
     return (new_field, new_trains);
 }
