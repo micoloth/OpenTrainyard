@@ -294,10 +294,12 @@ fn handle_full_click(
     mut full_click_happened_reader: EventReader<FullClickHappened>,
     mut state: ResMut<State<GameState>>,
     selected_level: Res<SelectedLevel>,
+    windows: Res<Windows>,
 ) {
     for ev in full_click_happened_reader.iter() {
         info!("YEEEE Successfull Click!!! : ");
-        if selected_level.level != "" && ev.pos.y > BANNER_HEIGHT
+        let height = windows.get_primary().unwrap().height();
+        if selected_level.level != "" && ev.pos.y < height / 2. - BANNER_HEIGHT
         {
             state.set(GameState::MenuSolutions).unwrap();
         }

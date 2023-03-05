@@ -39,38 +39,54 @@
 
     <!-- After 10 seconds on the page, show a static popup div in the middle of the page saying "thanks": -->
     <!-- 1. Define the div: -->
-    <div id="popup_star" class="popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background-color:rgba(23, 23, 30, 0.8); color:white; padding:20px; border-radius:10px; text-align:center;">
-        <h1>Thanks for playing Trainyard!</h1>
+    <div id="popup_star" class="popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background-color:rgba(13, 23, 30, 0.85); color:white; padding:20px; border-radius:10px; text-align:center;">
+        <h2>Thanks for playing Trainyard!</h2>
         <p>You can join the <a href="https://discord.gg/umnMwFdA" target="_blank" style="color:rgb(159, 190, 255);">Discord here</a> to discuss about it.</p>
         <p>If you like the game, please consider starring the Github Repo 
             <a href="https://github.com/micoloth" target="_blank" style="color:rgb(159, 190, 255);">here</a>.
             <br>
             It would mean a lot!
         </p>
-        <p>Thanks.</p>
+        <div class="close" style="position:absolute; top:5px; right: 5px; height: 40px; width: 40px;  padding-top: -50px; cursor:pointer; color:white; background-color:rgba(53, 53, 60, 0.8); font-size:40px;"><div style="margin-top: -15px;">&times;</div></div>
+        <div style="height:35px;"></div>
+        <div class="close" style="position:absolute; bottom:0; left:50%; transform:translate(-50%, 0); padding:10px 15px; margin-bottom:15px; margin-top:15px; color:white; font-size:20px; background-color:rgb(53, 53, 60);">Close</div>
+
     </div>
-    <div id="popup_timer" class="popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background-color:rgba(23, 23, 30, 0.8); color:white; padding:20px; border-radius:10px; text-align:center;">
+    <div id="popup_timer" class="popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background-color:rgba(13, 23, 30, 0.85); color:white; padding:20px; border-radius:10px; text-align:center;">
         <h2>Remember to not procrastinate too much!</h2>
         <p>You probably have work to do... :)</p>
         <p>Again, please consider adding a
             <a href="https://github.com/micoloth" target="_blank" style="color:rgb(159, 190, 255);">star</a>.
         </p>
+        <div class="close" style="position:absolute; top:5px; right: 5px; height: 40px; width: 40px;  padding-top: -50px; cursor:pointer; color:white; background-color:rgba(53, 53, 60, 0.8); font-size:40px;"><div style="margin-top: -15px;">&times;</div></div>
+        <div style="height:35px;"></div>
+        <div class="close" style="position:absolute; bottom:0; left:50%; transform:translate(-50%, 0); padding:10px 15px; margin-bottom:15px; margin-top:15px; color:white; font-size:20px; background-color:rgb(53, 53, 60);">Close</div>
+
     </div>
     <!-- 2. Define Javascript logic to show the div after 10 seconds: -->
     <script>
         // Check if it is the first time the user is on the page:
         if (localStorage.getItem("first_time") === null) {
             localStorage.setItem("first_time", "false");
-            setTimeout(function () { document.getElementById("popup_star").style.display = "block"; }, 200000);  // 10 minutes: 600000
+            setTimeout(function () { document.getElementById("popup_star").style.display = "block"; }, 200000);  // 3.3 minutes: 200000
             setTimeout(function () { document.getElementById("popup_timer").style.display = "block"; }, 600000);  // 10 minutes: 600000
         }
 
-        // <!-- 3. Add another logi: when the user clicks anywhere in the page, hide the div: -->
-        document.addEventListener("click", function () {
-            document.getElementById("popup_star").style.display = "none";
-            document.getElementById("popup_timer").style.display = "none";
+        // WHen any of the elements of class "close" is clicked, hide the popup:
+        var close = document.getElementsByClassName("close");
+        for (var i = 0; i < close.length; i++) {
+            close[i].onclick = function () {
+                var div = this.parentElement;
+                div.style.display = "none";
+            }
         }
-        );
+
+
+        // <!-- 3. Add another logi: when the user clicks anywhere in the page, hide the div: -->
+        // document.addEventListener("click", function () {
+        //     document.getElementById("popup_star").style.display = "none";
+        //     document.getElementById("popup_timer").style.display = "none";
+        // }
     </script>
 
 </body>
