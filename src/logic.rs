@@ -339,28 +339,13 @@ pub fn logic_tick(
             if tick_status.first_half == Section::NotEvenBegun { tick_status.current_game_tick = 0; }  // if NoteEvenBegun, set game_tick to 0
             tick_status.current_tick_in_a_tick = 0;
             tick_status.current_game_tick += 1;
-            let (map, current_trains, cosmetic_trains_to_spawn, crashed, completed) = logic_tick_core(&board_tilemap, TickMoment::TickEnd);
+            let (map, current_trains) = logic_tick_core(&board_tilemap, TickMoment::TickEnd, &mut spawn_cosmetic_train_event_writer, &mut change_gamestate_event_writer, &mut game_state, &board_id);
             (board_tilemap.map, board_tilemap.current_trains) = (map, current_trains); 
             tick_status.first_half = Section::First;  // println!("Tick now 0");
-            
-            ////////////////// Spawn events:
-            for train in cosmetic_trains_to_spawn { spawn_cosmetic_train_event_writer.send(SpawnCosmeticTrainEvent{train: train, board_id: board_id}); }
-            if crashed && (*game_state != BoardGameState::Running(RunningState::Crashed)) {  // This is bc res mut trigger is fired always
-                *game_state = BoardGameState::Running(RunningState::Crashed);
-            }
-            else if completed && (*game_state != BoardGameState::Running(RunningState::Won) && (*game_state != BoardGameState::Running(RunningState::Crashed))) {
-                change_gamestate_event_writer.send(ChangeGameStateEvent{old_state: *game_state, new_state: BoardGameState::Running(RunningState::Won)});  // Here I'm ASSUMING 
-                *game_state = BoardGameState::Running(RunningState::Won);
-            }
-            /////////////////////////:
 
         } else if tick_status.current_tick_in_a_tick >= ((tick_params.ticks as f32 / 2.) as u32)  && tick_status.first_half == Section::First {
             tick_status.first_half = Section::Second;
-            let cosmetic_trains_to_spawn: Vec<Train>;
-            (board_tilemap.map, board_tilemap.current_trains, cosmetic_trains_to_spawn, _, _) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle);
-            
-            // For each train in cosmetic_trains_to_spawn, launch even:
-            for train in cosmetic_trains_to_spawn { spawn_cosmetic_train_event_writer.send(SpawnCosmeticTrainEvent{train: train, board_id: board_id}); }
+            (board_tilemap.map, board_tilemap.current_trains) = logic_tick_core(&mut board_tilemap, TickMoment::TickMiddle, &mut spawn_cosmetic_train_event_writer, &mut change_gamestate_event_writer, &mut game_state, &board_id);
         }
         tick_status.current_tick_in_a_tick += 1;
         // else {
@@ -378,13 +363,19 @@ pub fn logic_tick(
 pub fn logic_tick_core(
         board_tilemap: &BoardTileMap, 
         trigger_event: TickMoment, 
-    ) -> (Vec<Vec<Tile>>, Vec<Train>, Vec<Train>, bool, bool){ 
+
+        // Utils needed to spawn events:
+        spawn_cosmetic_train_event_writer: &mut EventWriter<SpawnCosmeticTrainEvent>,
+        change_gamestate_event_writer: &mut EventWriter<ChangeGameStateEvent>,
+        game_state: &mut BoardGameState,
+        board_id: &Entity,
+    ) -> (Vec<Vec<Tile>>, Vec<Train>){ 
 
     let mut new_tilemap: Vec<Vec<Tile>>;
     let mut new_trains: Vec<Train>;
     let mut newly_collided: Vec<Train>;
-    let mut more_newly_collided: Vec<Train>;
-    let mut crashed: bool = false;
+    let more_newly_collided: Vec<Train>;
+    let crashed: bool;
     let mut completed: bool = false;
     
     (new_tilemap, new_trains) = (board_tilemap.map.clone(), board_tilemap.current_trains.clone());
@@ -394,20 +385,33 @@ pub fn logic_tick_core(
         (new_tilemap, new_trains) = flip_exchanges(new_trains, new_tilemap);
         (new_tilemap, new_trains, newly_collided) = check_merges(new_trains, new_tilemap);
         (new_tilemap, new_trains, more_newly_collided) = check_border_collisions(new_trains, new_tilemap);
-        (crashed, completed, new_tilemap, new_trains) = check_arrived_or_crashed(new_trains, new_tilemap);
+        (crashed, new_tilemap, new_trains) = check_crashed(new_trains, new_tilemap);
         (new_tilemap, new_trains) = set_towards_side(new_trains, new_tilemap);
         
         newly_collided.extend(more_newly_collided);
     }
     else if trigger_event == TickMoment::TickMiddle {
         (new_tilemap, new_trains, newly_collided) = check_center_colliding(new_trains, new_tilemap);
+        (crashed, completed, new_tilemap, new_trains) = check_arrived(new_trains, new_tilemap);
         (new_tilemap, new_trains) = do_center_coloring_things(new_trains, new_tilemap);
         (new_tilemap, new_trains) = add_beginnings(new_trains, new_tilemap);
     }
     else{
         panic!("Unknown RedrawEvent: for now we dont use {:?}", trigger_event);
     }
-    return (new_tilemap, new_trains, newly_collided, crashed, completed);
+
+    ////////////////// Spawn events:
+    let cosmetic_trains_to_spawn = newly_collided;
+    for train in cosmetic_trains_to_spawn.iter() { spawn_cosmetic_train_event_writer.send(SpawnCosmeticTrainEvent{train: train.clone(), board_id: board_id.clone()}); }
+    if crashed && (*game_state != BoardGameState::Running(RunningState::Crashed)) {  // This is bc res mut trigger is fired always
+        *game_state = BoardGameState::Running(RunningState::Crashed);
+    }
+    else if completed && (*game_state != BoardGameState::Running(RunningState::Won) && (*game_state != BoardGameState::Running(RunningState::Crashed))) {
+        change_gamestate_event_writer.send(ChangeGameStateEvent{old_state: *game_state, new_state: BoardGameState::Running(RunningState::Won)});  // Here I'm ASSUMING 
+        *game_state = BoardGameState::Running(RunningState::Won);
+    }
+    /////////////////////////:
+    return (new_tilemap, new_trains);
 
 }
 

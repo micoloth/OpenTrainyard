@@ -418,22 +418,32 @@ pub fn check_border_collisions(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Ve
 }
 
 //     # 4. For each train, change their >SIDE< only following track
-pub fn check_arrived_or_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (bool, bool, Vec<Vec<Tile>>, Vec<Train>){
+pub fn check_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (bool, Vec<Vec<Tile>>, Vec<Train>){
 
+    let mut crashed = false;
+    for (_, train) in trains.iter().enumerate(){
+        let tile = &field[train.pos.py][train.pos.px];
+        if !can_pass_through(tile, train.pos.side) {crashed=true; continue;}
+    };
+
+    // // println!(">>>> {:?}", print_tile(&new_field[3][5]));
+    // println!("after 4 trains{:?}; Crashed: {:?}, Completed: {:?}", new_trains, crashed, completed);
+    return (crashed, field, trains);
+}
+
+//     # 4. For each train, change their >SIDE< only following track
+pub fn check_arrived(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (bool, bool, Vec<Vec<Tile>>, Vec<Train>){
     let mut crashed = false;
     let mut new_trains: Vec<Train> = Vec::new();
     let mut new_field: Vec<Vec<Tile>> = field.clone();
     for (_, train) in trains.iter().enumerate(){
         let tile = &new_field[train.pos.py][train.pos.px];
-        if !can_pass_through(tile, train.pos.side) {crashed=true; continue;}
         if let Tile::EndTile{elems, t_:_t_, b_:_b_, l_:_l_, r_:_r_, orig_len: orig_len} = tile {
             if elems.v.contains(&Some(train.c)){
                 let mut newelems = elems.clone();
                 // Remove the FIRST instance of train.c in elems:
                 newelems.remove(elems.iter().position(|x| x == train.c).unwrap());
                 new_field[train.pos.py][train.pos.px] = Tile::EndTile{t_: *_t_, b_: *_b_, l_: *_l_, r_: *_r_, elems: newelems, orig_len: *orig_len};
-                // STILL push the train,. because it will despawn in the Center:
-                new_trains.push(*train);
             }
             else{
                 crashed = true;
@@ -530,6 +540,7 @@ pub fn do_center_coloring_things(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (
 pub fn run_level(field:  Vec<Vec<Tile>>, stop_at_crash: bool, deepcopy_: bool, max_run: usize) -> (bool, usize){
     let mut field = field.clone();
     let mut crashed: bool;
+    let mut crashed2: bool;
     let mut completed: bool;
     let mut won = false;
     let mut trains: Vec<Train> = Vec::new();
@@ -539,6 +550,7 @@ pub fn run_level(field:  Vec<Vec<Tile>>, stop_at_crash: bool, deepcopy_: bool, m
         t+=1;
         println!("\n TRAINS GOING IN: {:?}:", trains);
         (field, trains, _) = check_center_colliding(trains, field);
+        (crashed2, completed, field, trains) = check_arrived(trains, field);
         (field, trains) = do_center_coloring_things(trains, field);
         
         (field, trains) = go_to_towards_side(trains, field);
@@ -546,7 +558,8 @@ pub fn run_level(field:  Vec<Vec<Tile>>, stop_at_crash: bool, deepcopy_: bool, m
         (field, trains) = flip_exchanges(trains, field);
         (field, trains, _) = check_merges(trains, field);
         (field, trains, _) = check_border_collisions(trains, field);
-        (crashed, completed, field, trains) = check_arrived_or_crashed(trains, field);
+        (crashed, field, trains) = check_crashed(trains, field);
+        crashed = crashed2 && crashed;
         (field, trains) = set_towards_side(trains, field);
         
         won = completed && !crashed && trains.len() == 0;

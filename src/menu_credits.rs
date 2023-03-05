@@ -76,10 +76,24 @@ fn setup_menu_credits(
     let text_id = commands.spawn(TextBundle {
         style: Style { position_type: PositionType::Absolute, margin: UiRect::all(Val::Auto), ..default() },
         text: Text {
-            sections: vec![TextSection {
-                value: "Walla. So good!".to_string(),
-                style: TextStyle { font: font_assets.fira_sans.clone(), font_size:25., color: Color::rgb(0.9, 0.9, 0.9), },
-            }],
+            sections: vec![
+            TextSection {
+                value: "Credits go entirely to the original creator of\nthis great puzzle:\n".to_string(),
+                style: TextStyle { font: font_assets.fira_sans.clone(), font_size:22., color: Color::rgb(0.9, 0.9, 0.9), },
+            },
+            TextSection {
+                value: "Matt Rix".to_string(),
+                style: TextStyle { font: font_assets.fira_sans.clone(), font_size:35., color: Color::rgb(0.9, 0.9, 0.9), },
+            },
+            TextSection {
+                value: "\n(@MattRix on Twitter)\n\n".to_string(),
+                style: TextStyle { font: font_assets.fira_sans.clone(), font_size:22., color: Color::rgb(0.9, 0.9, 0.9), },
+            },
+            TextSection {
+                value: "Reimplemented using the Bevy game engine\nby Micoloth\n(https://github.com/micoloth)".to_string(),
+                style: TextStyle { font: font_assets.fira_sans.clone(), font_size:22., color: Color::rgb(0.9, 0.9, 0.9), },
+            }
+            ],
             alignment: TextAlignment{ vertical: VerticalAlign::Center, horizontal: HorizontalAlign::Center, },
         ..default()
     },
