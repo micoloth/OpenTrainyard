@@ -435,6 +435,8 @@ pub fn check_arrived_or_crashed(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (b
                 // Remove the FIRST instance of train.c in elems:
                 newelems.remove(elems.iter().position(|x| x == train.c).unwrap());
                 new_field[train.pos.py][train.pos.px] = Tile::EndTile{t_: *_t_, b_: *_b_, l_: *_l_, r_: *_r_, elems: newelems, orig_len: *orig_len};
+                // STILL push the train,. because it will despawn in the Center:
+                new_trains.push(*train);
             }
             else{
                 crashed = true;
@@ -461,10 +463,7 @@ pub fn set_towards_side(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (Vec<Vec<T
             Tile::TrackTile{toptrack:_, bottrack:_} | Tile::SingleTrackTile{track:_} => {
                 new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(out_side_from_in(train.pos.side, tile).unwrap())}});
             },
-            Tile::PaintTile{c, track:_} => {
-                new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(flip_side(train.pos.side))}});
-            },
-            Tile::SplitTile{side_in:_} => {
+            Tile::PaintTile{c:_, track:_} | Tile::SplitTile{side_in:_} | Tile::EndTile { t_:_, b_:_, l_:_, r_:_, elems:_, orig_len:_ } => {
                 new_trains.push(Train{c: train.c, pos: Pos{px: train.pos.px, py: train.pos.py, side: train.pos.side, going_in: true, towards_side: Some(flip_side(train.pos.side))}});
             },
             _ => panic!("How can you ever get to this path !!! {:?} {:?}", train, tile),
@@ -517,6 +516,9 @@ pub fn do_center_coloring_things(trains: Vec<Train>, field: Vec<Vec<Tile>>) -> (
             Tile::SplitTile{side_in:_} => {
                 let (t1, t2) = out_trains_from_split(*train);
                 new_trains.push(t1); new_trains.push(t2);
+            },
+            Tile::EndTile { t_:_, b_:_, l_:_, r_:_, elems:_, orig_len:_ } => {
+                // Pass, cuz its time to despawn
             },
             _ => { new_trains.push(*train); },
         }
