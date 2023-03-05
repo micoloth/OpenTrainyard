@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta id="extViewportMeta" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <title>TrainYard</title> <!-- ToDo -->
+    <title>Trainyard</title> <!-- ToDo -->
     
     
     
@@ -71,8 +71,8 @@ body {
 }</style>
     <link href="https://fonts.googleapis.com/css2?family=Oswald&amp;display=swap" rel="stylesheet">
 
-<link rel="preload" href="/OpenTrainyard/trainyard-7fb0663dc2bb0bd9_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/OpenTrainyard/trainyard-7fb0663dc2bb0bd9.js"></head>
+<link rel="preload" href="/OpenTrainyard/trainyard-528f4427b0ee580c_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/OpenTrainyard/trainyard-528f4427b0ee580c.js"></head>
 
 <body>
     <script>// Insert hack to make sound autoplay on Chrome as soon as the user interacts with the tab:
@@ -157,7 +157,8 @@ body {
     <!-- 1. Define the div: -->
     <div id="popup_star" class="popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background-color:rgba(23, 23, 30, 0.8); color:white; padding:20px; border-radius:10px; text-align:center;">
         <h1>Thanks for playing Trainyard!</h1>
-        <p>If you like this, please consider starring the Github Repo 
+        <p>You can join the <a href="https://discord.gg/umnMwFdA" target="_blank" style="color:rgb(159, 190, 255);">Discord here</a> to discuss about it.</p>
+        <p>If you like the game, please consider starring the Github Repo 
             <a href="https://github.com/micoloth" target="_blank" style="color:rgb(159, 190, 255);">here</a>.
             <br>
             It would mean a lot!
@@ -174,8 +175,8 @@ body {
     <!-- 2. Define Javascript logic to show the div after 10 seconds: -->
     <script>
         // Check if it is the first time the user is on the page:
-        if (localStorage.getItem("firstTime") === null) {
-            localStorage.setItem("firstTime", "false");
+        if (localStorage.getItem("first_time") === null) {
+            localStorage.setItem("first_time", "false");
             setTimeout(function () { document.getElementById("popup_star").style.display = "block"; }, 200000);  // 10 minutes: 600000
             setTimeout(function () { document.getElementById("popup_timer").style.display = "block"; }, 600000);  // 10 minutes: 600000
         }
@@ -190,4 +191,4 @@ body {
 
 
 
-<script type="module">import init from '/OpenTrainyard/trainyard-7fb0663dc2bb0bd9.js';init('/OpenTrainyard/trainyard-7fb0663dc2bb0bd9_bg.wasm');</script></body></html>
+<script type="module">import init from '/OpenTrainyard/trainyard-528f4427b0ee580c.js';init('/OpenTrainyard/trainyard-528f4427b0ee580c_bg.wasm');</script></body></html>
