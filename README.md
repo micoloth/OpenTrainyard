@@ -16,7 +16,7 @@ You can play it online here! https://micoloth.github.io/OpenTrainyard/
 
 # Discord
 
-Join the discord to discuss the game and the engine [here](https://discord.gg/umnMwFdA) 
+Join the Discord server to discuss the game and the engine [here](https://discord.gg/umnMwFdA) 
 
 
 # Limitations
