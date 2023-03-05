@@ -67,7 +67,7 @@ fn setup_menu(
     mut player_solutions_data: ResMut<SolutionsSavedData>,
 
 ) {
-    // pkv.set(LOCAL_STORAGE_DAzTA_KEY, &SolutionsSavedData::default()).expect("failed to store level data");
+    // pkv.set(LOCAL_STORAGE_DATA_KEY, &SolutionsSavedData::default()).expect("failed to store level data");
 
     if let Ok(all_solutions) = pkv.get::<SolutionsSavedData>(LOCAL_STORAGE_DATA_KEY) {
         // Set resource:

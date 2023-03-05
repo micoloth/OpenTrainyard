@@ -617,7 +617,7 @@ fn get_upper_coordinates(windows: &Windows) -> ((f32, f32, f32, f32), (f32, f32,
     let right = width * percent_left_right + margin/2.;
     let bottom = height / 2. - width / 2. - 3.5 * margin - 2.* button_height;
     let top = height / 2. - width / 2. - 3.5 * margin - button_height;
-    return ((left, right - margin, bottom, top), (right, width - right, bottom, top), (width - right + margin, width - left, bottom, top));
+    return ((left, right - margin -6., bottom, top), (right, width - right, bottom, top), (width - right + margin + 6., width - left, bottom, top));
 }
 
 

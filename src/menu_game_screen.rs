@@ -498,8 +498,6 @@ fn show_track_number_in_title_text(
         for mut text in text_query.iter_mut() {
             match board_hoverable {
                 BoardHoverable {hovered_pos_1: Some(_), hovered_pos_2: Some(_), history: _} 
-                 | BoardHoverable {hovered_pos_1: Some(_), hovered_pos_2: None, history: _}
-                 | BoardHoverable {hovered_pos_1: None, hovered_pos_2: Some(_) , history: _}
                  => {
                     let track_number = count_tracks(&board_tilemap.map);
                     let double_track_number = count_double_tracks(&board_tilemap.map);
@@ -577,7 +575,7 @@ fn change_level(
     else if selected_level.level == "The First" && just_begun_level{
         commands.insert_resource(PopupTimer {
             timer: Some(Timer::from_seconds(1., TimerMode::Once)),
-            popup_text: "COLLIDE two trains in any way to mix their colors".to_string(),
+            popup_text: "COLLIDE two trains in any way\nto mix their colors".to_string(),
             // popup_text_2: Some("(3/4)".to_string()),
             popup_text_2: None,
             popup_type: PopupType::Tutorial,
@@ -586,7 +584,7 @@ fn change_level(
     else if selected_level.level == "Prellow" && just_begun_level{
         commands.insert_resource(PopupTimer {
             timer: Some(Timer::from_seconds(1., TimerMode::Once)),
-            popup_text: "The most important thing: \nwhen a train passes over an exchange, it FLIPS it".to_string(),
+            popup_text: "The most important thing: \nwhen a train passes over an exchange,\nit FLIPS it!".to_string(),
             // popup_text_2: Some("(4/4)".to_string()),
             popup_text_2: None,
             popup_type: PopupType::Tutorial,
@@ -595,7 +593,7 @@ fn change_level(
     else if selected_level.level == "Around the Bend" && just_begun_level{
         commands.insert_resource(PopupTimer {
             timer: Some(Timer::from_seconds(1., TimerMode::Once)),
-            popup_text: "One last tip: when you are drawing, \nflip an exchange by DOUBLE CLICKING it".to_string(),
+            popup_text: "One last tip:\nwhen you are drawing, flip an exchange by \nDOUBLE CLICKING on it".to_string(),
             popup_text_2: None,
             popup_type: PopupType::Tutorial,
         });
@@ -677,6 +675,6 @@ fn get_upper_coordinates(windows: &Windows) -> ((f32, f32, f32, f32), (f32, f32,
     let right = width * percent_left_right + margin/2.;
     let bottom = height / 2. - width / 2. - 3.5 * margin - 2.* button_height;
     let top = height / 2. - width / 2. - 3.5 * margin - button_height;
-    return ((left, right - margin, bottom, top), (right, width - right, bottom, top), (width - right + margin, width - left, bottom, top));
+    return ((left, right - margin - 6., bottom, top), (right, width - right, bottom, top), (width - right + margin + 6., width - left, bottom, top));
 }
 

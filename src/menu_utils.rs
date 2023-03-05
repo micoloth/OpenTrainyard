@@ -712,7 +712,7 @@ pub fn make_tutorial_popup(
                 value: text,
                 style: TextStyle {
                     font: font_assets.fira_sans.clone(),
-                    font_size: 15.,
+                    font_size: font_size,
                     color: Color::rgba(0.9, 0.9, 0.9, 0.9),
                 },
             }],
