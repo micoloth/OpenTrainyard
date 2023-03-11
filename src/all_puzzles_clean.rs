@@ -411,6 +411,17 @@ pub fn load_puzzles_data() -> PuzzlesData {
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/balsam_thumb.png"
     },
     PuzzleData {
+        // "local_filename_map": "Rainbow.png",
+        name: "Rainbow".to_string(),
+        // "solutions_url": "http://www.trainyard.ca/solutions/rainbow",
+        city: "Calgary Puzzles".to_string(),
+        parsed_map: "E0100_r 00 00 00 00 00 St_r\nSb_p 00 00 00 00 00 E1000_p\nE0100_b 00 00 00 00 00 St_b\nSb_g 00 00 00 00 00 E1000_g\nE0100_y 00 00 00 00 00 St_y\nSb_o 00 00 00 00 00 E1000_o\nE0100_r 00 00 00 00 00 St_r".to_string(),
+        type_: "Regular puzzles".to_string(),
+        track_count: "25+15".to_string(),
+        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797499_large.png",
+        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/rainbow_thumb.png"
+    },
+    PuzzleData {
         // "local_filename_map": "Wailing.png",
         name: "Wailing".to_string(),
         // "solutions_url": "http://www.trainyard.ca/solutions/wailing",
@@ -464,17 +475,6 @@ pub fn load_puzzles_data() -> PuzzlesData {
         track_count: "21+10".to_string(),
         // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2798815_large.png",
         // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/pals_thumb.png"
-    },
-    PuzzleData {
-        // "local_filename_map": "Rainbow.png",
-        name: "Rainbow".to_string(),
-        // "solutions_url": "http://www.trainyard.ca/solutions/rainbow",
-        city: "Calgary Puzzles".to_string(),
-        parsed_map: "E0100_r 00 00 00 00 00 St_r\nSb_p 00 00 00 00 00 E1000_p\nE0100_b 00 00 00 00 00 St_b\nSb_g 00 00 00 00 00 E1000_g\nE0100_y 00 00 00 00 00 St_y\nSb_o 00 00 00 00 00 E1000_o\nE0100_r 00 00 00 00 00 St_r".to_string(),
-        type_: "Regular puzzles".to_string(),
-        track_count: "25+15".to_string(),
-        // "big_image_url": "http://www.trainyard.ca//system/content/images/blueprintsByID/png/2797499_large.png",
-        // "thumb": "http://s3.amazonaws.com/TrainyardSiteMisc/images/puzzles/rainbow_thumb.png"
     },
     PuzzleData {
         // "local_filename_map": "Under The Fence.png",

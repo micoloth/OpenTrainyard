@@ -68,8 +68,8 @@
         // Check if it is the first time the user is on the page:
         if (localStorage.getItem("first_time") === null) {
             localStorage.setItem("first_time", "false");
-            setTimeout(function () { document.getElementById("popup_star").style.display = "block"; }, 200000);  // 3.3 minutes: 200000
-            setTimeout(function () { document.getElementById("popup_timer").style.display = "block"; }, 600000);  // 10 minutes: 600000
+            setTimeout(function () { document.getElementById("popup_star").style.display = "block"; }, 600000);  // 3.3 minutes: 200000
+            setTimeout(function () { document.getElementById("popup_timer").style.display = "block"; }, 1200000);  // 10 minutes: 600000
         }
 
         // WHen any of the elements of class "close" is clicked, hide the popup:
