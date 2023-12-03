@@ -587,7 +587,7 @@ fn change_level(
     else if selected_level.level == "Prellow" && just_begun_level{
         commands.insert_resource(PopupTimer {
             timer: Some(Timer::from_seconds(1., TimerMode::Once)),
-            popup_text: "The most important thing: \nwhen a train passes over an exchange,\nit FLIPS it!".to_string(),
+            popup_text: "The most important part: \nwhen a train passes over an exchange,\nit FLIPS it!".to_string(),
             // popup_text_2: Some("(4/4)".to_string()),
             popup_text_2: None,
             popup_type: PopupType::Tutorial,
@@ -596,7 +596,7 @@ fn change_level(
     else if selected_level.level == "Around the Bend" && just_begun_level{
         commands.insert_resource(PopupTimer {
             timer: Some(Timer::from_seconds(1., TimerMode::Once)),
-            popup_text: "One last tip:\nwhen you are drawing, flip an exchange by \nDOUBLE CLICKING on it".to_string(),
+            popup_text: "You can't draw over rocks.\n One last tip:\nwhile drawing, you can flip an exchange\nby DOUBLE CLICKING on it".to_string(),
             popup_text_2: None,
             popup_type: PopupType::Tutorial,
         });
