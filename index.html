@@ -1,5 +1,8 @@
-<!DOCTYPE html><html lang="en"><head>
-    <meta charset="utf-8">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="My App">
     <meta name="mobile-web-app-capable" content="yes">
@@ -13,7 +16,7 @@
     
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon.ico">
-    <style type="text/css">
+    <style>
 /* Custom properties when on Moile: */
 @media (max-width: 600px) {
     body, html {
@@ -69,10 +72,8 @@ body {
 .popup {
     font-family: 'Oswald', sans-serif;
 }</style>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald&amp;display=swap" rel="stylesheet">
-
-<link rel="preload" href="/OpenTrainyard/trainyard-d8f38891daacca7_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/OpenTrainyard/trainyard-d8f38891daacca7.js"></head>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
+<link rel="modulepreload" href="OpenTrainyard/trainyard-5dd3f105b17be89b.js" crossorigin="anonymous" integrity="sha384-dYW5kBQ5RGCnvqq2ZvEYL7TyT3TaeJmTQnutLhM0tr8e8a96jw89AkqrsrTFZT8l"><link rel="preload" href="OpenTrainyard/trainyard-5dd3f105b17be89b_bg.wasm" crossorigin="anonymous" integrity="sha384-WuhprsiJlaB9M0yXRxMPtB2NKY/+5pTv5JG2wJO5hKr0zE81E1FexZzL4oZFC4Ay" as="fetch" type="application/wasm"></head>
 
 <body>
     <script>// Insert hack to make sound autoplay on Chrome as soon as the user interacts with the tab:
@@ -163,7 +164,7 @@ body {
             <br>
             It would mean a lot!
         </p>
-        <div class="close" style="position:absolute; top:5px; right: 5px; height: 40px; width: 40px;  padding-top: -50px; cursor:pointer; color:white; background-color:rgba(53, 53, 60, 0.8); font-size:40px;"><div style="margin-top: -15px;">×</div></div>
+        <div class="close" style="position:absolute; top:5px; right: 5px; height: 40px; width: 40px;  padding-top: -50px; cursor:pointer; color:white; background-color:rgba(53, 53, 60, 0.8); font-size:40px;"><div style="margin-top: -15px;">&times;</div></div>
         <div style="height:35px;"></div>
         <div class="close" style="position:absolute; bottom:0; left:50%; transform:translate(-50%, 0); padding:10px 15px; margin-bottom:15px; margin-top:15px; color:white; font-size:20px; background-color:rgb(53, 53, 60);">Close</div>
 
@@ -174,7 +175,7 @@ body {
         <p>Again, please consider adding a
             <a href="https://github.com/micoloth" target="_blank" style="color:rgb(159, 190, 255);">star</a>.
         </p>
-        <div class="close" style="position:absolute; top:5px; right: 5px; height: 40px; width: 40px;  padding-top: -50px; cursor:pointer; color:white; background-color:rgba(53, 53, 60, 0.8); font-size:40px;"><div style="margin-top: -15px;">×</div></div>
+        <div class="close" style="position:absolute; top:5px; right: 5px; height: 40px; width: 40px;  padding-top: -50px; cursor:pointer; color:white; background-color:rgba(53, 53, 60, 0.8); font-size:40px;"><div style="margin-top: -15px;">&times;</div></div>
         <div style="height:35px;"></div>
         <div class="close" style="position:absolute; bottom:0; left:50%; transform:translate(-50%, 0); padding:10px 15px; margin-bottom:15px; margin-top:15px; color:white; font-size:20px; background-color:rgb(53, 53, 60);">Close</div>
 
@@ -206,5 +207,16 @@ body {
     </script>
 
 
+<script type="module">
+import init, * as bindings from 'OpenTrainyard/trainyard-5dd3f105b17be89b.js';
+const wasm = await init({ module_or_path: 'OpenTrainyard/trainyard-5dd3f105b17be89b_bg.wasm' });
 
-<script type="module">import init from '/OpenTrainyard/trainyard-d8f38891daacca7.js';init('/OpenTrainyard/trainyard-d8f38891daacca7_bg.wasm');</script></body></html>
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+
+</html>
