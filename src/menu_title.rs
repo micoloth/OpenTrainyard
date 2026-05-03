@@ -102,7 +102,7 @@ fn setup_menu(
                 ..default()
             },
             // Scale down to 50% of the width:
-            transform: Transform::from_xyz(0., height * 0.11, 0.),
+            transform: Transform::from_xyz(0., height * 0.11, 1.),
             ..default()
     },
     MainMenuElem{}));
