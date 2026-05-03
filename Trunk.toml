@@ -1,0 +1,10 @@
+# Trunk configuration for WASM builds
+
+[build]
+# Enable release mode
+release = true
+
+[tools]
+# Enable wasm-opt for additional size reduction (10-20% smaller)
+# This will download wasm-opt automatically
+wasm_opt = "version_116"

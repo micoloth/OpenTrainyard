@@ -29,6 +29,14 @@ cd OpenTrainyard
 trunk serve
 
 
+
+
+################ ON LINUX:
+
+ln -sf /home/new_user/my_stuff/coding/OpenTrainyard/assets /home/new_user/my_stuff/coding/OpenTrainyard/target/release/assets && ./target/release/trainyard &
+
+
+
 ################ Released:
 
 
@@ -79,3 +87,12 @@ TODO:
  
  - WONT DO Music
     
+
+
+
+
+
+
+
+
+

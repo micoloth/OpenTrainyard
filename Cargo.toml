@@ -13,9 +13,23 @@ opt-level = 3
 opt-level = 3
 
 [profile.release]
-opt-level = 3
+opt-level = 'z'      # Optimize for size (was 3)
 lto = true
 codegen-units = 1
+strip = true         # Strip debug symbols
+panic = 'abort'      # Smaller panic handling
+
+# Native-optimized profile (for desktop builds)
+[profile.release-native]
+inherits = "release"
+opt-level = 3        # Optimize for speed on desktop
+
+# WASM-specific optimizations for smaller bundle size
+[profile.release-wasm]
+inherits = "release"
+opt-level = 'z'      # Optimize for size instead of speed
+strip = true         # Strip symbols
+panic = 'abort'      # No unwinding = smaller binary
 
 [features]
 dev = [
