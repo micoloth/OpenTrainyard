@@ -29,11 +29,16 @@ jobs:
           rustup target add wasm32-unknown-unknown
       - name: Build Release
         run: |
-          trunk build --release --public-url "${GITHUB_REPOSITORY#*/}"
+          trunk build --release --public-url "/${GITHUB_REPOSITORY#*/}/"
+      # Note: wasm-opt may fail with bulk memory errors on Bevy WASM builds
+      # The Cargo.toml already has size optimizations (opt-level='z', lto, strip)
+      # which provide most of the benefit
       - name: optimize Wasm
         uses: NiklasEi/wasm-opt-action@v2
         with:
           file: dist/*.wasm
+          options: '--enable-bulk-memory -Oz'
+        continue-on-error: true
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4.2.5
         with:
