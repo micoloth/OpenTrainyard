@@ -14,6 +14,7 @@
     
     
     
+    
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon.ico">
     <style>
@@ -73,7 +74,7 @@ body {
     font-family: 'Oswald', sans-serif;
 }</style>
     <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
-<link rel="modulepreload" href="OpenTrainyard/trainyard-5dd3f105b17be89b.js" crossorigin="anonymous" integrity="sha384-dYW5kBQ5RGCnvqq2ZvEYL7TyT3TaeJmTQnutLhM0tr8e8a96jw89AkqrsrTFZT8l"><link rel="preload" href="OpenTrainyard/trainyard-5dd3f105b17be89b_bg.wasm" crossorigin="anonymous" integrity="sha384-WuhprsiJlaB9M0yXRxMPtB2NKY/+5pTv5JG2wJO5hKr0zE81E1FexZzL4oZFC4Ay" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/OpenTrainyard/trainyard-ba4e457382ad16eb.js" crossorigin="anonymous" integrity="sha384-aHtiyY47YePSbqD1mUu7EsvO/7eq9MigYsE3lyNdDbuQU463+PI1a2JsIZPG+ele"><link rel="preload" href="/OpenTrainyard/trainyard-ba4e457382ad16eb_bg.wasm" crossorigin="anonymous" integrity="sha384-Istw/Xo66oT4U/VNqMvsm7TmIRkGZWjYuL1ScAYvtDBFmhmXJP/L96o+oAj5E8n5" as="fetch" type="application/wasm"></head>
 
 <body>
     <script>// Insert hack to make sound autoplay on Chrome as soon as the user interacts with the tab:
@@ -208,8 +209,8 @@ body {
 
 
 <script type="module">
-import init, * as bindings from 'OpenTrainyard/trainyard-5dd3f105b17be89b.js';
-const wasm = await init({ module_or_path: 'OpenTrainyard/trainyard-5dd3f105b17be89b_bg.wasm' });
+import init, * as bindings from '/OpenTrainyard/trainyard-ba4e457382ad16eb.js';
+const wasm = await init({ module_or_path: '/OpenTrainyard/trainyard-ba4e457382ad16eb_bg.wasm' });
 
 
 window.wasmBindings = bindings;
