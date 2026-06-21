@@ -1,6 +1,6 @@
 {
-	"short_name": "Zelda",
-  	"name": "The Legend of Zelda",
+	"short_name": "TrainYard",
+  	"name": "TrainYard",
 	"display": "fullscreen",
-	"orientation": "portrait",
+	"orientation": "portrait"
 }
