@@ -158,7 +158,7 @@ pub fn will_collide(t: & Tile, s1: Side, s2: Side) -> bool {
         Tile::SingleTrackTile{track} => track_has(*track, s1) && track_has(*track, s2),
         Tile::TrackTile{toptrack, bottrack} =>
             (track_has(*toptrack, s1) && track_has(*toptrack, s2)) ||
-            (track_has(*bottrack, s1) && track_has(*bottrack, s2)),      
+            (track_has(*bottrack, s1) && track_has(*bottrack, s2) && is_cross(t)),      
         _ => false,
     }
 }
